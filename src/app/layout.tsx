@@ -14,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-Hant-TW">
-      <body>{children}</body>
+      <body className="m-4 h-screen">{children}</body>
     </html>
   );
 }
