@@ -9,6 +9,93 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "postgresql" // Edit me if you're not using Postgres
   url      = env("DATABASE_URL")
+}
+
+// 玩家資料
+model Player {
+  player_id    String  @id @default(uuid()) @db.Uuid
+  name         String // 可以從opass拿預設
+  avatar       String?
+  linktree     String
+  stage        Int     @default(0) // 已通過關卡數
+  currentStage String? // 關卡ID
+}
+
+// 隊伍資料
+model Team {
+  team_id    String @id @default(uuid()) @db.Uuid
+  name       String
+  player1_id String @unique @db.Uuid
+  player2_id String @unique @db.Uuid
+  player3_id String @unique @db.Uuid
+  player4_id String @unique @db.Uuid
+}
+
+// TODO: 碎片資料)
+model Fragment {
+  fragment_id String @id @default(uuid()) @db.Uuid
+}
+
+model PlayerFragment {
+  fragment_id String @id @db.Uuid
+  player_id   String @db.Uuid
+  type        String
+  amount      Int
+}
+
+// 排行榜
+model PlayerScoreboard {
+  player_id String @id @db.Uuid
+  score     Int
+}
+
+model TeamScoreboard {
+  team_id String @id @db.Uuid
+  score   Int
+}
+
+// TODO: 成就
+model Achievement {
+  achievement_id String @id @default(uuid()) @db.Uuid
+  prize          Int
+}
+
+// ? 聯合主鍵
+model AchievementStatus {
+  achievement_id String @id @default(uuid()) @db.Uuid
+  player_id      String @db.Uuid
+}
+
+// TODO: 攤位
+model Booth {
+  booth_id String @id @default(uuid()) @db.Uuid
+  name     String
+  x        Int
+  y        Int
+  z        Int
+}
+
+// 關卡ID
+model Stage {
+  stage_id      String @id @default(uuid()) @db.Uuid
+  floor         Int
+  start_x       Int    @default(0)
+  start_y       Int    @default(0)
+  start_z       Int    @default(0)
+  end_x         Int    @default(0)
+  end_y         Int    @default(0)
+  end_z         Int    @default(0)
+  size          Int    @default(0)
+  blocker_count Int    @default(0)
+}
+
+// 障礙物
+model Blocker {
+  blocker_id String @id @default(uuid()) @db.Uuid
+  stage_id   String @db.Uuid
+  x          Int
+  y          Int
+  z          Int
 }
