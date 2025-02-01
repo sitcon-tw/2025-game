@@ -43,14 +43,20 @@ jobs:
       - name: Build with Next.js
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
 
+      - name: Get version from package.json
+        id: get_version
+        run: |
+          VERSION=$(jq -r '.version' package.json)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.sha }}
-          release_name: Release ${{ github.sha }}
+          tag_name: v${{ env.VERSION }}
+          release_name: Release v${{ env.VERSION }}
           draft: false
           prerelease: false
 
