@@ -17,15 +17,13 @@ jobs:
         id: detect-package-manager
         run: |
           if [ -f "${{ github.workspace }}/yarn.lock" ]; then
-            echo "manager=yarn" >> $GITHUB_OUTPUT
-            echo "command=install" >> $GITHUB_OUTPUT
-            echo "runner=yarn" >> $GITHUB_OUTPUT
-            exit 0
+            echo "manager=yarn" >> "$GITHUB_OUTPUT"
+            echo "command=install" >> "$GITHUB_OUTPUT"
+            echo "runner=yarn" >> "$GITHUB_OUTPUT"
           elif [ -f "${{ github.workspace }}/package.json" ]; then
-            echo "manager=npm" >> $GITHUB_OUTPUT
-            echo "command=ci" >> $GITHUB_OUTPUT
-            echo "runner=npx --no-install" >> $GITHUB_OUTPUT
-            exit 0
+            echo "manager=npm" >> "$GITHUB_OUTPUT"
+            echo "command=ci" >> "$GITHUB_OUTPUT"
+            echo "runner=npx --no-install" >> "$GITHUB_OUTPUT"
           else
             echo "Unable to determine package manager"
             exit 1
@@ -41,13 +39,28 @@ jobs:
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
 
       - name: Build with Next.js
-        run: ${{ steps.detect-package-manager.outputs.runner }} build
+        env:
+          API_SECRET_KEY: ${{ secrets.API_SECRET_KEY }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+        run: ${{ steps.detect-package-manager.outputs.runner }} next build
 
       - name: Get version from package.json
         id: get_version
         run: |
           VERSION=$(jq -r '.version' package.json)
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Check version for prerelease
+        id: check_version
+        run: |
+          # 從 $VERSION 取出 major 版號
+          major=$(echo "$VERSION" | cut -d'.' -f1)
+          echo "Detected major version: $major"
+          if [ "$major" -lt 1 ]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Prepare production package
         run: |
@@ -61,22 +74,21 @@ jobs:
           [ -f example.env ] && cp example.env production/ || true
 
       - name: Compress production package
-        run: |
-          tar --exclude='./node_modules' --exclude='./.git' -czf production.tar.gz production
+        run: tar --exclude='./node_modules' --exclude='./.git' -czf production.tar.gz production
 
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: actions/create-release@v1.1.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: v${{ env.VERSION }}
-          release_name: Release v${{ env.VERSION }}
+          release_name: v${{ env.VERSION }}
           draft: false
-          prerelease: false
+          prerelease: ${{ steps.check_version.outputs.prerelease }}
 
       - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@v1.1.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
