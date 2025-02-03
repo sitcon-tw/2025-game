@@ -36,13 +36,27 @@ const QrCodeScanner = ({
   useEffect(() => {
     if (cameraId) {
       const qrScanner = new Html5Qrcode(qrcodeRegionId); // 綁定掃描器的 DOM 元素
-      qrScanner
-        .start(cameraId, config, qrCodeSuccessCallback, () => {})
-        .catch((err) => console.error("Failed to start QR Scanner:", err));
+      // qrScanner
+      //   .start(cameraId, config, qrCodeSuccessCallback, () => {})
+      //   .catch((err) => console.error("Failed to start QR Scanner:", err));
+      qrScanner.start(
+        { facingMode: "environment" },
+        config,
+        qrCodeSuccessCallback,
+        () => {},
+      );
     }
   }, [cameraId, qrCodeSuccessCallback]);
 
-  return <>{cameraId ? <div id={qrcodeRegionId} /> : null}</>;
+  return (
+    <>
+      {cameraId ? (
+        <div id={qrcodeRegionId} />
+      ) : (
+        <div className="bg-black"></div>
+      )}
+    </>
+  );
   // TODO:: 還沒拿取到cameraId 會出現空白，寫一個skeleton
 };
 
