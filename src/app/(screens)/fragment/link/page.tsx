@@ -1,7 +1,10 @@
 "use client";
-import Html5QrcodePlugin from "@/components/Html5QrcodePlugin";
+import QrCodeScanner from "@/components/QrCodeScanner";
+import { Html5QrcodeScannerConfig } from "html5-qrcode/esm/html5-qrcode-scanner";
+import { Html5QrcodeResult } from "html5-qrcode";
+import { LogOut } from "lucide-react";
 export default function FragmentPage() {
-  const onNewScanResult = (data: string) => {
+  function onScanSuccess(decodedText: string) {
     // 拿到QRcode掃描結果應該要包含
     // {
     //   "playerId": "1234567890",
@@ -9,17 +12,15 @@ export default function FragmentPage() {
     // }
     // 拿到後去打API更新分享的板塊資料
     // 有可能要做身分驗證?
-    console.log(data);
-  };
+    console.log(decodedText);
+  }
+
   return (
     <>
-      <p>板塊頁面</p>
-      <Html5QrcodePlugin
-        fps={10}
-        qrbox={250}
-        disableFlip={false}
-        qrCodeSuccessCallback={onNewScanResult}
-      />
+      <div className="w-full">
+        <QrCodeScanner qrCodeSuccessCallback={onScanSuccess} />
+        <LogOut className="absolute right-6 top-6 z-20" size={48} />
+      </div>
     </>
   );
 }
