@@ -28,7 +28,9 @@ const QrCodeScanner = ({
         }
       })
       .catch((error) => {
-        console.error("Failed to get cameras. ", error);
+        // console.error("Failed to get cameras. ", error);
+        console.log("permission denied");
+
         // TODO::如果有人不給權限 彈出toast 或是彈出提示框再次索取權限
       });
   }, []);

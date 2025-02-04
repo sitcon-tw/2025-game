@@ -11,9 +11,9 @@ export default function Layout({
   const pathname = usePathname();
 
   return (
-    <div className="relative h-full">
-      <div className="w-full">{children}</div>
-      <section className="absolute bottom-0 flex w-full gap-[2px]">
+    <div className="flex h-full w-full flex-col">
+      <div className="w-full flex-1 overflow-y-scroll">{children}</div>
+      <section className="flex w-full gap-[2px]">
         <InnerBarItem href="/fragment/link" name="玩家連結" />
         <InnerBarItem href="/fragment/share" name="計畫共享" />
         <InnerBarItem href="/fragment/achievements" name="成就解鎖" />

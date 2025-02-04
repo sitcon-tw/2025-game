@@ -7,9 +7,11 @@ type block = {
 
 const Block = ({ type, quentity }: block) => {
   return (
-    <div className="flex items-end">
+    <div className="relative flex items-end">
       <img src="https://picsum.photos/50/50" alt={`${type}_block`} />
-      <p>*{quentity}</p>
+      <p className="absolute bottom-0 right-0 translate-x-[100%]">
+        *{quentity}
+      </p>
     </div>
   );
 };

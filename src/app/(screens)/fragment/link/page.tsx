@@ -23,24 +23,32 @@ export default function FragmentPage() {
     },
     {
       type: "4",
-      quentity: 9,
+      quentity: 96,
     },
     {
       type: "7",
       quentity: 12,
     },
   ];
+  // TODO:: 使用useEffect去fetch sharedBlocks資料
+  const sharedBlocks = [
+    { playerAvatar: "https://picsum.photos/id/1/50/50", blocks: testBlocks },
+    { playerAvatar: "https://picsum.photos/id/2/50/50", blocks: testBlocks },
+    { playerAvatar: "https://picsum.photos/id/3/50/50", blocks: testBlocks },
+    { playerAvatar: "https://picsum.photos/id/4/50/50", blocks: testBlocks },
+  ];
 
   return (
-    <>
+    <div className="h-full">
       <section className="min-h-[100vw] w-full">
         <QrCodeScanner qrCodeSuccessCallback={onScanSuccess} />
         <LogOut className="absolute right-6 top-6 z-20" size={48} />
       </section>
-      <section className="flex justify-between p-4">
+      <hr className="h-1 bg-gray-500" />
+      <section className="flex justify-between px-6 py-4">
         <div className="flex flex-col justify-between">
           <h3>我的玩家連結板塊</h3>
-          <div className="flex w-full justify-between gap-4">
+          <div className="flex gap-8">
             {testBlocks.map((block, index) => (
               <Block key={index} type={block.type} quentity={block.quentity} />
             ))}
@@ -57,7 +65,29 @@ export default function FragmentPage() {
         </div>
       </section>
       <hr className="h-1 bg-gray-500" />
-      <section></section>
-    </>
+      <section className="flex flex-col justify-between gap-4 px-6 py-4">
+        <h3>獲得的板塊</h3>
+        <div className="flex flex-col gap-4">
+          {sharedBlocks.map((sharedBlock) => (
+            <div key={sharedBlock.playerAvatar} className="flex gap-8">
+              <img
+                src={sharedBlock.playerAvatar}
+                alt="Player avatar"
+                className="rounded-full"
+              />
+              <div className="flex gap-10">
+                {sharedBlock.blocks.map((block, index) => (
+                  <Block
+                    key={index}
+                    type={block.type}
+                    quentity={block.quentity}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
   );
 }
