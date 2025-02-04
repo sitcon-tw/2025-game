@@ -140,8 +140,6 @@ export default function FragmentPage() {
         }
       });
     });
-
-    console.log(sharingBlocks);
   }, [sharingBlocks]);
 
   const onScanSuccess = (decodedText: string) => {
