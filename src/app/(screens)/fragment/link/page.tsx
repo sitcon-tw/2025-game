@@ -111,36 +111,6 @@ const myBlocks = [
 ];
 export default function FragmentPage() {
   const [popupType, setPopupType] = useState<"qrcode" | "edit" | null>(null);
-  const [qrcodePayload, setQrcodePayload] = useState<string>("");
-  const [sharingBlocks, setSharingBlocks] = useState<SharingBlock[]>([]);
-  const [displayBlocks, setDisplayBlocks] =
-    useState<DisplayBlock[]>(initialDisplayBlocks);
-
-  useEffect(() => {
-    // 將sharingBlocks 轉換成字串存到qrcodePayload
-    const payload = {
-      playerId: "1234567890",
-      blocks: sharingBlocks,
-    };
-    setQrcodePayload(JSON.stringify(payload));
-
-    // 根據sharingBlocks 的每一項的type 去更新 displayBlocks對應type的數量
-
-    setDisplayBlocks((prevBlocks) => {
-      return prevBlocks.map((block) => {
-        // 判斷是否有對應的type
-        const shBlock = sharingBlocks.find(
-          (shBlock) => shBlock.type === block.type,
-        );
-
-        if (shBlock) {
-          return { ...block, quantity: shBlock.quantity };
-        } else {
-          return { ...block, quantity: 0 };
-        }
-      });
-    });
-  }, [sharingBlocks]);
 
   const onScanSuccess = (decodedText: string) => {
     // 拿到QRcode掃描結果應該要包含
@@ -153,68 +123,6 @@ export default function FragmentPage() {
     // 後端要驗證對方是否有足夠的對應板塊可以分享 && 不可大於3塊
     // 還可以增加掃到了之後的UI提示
     console.log(decodedText);
-  };
-  const getIsAddable = (type: string) => {
-    const myBlock = myBlocks.find((block) => block.type === type);
-    const myBlockQuantity = myBlock ? myBlock.quantity : 0;
-
-    const sharedBlock = sharingBlocks.find((block) => block.type === type);
-    const sharedQuantity = sharedBlock ? sharedBlock.quantity : 0;
-
-    const totalQuantity = sharingBlocks.reduce(
-      (acc, curr) => acc + curr.quantity,
-      0,
-    );
-
-    if (totalQuantity >= 3) return false;
-
-    if (sharedQuantity >= myBlockQuantity) return false;
-
-    return true;
-  };
-
-  const getIsSubtractable = (type: string) => {
-    const sharedBlock = sharingBlocks.find((block) => block.type === type);
-    const sharedQuantity = sharedBlock ? sharedBlock.quantity : 0;
-
-    if (sharedQuantity <= 0) return false;
-    return true;
-  };
-
-  const handleAddBlock = (type: string) => {
-    if (!getIsAddable(type)) return;
-
-    setSharingBlocks((prevBlocks) => {
-      if (!prevBlocks.find((block) => block.type === type)) {
-        return [...prevBlocks, { type, quantity: 1 }];
-      } else {
-        return prevBlocks.map((block) =>
-          block.type === type
-            ? { ...block, quantity: block.quantity + 1 }
-            : block,
-        );
-      }
-    });
-  };
-
-  const handleSubtractBlock = (type: string) => {
-    if (!getIsSubtractable(type)) return;
-
-    // 檢查對應type的sharingBlock 如果數量大於0 則正常減去 如果減完為0則移除那一項
-    setSharingBlocks((prevBlocks) => {
-      const block = prevBlocks.find((block) => block.type === type);
-      if (!block) return prevBlocks;
-      if (block.quantity - 1 === 0) {
-        return prevBlocks.filter((block) => block.type !== type);
-      } else {
-        return prevBlocks.map((block) => {
-          return {
-            ...block,
-            quantity: block.quantity - 1,
-          };
-        });
-      }
-    });
   };
 
   // TODO:: 使用useEffect去fetch sharedBlocks資料
@@ -282,6 +190,113 @@ export default function FragmentPage() {
         </div>
       </section>
 
+      <Popup popupType={popupType} setPopupType={setPopupType} />
+    </div>
+  );
+}
+
+const Popup = ({
+  popupType,
+  setPopupType,
+}: {
+  popupType: "edit" | "qrcode" | null;
+  setPopupType: React.Dispatch<React.SetStateAction<"edit" | "qrcode" | null>>;
+}) => {
+  const [qrcodePayload, setQrcodePayload] = useState<string>("");
+  const [sharingBlocks, setSharingBlocks] = useState<SharingBlock[]>([]);
+  const [displayBlocks, setDisplayBlocks] =
+    useState<DisplayBlock[]>(initialDisplayBlocks);
+
+  useEffect(() => {
+    // 將sharingBlocks 轉換成字串存到qrcodePayload
+    const payload = {
+      playerId: "1234567890",
+      blocks: sharingBlocks,
+    };
+    setQrcodePayload(JSON.stringify(payload));
+
+    // 根據sharingBlocks 的每一項的type 去更新 displayBlocks對應type的數量
+
+    setDisplayBlocks((prevBlocks) => {
+      return prevBlocks.map((block) => {
+        // 判斷是否有對應的type
+        const shBlock = sharingBlocks.find(
+          (shBlock) => shBlock.type === block.type,
+        );
+
+        if (shBlock) {
+          return { ...block, quantity: shBlock.quantity };
+        } else {
+          return { ...block, quantity: 0 };
+        }
+      });
+    });
+  }, [sharingBlocks]);
+
+  const getIsAddable = (type: string) => {
+    const myBlock = myBlocks.find((block) => block.type === type);
+    const myBlockQuantity = myBlock ? myBlock.quantity : 0;
+
+    const sharedBlock = sharingBlocks.find((block) => block.type === type);
+    const sharedQuantity = sharedBlock ? sharedBlock.quantity : 0;
+
+    const totalQuantity = sharingBlocks.reduce(
+      (acc, curr) => acc + curr.quantity,
+      0,
+    );
+
+    if (totalQuantity >= 3) return false;
+
+    if (sharedQuantity >= myBlockQuantity) return false;
+
+    return true;
+  };
+
+  const getIsSubtractable = (type: string) => {
+    const sharedBlock = sharingBlocks.find((block) => block.type === type);
+    const sharedQuantity = sharedBlock ? sharedBlock.quantity : 0;
+
+    if (sharedQuantity <= 0) return false;
+    return true;
+  };
+
+  const handleAddBlock = (type: string) => {
+    if (!getIsAddable(type)) return;
+
+    setSharingBlocks((prevBlocks) => {
+      if (!prevBlocks.find((block) => block.type === type)) {
+        return [...prevBlocks, { type, quantity: 1 }];
+      } else {
+        return prevBlocks.map((block) =>
+          block.type === type
+            ? { ...block, quantity: block.quantity + 1 }
+            : block,
+        );
+      }
+    });
+  };
+
+  const handleSubtractBlock = (type: string) => {
+    if (!getIsSubtractable(type)) return;
+
+    // 檢查對應type的sharingBlock 如果數量大於0 則正常減去 如果減完為0則移除那一項
+    setSharingBlocks((prevBlocks) => {
+      const block = prevBlocks.find((block) => block.type === type);
+      if (!block) return prevBlocks;
+      if (block.quantity - 1 === 0) {
+        return prevBlocks.filter((block) => block.type !== type);
+      } else {
+        return prevBlocks.map((block) => {
+          return {
+            ...block,
+            quantity: block.quantity - 1,
+          };
+        });
+      }
+    });
+  };
+  return (
+    <>
       {/* TODO:framer motion 加彈出和消失動畫 */}
       {/* 彈出提示框 */}
       {popupType === "qrcode" && (
@@ -332,6 +347,6 @@ export default function FragmentPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
-}
+};
