@@ -2,34 +2,223 @@
 import QrCodeScanner from "@/components/QrCodeScanner";
 import { Html5QrcodeScannerConfig } from "html5-qrcode/esm/html5-qrcode-scanner";
 import { Html5QrcodeResult } from "html5-qrcode";
-import { LogOut, FilePenLine } from "lucide-react";
+import { LogOut, ChevronUp, ChevronDown, FilePenLine, X } from "lucide-react";
 import Block from "@/components/Block";
+import { useEffect, useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
+
+type DisplayBlock = {
+  type: string;
+  blockImg: string;
+  quantity: number;
+};
+
+type SharingBlock = {
+  type: string;
+  quantity: number;
+};
+const initialDisplayBlocks = [
+  {
+    type: "0",
+    quantity: 0,
+    blockImg: "https://picsum.photos/id/1/50/50",
+  },
+  {
+    type: "1",
+    quantity: 0,
+    blockImg: "https://picsum.photos/id/1/50/50",
+  },
+  {
+    type: "2",
+    quantity: 0,
+    blockImg: "https://picsum.photos/id/1/50/50",
+  },
+  {
+    type: "3",
+    quantity: 0,
+    blockImg: "https://picsum.photos/id/1/50/50",
+  },
+  {
+    type: "4",
+    quantity: 0,
+    blockImg: "https://picsum.photos/id/1/50/50",
+  },
+  {
+    type: "5",
+    quantity: 0,
+    blockImg: "https://picsum.photos/id/1/50/50",
+  },
+  {
+    type: "6",
+    quantity: 0,
+    blockImg: "https://picsum.photos/id/1/50/50",
+  },
+  {
+    type: "7",
+    quantity: 0,
+    blockImg: "https://picsum.photos/id/1/50/50",
+  },
+];
+
+const testBlocks = [
+  {
+    type: "0",
+    quentity: 2,
+  },
+  {
+    type: "4",
+    quentity: 96,
+  },
+  {
+    type: "7",
+    quentity: 12,
+  },
+];
+
+const myBlocks = [
+  {
+    type: "0",
+    quantity: 1,
+  },
+  {
+    type: "1",
+    quantity: 2,
+  },
+  {
+    type: "2",
+    quantity: 3,
+  },
+  {
+    type: "3",
+    quantity: 4,
+  },
+  {
+    type: "4",
+    quantity: 1,
+  },
+  {
+    type: "5",
+    quantity: 1,
+  },
+  {
+    type: "6",
+    quantity: 1,
+  },
+  {
+    type: "7",
+    quantity: 1,
+  },
+];
 export default function FragmentPage() {
-  function onScanSuccess(decodedText: string) {
+  const [popupType, setPopupType] = useState<"qrcode" | "edit" | null>(null);
+  const [qrcodePayload, setQrcodePayload] = useState<string>("");
+  const [sharingBlocks, setSharingBlocks] = useState<SharingBlock[]>([]);
+  const [displayBlocks, setDisplayBlocks] =
+    useState<DisplayBlock[]>(initialDisplayBlocks);
+
+  useEffect(() => {
+    // 將sharingBlocks 轉換成字串存到qrcodePayload
+    const payload = {
+      playerId: "1234567890",
+      blocks: sharingBlocks,
+    };
+    setQrcodePayload(JSON.stringify(payload));
+
+    // 根據sharingBlocks 的每一項的type 去更新 displayBlocks對應type的數量
+
+    setDisplayBlocks((prevBlocks) => {
+      return prevBlocks.map((block) => {
+        // 判斷是否有對應的type
+        const shBlock = sharingBlocks.find(
+          (shBlock) => shBlock.type === block.type,
+        );
+
+        if (shBlock) {
+          return { ...block, quantity: shBlock.quantity };
+        } else {
+          return { ...block, quantity: 0 };
+        }
+      });
+    });
+
+    console.log(sharingBlocks);
+  }, [sharingBlocks]);
+
+  const onScanSuccess = (decodedText: string) => {
     // 拿到QRcode掃描結果應該要包含
     // {
     //   "playerId": "1234567890",
     //   "blocks":{ } 分享的板塊內容
     // }
+    // TODO::
     // 拿到後去打API更新分享的板塊資料
-    // 有可能要做身分驗證?
+    // 後端要驗證對方是否有足夠的對應板塊可以分享 && 不可大於3塊
+    // 還可以增加掃到了之後的UI提示
     console.log(decodedText);
-  }
+  };
+  const getIsAddable = (type: string) => {
+    const myBlock = myBlocks.find((block) => block.type === type);
+    const myBlockQuantity = myBlock ? myBlock.quantity : 0;
 
-  const testBlocks = [
-    {
-      type: "0",
-      quentity: 2,
-    },
-    {
-      type: "4",
-      quentity: 96,
-    },
-    {
-      type: "7",
-      quentity: 12,
-    },
-  ];
+    const sharedBlock = sharingBlocks.find((block) => block.type === type);
+    const sharedQuantity = sharedBlock ? sharedBlock.quantity : 0;
+
+    const totalQuantity = sharingBlocks.reduce(
+      (acc, curr) => acc + curr.quantity,
+      0,
+    );
+
+    if (totalQuantity >= 3) return false;
+
+    if (sharedQuantity >= myBlockQuantity) return false;
+
+    return true;
+  };
+
+  const getIsSubtractable = (type: string) => {
+    const sharedBlock = sharingBlocks.find((block) => block.type === type);
+    const sharedQuantity = sharedBlock ? sharedBlock.quantity : 0;
+
+    if (sharedQuantity <= 0) return false;
+    return true;
+  };
+
+  const handleAddBlock = (type: string) => {
+    if (!getIsAddable(type)) return;
+
+    setSharingBlocks((prevBlocks) => {
+      if (!prevBlocks.find((block) => block.type === type)) {
+        return [...prevBlocks, { type, quantity: 1 }];
+      } else {
+        return prevBlocks.map((block) =>
+          block.type === type
+            ? { ...block, quantity: block.quantity + 1 }
+            : block,
+        );
+      }
+    });
+  };
+
+  const handleSubtractBlock = (type: string) => {
+    if (!getIsSubtractable(type)) return;
+
+    // 檢查對應type的sharingBlock 如果數量大於0 則正常減去 如果減完為0則移除那一項
+    setSharingBlocks((prevBlocks) => {
+      const block = prevBlocks.find((block) => block.type === type);
+      if (!block) return prevBlocks;
+      if (block.quantity - 1 === 0) {
+        return prevBlocks.filter((block) => block.type !== type);
+      } else {
+        return prevBlocks.map((block) => {
+          return {
+            ...block,
+            quantity: block.quantity - 1,
+          };
+        });
+      }
+    });
+  };
+
   // TODO:: 使用useEffect去fetch sharedBlocks資料
   const sharedBlocks = [
     { playerAvatar: "https://picsum.photos/id/1/50/50", blocks: testBlocks },
@@ -39,7 +228,7 @@ export default function FragmentPage() {
   ];
 
   return (
-    <div className="h-full">
+    <div className="relative h-full">
       <section className="min-h-[100vw] w-full">
         <QrCodeScanner qrCodeSuccessCallback={onScanSuccess} />
         <LogOut className="absolute right-6 top-6 z-20" size={48} />
@@ -55,11 +244,17 @@ export default function FragmentPage() {
           </div>
         </div>
         <div className="flex w-[30%] flex-col gap-1 font-bold">
-          <button className="flex w-full items-center justify-start gap-2 rounded-md bg-[#4b5c6b] px-4 py-2 text-white">
+          <button
+            onClick={() => setPopupType("edit")}
+            className="flex w-full items-center justify-start gap-2 rounded-md bg-[#4b5c6b] px-4 py-2 text-white"
+          >
             <FilePenLine size={18} />
             <p>edit</p>
           </button>
-          <button className="flex w-full justify-start rounded-md bg-[#4b5c6b] p-2 px-4 text-white">
+          <button
+            onClick={() => setPopupType("qrcode")}
+            className="flex w-full justify-start rounded-md bg-[#4b5c6b] p-2 px-4 text-white"
+          >
             Qr-code
           </button>
         </div>
@@ -88,6 +283,57 @@ export default function FragmentPage() {
           ))}
         </div>
       </section>
+
+      {/* TODO:framer motion 加彈出和消失動畫 */}
+      {/* 彈出提示框 */}
+      {popupType === "qrcode" && (
+        <div className="absolute left-1/2 top-1/2 z-50 flex h-[50%] w-[80%] -translate-x-1/2 -translate-y-2/3 transform items-center justify-center rounded-lg border-2 border-[#6558f5] bg-white p-4 shadow-lg">
+          <X
+            onClick={() => setPopupType(null)}
+            className="absolute right-2 top-2"
+          />
+          <QRCodeSVG width={200} height={200} value={qrcodePayload} />
+        </div>
+      )}
+      {popupType === "edit" && (
+        <div className="absolute left-1/2 top-1/2 z-50 h-[50%] w-[80%] -translate-x-1/2 -translate-y-2/3 transform rounded-lg border-2 border-[#6558f5] bg-white p-8 shadow-lg">
+          <X
+            onClick={() => setPopupType(null)}
+            className="absolute right-2 top-2"
+          />
+          <div className="grid h-full w-full grid-cols-2 gap-y-2">
+            {displayBlocks.map((block, index) => (
+              <div
+                className={`flex items-center gap-1 ${index % 2 ? "justify-end" : "justify-start"}`}
+                key={block.type}
+              >
+                <img
+                  src={block.blockImg}
+                  className="h-[50px] w-[50px]"
+                  alt="Player avatar"
+                />
+                <div className="flex flex-col items-center">
+                  <ChevronUp
+                    className={
+                      getIsAddable(block.type) ? "text-black" : "text-gray-400"
+                    }
+                    onClick={() => handleAddBlock(block.type)}
+                  />
+                  <p>{block.quantity}</p>
+                  <ChevronDown
+                    className={
+                      getIsSubtractable(block.type)
+                        ? "text-black"
+                        : "text-gray-400"
+                    }
+                    onClick={() => handleSubtractBlock(block.type)}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
