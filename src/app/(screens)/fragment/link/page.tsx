@@ -140,7 +140,7 @@ export default function FragmentPage() {
         <LogOut className="absolute right-6 top-6 z-20" size={48} />
       </section>
       <hr className="h-1 bg-gray-500" />
-      <section className="flex justify-between px-6 py-4">
+      <section className="flex justify-between px-4 py-4">
         <div className="flex flex-col justify-between">
           <h3>我的玩家連結板塊</h3>
           <div className="flex gap-8">
@@ -166,7 +166,7 @@ export default function FragmentPage() {
         </div>
       </section>
       <hr className="h-1 bg-gray-500" />
-      <section className="flex flex-col justify-between gap-4 px-6 py-4">
+      <section className="flex flex-col justify-between gap-4 px-4 py-4">
         <h3>獲得的板塊</h3>
         <div className="flex flex-col gap-4">
           {sharedBlocks.map((sharedBlock) => (
@@ -300,7 +300,7 @@ const Popup = ({
       {/* TODO:framer motion 加彈出和消失動畫 */}
       {/* 彈出提示框 */}
       {popupType === "qrcode" && (
-        <div className="absolute left-1/2 top-1/2 z-50 flex h-[50%] w-[80%] -translate-x-1/2 -translate-y-2/3 transform items-center justify-center rounded-lg border-2 border-[#6558f5] bg-white p-4 shadow-lg">
+        <div className="absolute left-1/2 top-1/2 z-50 flex h-[70%] w-[80%] -translate-x-1/2 -translate-y-1/2 transform items-center justify-center rounded-lg border-2 border-[#6558f5] bg-white p-4 shadow-lg">
           <X
             onClick={() => setPopupType(null)}
             className="absolute right-2 top-2"
@@ -309,7 +309,7 @@ const Popup = ({
         </div>
       )}
       {popupType === "edit" && (
-        <div className="absolute left-1/2 top-1/2 z-50 h-[50%] w-[80%] -translate-x-1/2 -translate-y-2/3 transform rounded-lg border-2 border-[#6558f5] bg-white p-8 shadow-lg">
+        <div className="absolute left-1/2 top-1/2 z-50 h-[70%] w-[80%] -translate-x-1/2 -translate-y-1/2 transform rounded-lg border-2 border-[#6558f5] bg-white p-8 shadow-lg">
           <X
             onClick={() => setPopupType(null)}
             className="absolute right-2 top-2"
@@ -322,10 +322,10 @@ const Popup = ({
               >
                 <img
                   src={block.blockImg}
-                  className="h-[50px] w-[50px]"
+                  className="aspect-square h-[80%]"
                   alt="Player avatar"
                 />
-                <div className="flex flex-col items-center">
+                <div className="flex h-[80%] flex-col items-center justify-between">
                   <ChevronUp
                     className={
                       getIsAddable(block.type) ? "text-black" : "text-gray-400"
