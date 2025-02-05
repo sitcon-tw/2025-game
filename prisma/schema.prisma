@@ -15,60 +15,79 @@ datasource db {
 
 // 玩家資料
 model Player {
-  player_id    String  @id @default(uuid()) @db.Uuid
+  player_id    String              @id @default(uuid()) @db.Uuid
   name         String // 可以從opass拿預設
   avatar       String?
   linktree     String
-  stage        Int     @default(0) // 已通過關卡數
+  stage        Int                 @default(0) // 已通過關卡數
   currentStage String? // 關卡ID
+  team         Team?               @relation(fields: [team_id], references: [team_id])
+  team_id      String?             @db.Uuid
+  fragments    PlayerFragment[]
+  achievements AchievementStatus[]
+  scores       PlayerScoreboard?
 }
 
 // 隊伍資料
 model Team {
-  team_id    String @id @default(uuid()) @db.Uuid
+  team_id    String          @id @default(uuid()) @db.Uuid
   name       String
-  player1_id String @unique @db.Uuid
-  player2_id String @unique @db.Uuid
-  player3_id String @unique @db.Uuid
-  player4_id String @unique @db.Uuid
+  player1_id String          @unique @db.Uuid
+  player2_id String          @unique @db.Uuid
+  player3_id String          @unique @db.Uuid
+  player4_id String          @unique @db.Uuid
+  players    Player[]
+  scores     TeamScoreboard?
 }
 
-// TODO: 碎片資料)
+// 碎片資料
 model Fragment {
-  fragment_id String @id @default(uuid()) @db.Uuid
+  fragment_id String           @id @default(uuid()) @db.Uuid
+  players     PlayerFragment[]
 }
 
 model PlayerFragment {
-  fragment_id String @id @db.Uuid
-  player_id   String @db.Uuid
+  fragment_id String   @db.Uuid
+  player_id   String   @db.Uuid
   type        String
   amount      Int
+  player      Player   @relation(fields: [player_id], references: [player_id])
+  fragment    Fragment @relation(fields: [fragment_id], references: [fragment_id])
+
+  @@id([fragment_id, player_id])
 }
 
 // 排行榜
 model PlayerScoreboard {
   player_id String @id @db.Uuid
   score     Int
+  player    Player @relation(fields: [player_id], references: [player_id])
 }
 
 model TeamScoreboard {
   team_id String @id @db.Uuid
   score   Int
+  team    Team   @relation(fields: [team_id], references: [team_id])
 }
 
-// TODO: 成就
+// 成就
 model Achievement {
-  achievement_id String @id @default(uuid()) @db.Uuid
+  achievement_id String              @id @default(uuid()) @db.Uuid
   prize          Int
+  statuses       AchievementStatus[]
 }
 
-// ? 聯合主鍵
+// 成就狀態
 model AchievementStatus {
-  achievement_id String @id @default(uuid()) @db.Uuid
-  player_id      String @db.Uuid
+  achievement_id String      @db.Uuid
+  player_id      String      @db.Uuid
+  achievement    Achievement @relation(fields: [achievement_id], references: [achievement_id])
+  player         Player      @relation(fields: [player_id], references: [player_id])
+
+  @@id([achievement_id, player_id])
 }
 
-// TODO: 攤位
+// 攤位
 model Booth {
   booth_id String @id @default(uuid()) @db.Uuid
   name     String
@@ -79,16 +98,17 @@ model Booth {
 
 // 關卡ID
 model Stage {
-  stage_id      String @id @default(uuid()) @db.Uuid
+  stage_id      String    @id @default(uuid()) @db.Uuid
   floor         Int
-  start_x       Int    @default(0)
-  start_y       Int    @default(0)
-  start_z       Int    @default(0)
-  end_x         Int    @default(0)
-  end_y         Int    @default(0)
-  end_z         Int    @default(0)
-  size          Int    @default(0)
-  blocker_count Int    @default(0)
+  start_x       Int       @default(0)
+  start_y       Int       @default(0)
+  start_z       Int       @default(0)
+  end_x         Int       @default(0)
+  end_y         Int       @default(0)
+  end_z         Int       @default(0)
+  size          Int       @default(0)
+  blocker_count Int       @default(0)
+  blockers      Blocker[]
 }
 
 // 障礙物
@@ -98,4 +118,5 @@ model Blocker {
   x          Int
   y          Int
   z          Int
+  stage      Stage  @relation(fields: [stage_id], references: [stage_id])
 }
