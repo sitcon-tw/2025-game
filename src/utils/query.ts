@@ -17,9 +17,9 @@ const query = {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         switch (error.code) {
           case "P2002":
-            return conflict("Player already exists");
+            return conflict("Player already exists.");
           case "P2003":
-            return badRequest("Player already exists");
+            return badRequest("Foreign Key not allow.");
           default:
             return internalServerError();
         }
