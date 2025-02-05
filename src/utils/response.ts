@@ -37,10 +37,11 @@ const response = {
    * @description
    * @author 星月なるこ
    * @date 2025-01-22 22:50:00
+   * @param {string} message
    * @return {NextResponse}
    */
-  forbidden: (): NextResponse => {
-    return new NextResponse(null, { status: 403 });
+  forbidden: (message?: string): NextResponse => {
+    return new NextResponse(message ? message : null, { status: 403 });
   },
 
   /**
