@@ -2,7 +2,7 @@
 import QrCodeScanner from "@/components/QrCodeScanner";
 import { Html5QrcodeScannerConfig } from "html5-qrcode/esm/html5-qrcode-scanner";
 import { Html5QrcodeResult } from "html5-qrcode";
-import { LogOut, ChevronUp, ChevronDown, FilePenLine, X } from "lucide-react";
+import { ChevronUp, ChevronDown, FilePenLine, X } from "lucide-react";
 import Block from "@/components/Block";
 import { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
@@ -63,18 +63,18 @@ const initialDisplayBlocks = [
 const testBlocks = [
   {
     type: "0",
-    quentity: 2,
+    quantity: 2,
   },
   {
     type: "4",
-    quentity: 96,
+    quantity: 96,
   },
   {
     type: "7",
-    quentity: 12,
+    quantity: 12,
   },
 ];
-
+// TODO:: get blocks from API
 const myBlocks = [
   {
     type: "0",
@@ -109,7 +109,7 @@ const myBlocks = [
     quantity: 1,
   },
 ];
-export default function FragmentPage() {
+export default function LinkPage() {
   const [popupType, setPopupType] = useState<"qrcode" | "edit" | null>(null);
 
   const onScanSuccess = (decodedText: string) => {
@@ -122,10 +122,11 @@ export default function FragmentPage() {
     // 拿到後去打API更新分享的板塊資料
     // 後端要驗證對方是否有足夠的對應板塊可以分享 && 不可大於3塊
     // 還可以增加掃到了之後的UI提示
+    // 要注意這裡會一直偵測所以要小心不要一直打API
     console.log(decodedText);
   };
 
-  // TODO:: 使用useEffect去fetch sharedBlocks資料
+  // TODO:: 使用useEffect去fetch sharedBlocks資料 getSharedBlocks from API
   const sharedBlocks = [
     { playerAvatar: "https://picsum.photos/id/1/50/50", blocks: testBlocks },
     { playerAvatar: "https://picsum.photos/id/2/50/50", blocks: testBlocks },
@@ -134,10 +135,9 @@ export default function FragmentPage() {
   ];
 
   return (
-    <div className="relative h-full">
+    <div className="relative pb-6">
       <section className="min-h-[100vw] w-full">
         <QrCodeScanner qrCodeSuccessCallback={onScanSuccess} />
-        <LogOut className="absolute right-6 top-6 z-20" size={48} />
       </section>
       <hr className="h-1 bg-gray-500" />
       <section className="flex justify-between px-4 py-4">
@@ -145,7 +145,7 @@ export default function FragmentPage() {
           <h3>我的玩家連結板塊</h3>
           <div className="flex gap-8">
             {testBlocks.map((block, index) => (
-              <Block key={index} type={block.type} quentity={block.quentity} />
+              <Block key={index} type={block.type} quantity={block.quantity} />
             ))}
           </div>
         </div>
@@ -181,7 +181,7 @@ export default function FragmentPage() {
                   <Block
                     key={index}
                     type={block.type}
-                    quentity={block.quentity}
+                    quantity={block.quantity}
                   />
                 ))}
               </div>
