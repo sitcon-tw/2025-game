@@ -321,10 +321,10 @@ const Popup = ({
               >
                 <img
                   src={block.blockImg}
-                  className="aspect-square h-[80%]"
+                  className="aspect-square h-[60%]"
                   alt="Player avatar"
                 />
-                <div className="flex h-[80%] flex-col items-center justify-between">
+                <div className="flex flex-col items-center justify-between">
                   <ChevronUp
                     className={
                       getIsAddable(block.type) ? "text-black" : "text-gray-400"
