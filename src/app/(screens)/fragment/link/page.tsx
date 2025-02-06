@@ -1,7 +1,6 @@
 "use client";
 import QrCodeScanner from "@/components/QrCodeScanner";
-import { Html5QrcodeScannerConfig } from "html5-qrcode/esm/html5-qrcode-scanner";
-import { Html5QrcodeResult } from "html5-qrcode";
+
 import { ChevronUp, ChevronDown, FilePenLine, X } from "lucide-react";
 import Block from "@/components/Block";
 import { useEffect, useState } from "react";

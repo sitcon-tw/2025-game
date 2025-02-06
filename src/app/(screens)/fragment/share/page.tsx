@@ -62,7 +62,10 @@ export default function SharePage() {
         </div>
         <div className="flex flex-col gap-2">
           {planBlocks.map((planBlocks) => (
-            <div className="flex flex-col gap-4 p-2">
+            <div
+              key={planBlocks.playerName}
+              className="flex flex-col gap-4 p-2"
+            >
               <p>{planBlocks.playerName}的板塊</p>
               <div className="grid grid-cols-4 gap-4">
                 {planBlocks.blocks.map((planBlock) => (
