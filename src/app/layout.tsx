@@ -14,7 +14,9 @@ export default function RootLayout({
   return (
     <html lang="zh-Hant-TW">
       <body className="flex h-screen flex-col overflow-hidden">
-        <div className="h-full w-full">{children}</div>
+        <div className="relative h-full w-full overflow-y-scroll">
+          {children}
+        </div>
         <div className="w-full">
           <footer className="flex border-t-2 border-gray-400 bg-gray-200 px-2 py-2 text-center text-sm text-gray-600">
             <NavbarItem href="/" name="遊戲" Icon={Gamepad} />
@@ -38,7 +40,12 @@ function NavbarItem({
   Icon: LucideIcon;
 }>) {
   const pathname = usePathname();
-  const isActive = pathname === href;
+  const getIsActive = () => {
+    if (href === "/" && pathname !== "/") return false;
+    return pathname.includes(href);
+  };
+  const isActive = getIsActive();
+
   return (
     <Link href={href} className="flex-1 px-4">
       <div
