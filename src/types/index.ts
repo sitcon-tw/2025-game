@@ -7,6 +7,8 @@
  */
 
 export type PlayerData = {
-  name: string;
-  linktree: string;
+  token: string; //
+  name: string; // data.user_id
+  avatar?: string; //
+  linktree?: string; //
 };
