@@ -15,10 +15,10 @@ datasource db {
 
 // 玩家資料
 model Player {
-  player_id    String              @id @default(uuid()) @db.Uuid
-  name         String // 可以從opass拿預設
+  player_id    String              @id // 廢棄 改用kktix_token
+  name         String // 抓kktix的name
   avatar       String?
-  linktree     String
+  linktree     String?
   stage        Int                 @default(0) // 已通過關卡數
   currentStage String? // 關卡ID
   team         Team?               @relation(fields: [team_id], references: [team_id])
@@ -28,14 +28,21 @@ model Player {
   scores       PlayerScoreboard?
 }
 
+model PlayerBooth {
+  player_id String
+  booth_id  String @db.Uuid
+
+  @@id([player_id, booth_id])
+}
+
 // 隊伍資料
 model Team {
   team_id    String          @id @default(uuid()) @db.Uuid
   name       String
-  player1_id String          @unique @db.Uuid
-  player2_id String          @unique @db.Uuid
-  player3_id String          @unique @db.Uuid
-  player4_id String          @unique @db.Uuid
+  player1_id String          @unique
+  player2_id String          @unique
+  player3_id String          @unique
+  player4_id String          @unique
   players    Player[]
   scores     TeamScoreboard?
 }
@@ -48,7 +55,7 @@ model Fragment {
 
 model PlayerFragment {
   fragment_id String   @db.Uuid
-  player_id   String   @db.Uuid
+  player_id   String
   type        String
   amount      Int
   player      Player   @relation(fields: [player_id], references: [player_id])
@@ -59,7 +66,7 @@ model PlayerFragment {
 
 // 排行榜
 model PlayerScoreboard {
-  player_id String @id @db.Uuid
+  player_id String @id
   score     Int
   player    Player @relation(fields: [player_id], references: [player_id])
 }
@@ -80,20 +87,17 @@ model Achievement {
 // 成就狀態
 model AchievementStatus {
   achievement_id String      @db.Uuid
-  player_id      String      @db.Uuid
+  player_id      String      @db.Text
   achievement    Achievement @relation(fields: [achievement_id], references: [achievement_id])
   player         Player      @relation(fields: [player_id], references: [player_id])
 
   @@id([achievement_id, player_id])
 }
 
-// 攤位
+// 攤位(Complete)
 model Booth {
   booth_id String @id @default(uuid()) @db.Uuid
   name     String
-  x        Int
-  y        Int
-  z        Int
 }
 
 // 關卡ID
