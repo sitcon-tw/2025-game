@@ -8,8 +8,10 @@ const query = {
     try {
       const player = await prisma.player.create({
         data: {
+          player_id: playerData.token,
           name: playerData.name,
-          linktree: playerData.linktree,
+          avatar: playerData.avatar ?? "",
+          linktree: playerData.linktree ?? "",
         },
       });
       return player.player_id;
@@ -33,6 +35,8 @@ const query = {
     if (!player) return;
     return player;
   },
-  getStage: async () => {},
+  getStage: async (stageId: string) => {},
+  getTeam: async (teamId: string) => {},
+  setPlayer: async () => {},
 };
 export const { createPlayer, getPlayer, getStage } = query;
