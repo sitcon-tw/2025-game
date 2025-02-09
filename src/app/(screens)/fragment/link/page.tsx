@@ -1,9 +1,8 @@
 "use client";
 import QrCodeScanner from "@/components/QrCodeScanner";
-
 import { ChevronUp, ChevronDown, FilePenLine, X } from "lucide-react";
 import Block from "@/components/Block";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { QRCodeSVG } from "qrcode.react";
 
 type DisplayBlock = {
@@ -108,10 +107,10 @@ const myBlocks = [
     quantity: 1,
   },
 ];
+
 export default function LinkPage() {
   const [popupType, setPopupType] = useState<"qrcode" | "edit" | null>(null);
-
-  const onScanSuccess = (decodedText: string) => {
+  const onScanSuccess = useCallback((decodedText: string) => {
     // 拿到QRcode掃描結果應該要包含
     // {
     //   "playerId": "1234567890",
@@ -123,7 +122,7 @@ export default function LinkPage() {
     // 還可以增加掃到了之後的UI提示
     // 要注意這裡會一直偵測所以要小心不要一直打API
     console.log(decodedText);
-  };
+  }, []);
 
   // TODO:: 使用useEffect去fetch sharedBlocks資料 getSharedBlocks from API
   const sharedBlocks = [
@@ -134,63 +133,68 @@ export default function LinkPage() {
   ];
 
   return (
-    <div className="relative pb-6">
-      <section className="min-h-[100vw] w-full">
-        <QrCodeScanner qrCodeSuccessCallback={onScanSuccess} />
-      </section>
-      <hr className="h-1 bg-gray-500" />
-      <section className="flex justify-between px-4 py-4">
-        <div className="flex flex-col justify-between">
-          <h3>我的玩家連結板塊</h3>
-          <div className="flex gap-8">
-            {testBlocks.map((block, index) => (
-              <Block key={index} type={block.type} quantity={block.quantity} />
+    <>
+      <div className="relative pb-6">
+        <section className="aspect-square w-full">
+          <QrCodeScanner qrCodeSuccessCallback={onScanSuccess} />
+        </section>
+        <hr className="h-1 bg-gray-500" />
+        <section className="flex justify-between px-4 py-4">
+          <div className="flex flex-col justify-between">
+            <h3>我的玩家連結板塊</h3>
+            <div className="flex gap-8">
+              {testBlocks.map((block, index) => (
+                <Block
+                  key={index}
+                  type={block.type}
+                  quantity={block.quantity}
+                />
+              ))}
+            </div>
+          </div>
+          <div className="flex w-[30%] flex-col gap-1 font-bold">
+            <button
+              onClick={() => setPopupType("edit")}
+              className="flex w-full items-center justify-start gap-2 rounded-md bg-[#4b5c6b] px-4 py-2 text-white"
+            >
+              <FilePenLine size={18} />
+              <p>edit</p>
+            </button>
+            <button
+              onClick={() => setPopupType("qrcode")}
+              className="flex w-full justify-start rounded-md bg-[#4b5c6b] p-2 px-4 text-white"
+            >
+              Qr-code
+            </button>
+          </div>
+        </section>
+        <hr className="h-1 bg-gray-500" />
+        <section className="flex flex-col justify-between gap-4 px-4 py-4">
+          <h3>獲得的板塊</h3>
+          <div className="flex flex-col gap-4">
+            {sharedBlocks.map((sharedBlock) => (
+              <div key={sharedBlock.playerAvatar} className="flex gap-8">
+                <img
+                  src={sharedBlock.playerAvatar}
+                  alt="Player avatar"
+                  className="rounded-full"
+                />
+                <div className="flex gap-10">
+                  {sharedBlock.blocks.map((block, index) => (
+                    <Block
+                      key={index}
+                      type={block.type}
+                      quantity={block.quantity}
+                    />
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
-        </div>
-        <div className="flex w-[30%] flex-col gap-1 font-bold">
-          <button
-            onClick={() => setPopupType("edit")}
-            className="flex w-full items-center justify-start gap-2 rounded-md bg-[#4b5c6b] px-4 py-2 text-white"
-          >
-            <FilePenLine size={18} />
-            <p>edit</p>
-          </button>
-          <button
-            onClick={() => setPopupType("qrcode")}
-            className="flex w-full justify-start rounded-md bg-[#4b5c6b] p-2 px-4 text-white"
-          >
-            Qr-code
-          </button>
-        </div>
-      </section>
-      <hr className="h-1 bg-gray-500" />
-      <section className="flex flex-col justify-between gap-4 px-4 py-4">
-        <h3>獲得的板塊</h3>
-        <div className="flex flex-col gap-4">
-          {sharedBlocks.map((sharedBlock) => (
-            <div key={sharedBlock.playerAvatar} className="flex gap-8">
-              <img
-                src={sharedBlock.playerAvatar}
-                alt="Player avatar"
-                className="rounded-full"
-              />
-              <div className="flex gap-10">
-                {sharedBlock.blocks.map((block, index) => (
-                  <Block
-                    key={index}
-                    type={block.type}
-                    quantity={block.quantity}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
+        </section>
+      </div>
       <Popup popupType={popupType} setPopupType={setPopupType} />
-    </div>
+    </>
   );
 }
 
