@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { LogOut, Info } from "lucide-react";
 
 export default function GamePage() {
   // react usestate -- dont change anything here!
@@ -175,20 +176,50 @@ export default function GamePage() {
 
   return (
     <>
-      <div className="inline-block border border-gray-300">
-        {GameGrid.map((row, rowIndex) => (
-          <div key={rowIndex} className="flex">
-            {row.map((cell, colIndex) => (
-              <div
-                key={colIndex}
-                className="h-12 w-12 border border-gray-300"
-                onClick={() => updateValue(rowIndex, colIndex, "block")}
-              >
-                {cell.name}
-              </div>
-            ))}
+      <div className="flex h-full w-full flex-col items-center py-12">
+        {/* header */}
+        <div className="flex w-[80%] justify-between">
+          <div className="text-2xl">
+            <div className="flex">
+              <p>關卡：</p>
+              <p>{Level}</p>
+            </div>
+            <div className="flex">
+              <p>積分：</p>
+              <p>{Score}</p>
+            </div>
           </div>
-        ))}
+
+          <div>
+            <LogOut
+              onClick={() => console.log("logout")} // TODO: 登入要做的事?
+              size={32}
+            />
+            <Info
+              onClick={() => console.log("info")} // TODO: 顯示遊戲說明
+              size={32}
+            />
+          </div>
+        </div>
+
+        <div className="py-4" />
+
+        {/* grid part */}
+        <div className="inline-block border border-gray-300">
+          {GameGrid.map((row, rowIndex) => (
+            <div key={rowIndex} className="flex">
+              {row.map((cell, colIndex) => (
+                <div
+                  key={colIndex}
+                  className="min-h-16 min-w-16 border border-gray-300"
+                  onClick={() => updateValue(rowIndex, colIndex, "block")}
+                >
+                  {cell.name}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     </>
   );
