@@ -129,6 +129,21 @@ export default function GamePage() {
         />
       </svg>
     ),
+    obstacle: (
+      <svg viewBox="0 0 40 40" className="h-full w-full">
+        <rect x="0" y="0" width="40" height="40" fill="#333333" />
+      </svg>
+    ),
+    start: (
+      <div className="flex h-full w-full items-center justify-center border-2 border-purple-300 bg-purple-200 font-bold text-zinc-500">
+        Start
+      </div>
+    ),
+    end: (
+      <div className="flex h-full w-full items-center justify-center border-2 border-green-300 bg-green-200 font-bold text-zinc-500">
+        End
+      </div>
+    ),
   };
 
   // fetch data here
@@ -136,7 +151,13 @@ export default function GamePage() {
     // use fake data first. use api after available.
     const LevelData = 1;
     const ScoreData = 0;
-    const GameGridData = createEmptyGrid(5, 5);
+    const GameGridData = [
+      ["empty", "start", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty"],
+      ["empty", "obstacle", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "end", "empty"],
+    ];
     const BlockDataFetch = {
       a: {
         unlocked: true,
@@ -208,15 +229,55 @@ export default function GamePage() {
         <div className="inline-block border border-gray-300">
           {GameGrid.map((row, rowIndex) => (
             <div key={rowIndex} className="flex">
-              {row.map((cell, colIndex) => (
-                <div
-                  key={colIndex}
-                  className="min-h-16 min-w-16 border border-gray-300"
-                  onClick={() => updateValue(rowIndex, colIndex, "block")}
-                >
-                  {cell.name}
-                </div>
-              ))}
+              {row.map((cell, colIndex) => {
+                let cellContent;
+                switch (cell) {
+                  case "empty":
+                    cellContent = null;
+                    break;
+                  case "a":
+                    cellContent = blocks.a;
+                    break;
+                  case "b":
+                    cellContent = blocks.b;
+                    break;
+                  case "c":
+                    cellContent = blocks.c;
+                    break;
+                  case "d":
+                    cellContent = blocks.d;
+                    break;
+                  case "e":
+                    cellContent = blocks.e;
+                    break;
+                  case "f":
+                    cellContent = blocks.f;
+                    break;
+                  case "g":
+                    cellContent = blocks.g;
+                    break;
+                  case "obstacle":
+                    cellContent = blocks.obstacle;
+                    break;
+                  case "start":
+                    cellContent = blocks.start;
+                    break;
+                  case "end":
+                    cellContent = blocks.end;
+                    break;
+                  default:
+                    cellContent = <div>Unknown Cell Type</div>; // or some default content
+                    break;
+                }
+                return (
+                  <div
+                    key={colIndex}
+                    className="h-16 min-h-16 w-16 min-w-16 border border-gray-300"
+                  >
+                    {cellContent}
+                  </div>
+                );
+              })}
             </div>
           ))}
         </div>
