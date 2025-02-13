@@ -16,6 +16,9 @@ export default function GamePage() {
   const [Level, setLevel] = useState(1);
   const [Score, setScore] = useState(0);
   const [GameGrid, setGameGrid] = useState(createEmptyGrid(5, 5));
+  const [PlaceableGrid, setPlaceableGrid] = useState(
+    createEmptyPlaceableGrid(5, 5),
+  );
   const [SelectedItem, setSelectedItem] = useState("");
   const [IsZoomedIn, setIsZoomedIn] = useState(false);
 
@@ -23,39 +26,67 @@ export default function GamePage() {
   //  block a: 橫的
   //  block b: 直的
   //  block c: 十字型
-  //  block d: ┐
-  //  block e: └
-  //  block f: ┘
-  //  block g: ┌
+  //  block d: └
+  //  block e: ┘
+  //  block f: ┌
+  //  block g: ┐
   /////////////////////////
   const [BlockData, setBlockData] = useState({
     a: {
       unlocked: false,
       amount: 0,
+      up: false,
+      down: false,
+      left: true,
+      right: true,
     },
     b: {
       unlocked: false,
       amount: 0,
+      up: true,
+      down: true,
+      left: false,
+      right: false,
     },
     c: {
       unlocked: false,
       amount: 0,
+      up: true,
+      down: true,
+      left: true,
+      right: true,
     },
     d: {
       unlocked: false,
       amount: 0,
+      up: true,
+      down: false,
+      left: false,
+      right: true,
     },
     e: {
       unlocked: false,
       amount: 0,
+      up: true,
+      down: false,
+      left: true,
+      right: false,
     },
     f: {
       unlocked: false,
       amount: 0,
+      up: false,
+      down: true,
+      left: false,
+      right: true,
     },
     g: {
       unlocked: false,
       amount: 0,
+      up: false,
+      down: true,
+      left: true,
+      right: false,
     },
   });
   const [PropsData, setPropsData] = useState({
@@ -83,6 +114,12 @@ export default function GamePage() {
       .map(() => Array(cols).fill("empty"));
   }
 
+  function createEmptyPlaceableGrid(rows: number, cols: number) {
+    return Array(rows)
+      .fill(null)
+      .map(() => Array(cols).fill(false));
+  }
+
   function toggleZoom() {
     setIsZoomedIn(!IsZoomedIn);
   }
@@ -96,6 +133,10 @@ export default function GamePage() {
       setTimeout(() => {
         setSelectedItem("");
       }, 400);
+    } else {
+      const { up, down, left, right } =
+        BlockData[block as keyof typeof BlockData];
+      findPlaceableGrids(up, down, left, right, GameGrid, BlockData);
     }
   }
 
@@ -111,17 +152,153 @@ export default function GamePage() {
     }
   }
 
-  const updateValue = (
+  function updateValue(
     row: string | number,
     col: string | number,
     value: string,
-  ) => {
+  ) {
     const newRow = typeof row === "string" ? Number(row) : row;
     const newCol = typeof col === "string" ? Number(col) : col;
     const newGrid = GameGrid.map((r) => [...r]);
     newGrid[newRow][newCol] = value;
     setGameGrid(newGrid);
-  };
+  }
+
+  function updatePlaceableGrid(
+    row: string | number,
+    col: string | number,
+    value: boolean,
+  ) {
+    const newRow = typeof row === "string" ? Number(row) : row;
+    const newCol = typeof col === "string" ? Number(col) : col;
+    const newGrid = PlaceableGrid.map((r) => [...r]);
+    newGrid[newRow][newCol] = value;
+    setPlaceableGrid(newGrid);
+  }
+
+  function addBlockAmount(block: string, amount: number) {
+    const newBlockData = { ...BlockData };
+    newBlockData[block as keyof typeof BlockData].amount += amount;
+    setBlockData(newBlockData);
+  }
+
+  function findPlaceableGrids(
+    up: boolean,
+    down: boolean,
+    left: boolean,
+    right: boolean,
+    gameGrid: string[][],
+    blockData: typeof BlockData,
+  ) {
+    const rows = gameGrid.length;
+    const cols = gameGrid[0].length;
+    const newGrid = Array(rows)
+      .fill(false)
+      .map(() => Array(cols).fill(false));
+
+    // Helper function to check if two blocks can connect
+    function canConnect(
+      block1: string,
+      block2: string,
+      direction: "up" | "down" | "left" | "right",
+    ): boolean {
+      if (block1 === "empty" || block2 === "empty") return false;
+
+      const data1 = blockData[block1 as keyof typeof blockData];
+      const data2 = blockData[block2 as keyof typeof blockData];
+
+      if (!data1 || !data2) return false;
+
+      switch (direction) {
+        case "up":
+          return data1.up && data2.down;
+        case "down":
+          return data1.down && data2.up;
+        case "left":
+          return data1.left && data2.right;
+        case "right":
+          return data1.right && data2.left;
+      }
+    }
+
+    type Position = {
+      i: number;
+      j: number;
+    };
+
+    // Helper function to check if placing a block would create a dead end
+    function wouldCreateDeadEnd(pos: Position, blockType: string): boolean {
+      const connections = {
+        up:
+          pos.i > 0
+            ? canConnect(blockType, gameGrid[pos.i - 1][pos.j], "up")
+            : false,
+        down:
+          pos.i < rows - 1
+            ? canConnect(blockType, gameGrid[pos.i + 1][pos.j], "down")
+            : false,
+        left:
+          pos.j > 0
+            ? canConnect(blockType, gameGrid[pos.i][pos.j - 1], "left")
+            : false,
+        right:
+          pos.j < cols - 1
+            ? canConnect(blockType, gameGrid[pos.i][pos.j + 1], "right")
+            : false,
+      };
+
+      // Count possible connections
+      const possibleConnections = Object.values(connections).filter(
+        (v) => v,
+      ).length;
+      const blockConnections = [up, down, left, right].filter((v) => v).length;
+
+      // If there's only one connection possible and the block has more than one connection point,
+      // it would create a dead end
+      return possibleConnections === 1 && blockConnections > 1;
+    }
+
+    // Check each cell in the grid
+    for (let i = 0; i < rows; i++) {
+      for (let j = 0; j < cols; j++) {
+        if (gameGrid[i][j] === "empty") {
+          // Check each adjacent cell
+          const adjacentCells = [
+            { pos: { i: i - 1, j }, dir: "up" as const, allowed: up },
+            { pos: { i: i + 1, j }, dir: "down" as const, allowed: down },
+            { pos: { i, j: j - 1 }, dir: "left" as const, allowed: left },
+            { pos: { i, j: j + 1 }, dir: "right" as const, allowed: right },
+          ];
+
+          // Check if at least one valid connection is possible
+          const hasValidConnection = adjacentCells.some(
+            ({ pos, dir, allowed }) => {
+              if (!allowed) return false;
+              if (pos.i < 0 || pos.i >= rows || pos.j < 0 || pos.j >= cols)
+                return false;
+
+              const adjacentBlock = gameGrid[pos.i][pos.j];
+              return (
+                adjacentBlock !== "empty" &&
+                canConnect(
+                  adjacentBlock,
+                  String.fromCharCode(97 + Math.floor(Math.random() * 7)),
+                  dir,
+                )
+              );
+            },
+          );
+
+          // Set cell as placeable if it has valid connection and wouldn't create dead end
+          if (hasValidConnection && !wouldCreateDeadEnd({ i, j }, "a")) {
+            newGrid[i][j] = true;
+          }
+        }
+      }
+    }
+    console.log(newGrid);
+    setPlaceableGrid(newGrid);
+  }
 
   // blocks in svg format
   const blocks = {
@@ -209,7 +386,7 @@ export default function GamePage() {
       </div>
     ),
     empty: (
-      <div className="flex h-full w-full items-center justify-center bg-zinc-50 text-zinc-600"></div>
+      <div className="flex h-full w-full items-center justify-center bg-zinc-50"></div>
     ),
   };
 
@@ -503,31 +680,59 @@ export default function GamePage() {
     const BlockDataFetch = {
       a: {
         unlocked: true,
-        amount: 5,
+        amount: 2,
+        up: false,
+        down: false,
+        left: true,
+        right: true,
       },
       b: {
         unlocked: true,
-        amount: 0,
+        amount: 3,
+        up: true,
+        down: true,
+        left: false,
+        right: false,
       },
       c: {
         unlocked: true,
-        amount: 3,
+        amount: 1,
+        up: true,
+        down: true,
+        left: true,
+        right: true,
       },
       d: {
-        unlocked: false,
-        amount: 4,
+        unlocked: true,
+        amount: 0,
+        up: true,
+        down: false,
+        left: false,
+        right: true,
       },
       e: {
-        unlocked: false,
+        unlocked: true,
         amount: 0,
+        up: true,
+        down: false,
+        left: true,
+        right: false,
       },
       f: {
         unlocked: true,
-        amount: 7,
+        amount: 0,
+        up: false,
+        down: true,
+        left: false,
+        right: true,
       },
       g: {
-        unlocked: false,
-        amount: 1,
+        unlocked: true,
+        amount: 0,
+        up: false,
+        down: true,
+        left: true,
+        right: false,
       },
     };
     const PropsDataFetch = {
@@ -554,6 +759,9 @@ export default function GamePage() {
     setGameGrid(GameGridData);
     setBlockData(BlockDataFetch);
     setPropsData(PropsDataFetch);
+    setPlaceableGrid(
+      createEmptyPlaceableGrid(GameGridData.length, GameGridData[0].length),
+    );
   }, []);
 
   return (
@@ -645,10 +853,15 @@ export default function GamePage() {
                   return (
                     <div
                       key={colIndex}
-                      className="border border-slate-200 transition-all duration-300 ease-in-out"
+                      className={`border border-slate-200 transition-all duration-300 ease-in-out ${PlaceableGrid[rowIndex][colIndex] ? "animate-pulse border-[4px] border-orange-300 duration-700 ease-in-out" : ""}`}
                       style={{
                         height: IsZoomedIn ? "64px" : `${320 / row.length}px`,
                         width: IsZoomedIn ? "64px" : `${320 / row.length}px`,
+                      }}
+                      onClick={() => {
+                        if (PlaceableGrid[rowIndex][colIndex]) {
+                          console.log("hi");
+                        }
                       }}
                     >
                       {cellContent}
