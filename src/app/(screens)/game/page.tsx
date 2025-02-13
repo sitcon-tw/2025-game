@@ -8,6 +8,7 @@ import {
   RotateCcwSquare,
   Bomb,
   SquareArrowOutUpRight,
+  Scan,
 } from "lucide-react";
 
 export default function GamePage() {
@@ -16,11 +17,16 @@ export default function GamePage() {
   const [Score, setScore] = useState(0);
   const [GameGrid, setGameGrid] = useState(createEmptyGrid(5, 5));
   const [SelectedBlock, setSelectedBlock] = useState("");
+  const [IsZoomedIn, setIsZoomedIn] = useState(false);
 
   function createEmptyGrid(rows: number, cols: number) {
     return Array(rows)
       .fill(null)
       .map(() => Array(cols).fill("empty"));
+  }
+
+  function toggleZoom() {
+    setIsZoomedIn(!IsZoomedIn);
   }
 
   const updateGridSize = (rows: number, cols: number) => {
@@ -525,7 +531,7 @@ export default function GamePage() {
 
     setLevel(LevelData);
     setScore(ScoreData);
-    setGameGrid(GameGridData);
+    setGameGrid(gameGridData8x8);
     setBlockData(BlockDataFetch);
     setPropsData(PropsDataFetch);
   }, []);
@@ -546,79 +552,90 @@ export default function GamePage() {
             </div>
           </div>
 
-          <div>
-            <LogOut
-              onClick={() => console.log("logout")} // TODO: 登入要做的事?
+          <div className="flex items-baseline space-x-4">
+            <Scan
+              className="transition-transform hover:scale-110 active:scale-95"
+              onClick={toggleZoom}
               size={32}
             />
-            <Info
-              onClick={() => console.log("info")} // TODO: 顯示遊戲說明
-              size={32}
-            />
+            <div>
+              <LogOut
+                onClick={() => console.log("logout")} // TODO: 登入要做的事?
+                size={32}
+              />
+              <Info
+                onClick={() => console.log("info")} // TODO: 顯示遊戲說明
+                size={32}
+              />
+            </div>
           </div>
         </div>
 
         <div className="py-4" />
 
         {/* grid part */}
-        <div className="inline-block h-[322px] w-80 overflow-auto border border-gray-200">
-          {GameGrid.map((row, rowIndex) => (
-            <div key={rowIndex} className="flex">
-              {row.map((cell, colIndex) => {
-                let cellContent;
-                switch (cell) {
-                  case "empty":
-                    cellContent = blocks.empty;
-                    break;
-                  case "a":
-                    cellContent = blocks.a;
-                    break;
-                  case "b":
-                    cellContent = blocks.b;
-                    break;
-                  case "c":
-                    cellContent = blocks.c;
-                    break;
-                  case "d":
-                    cellContent = blocks.d;
-                    break;
-                  case "e":
-                    cellContent = blocks.e;
-                    break;
-                  case "f":
-                    cellContent = blocks.f;
-                    break;
-                  case "g":
-                    cellContent = blocks.g;
-                    break;
-                  case "obstacle":
-                    cellContent = blocks.obstacle;
-                    break;
-                  case "start":
-                    cellContent = blocks.start;
-                    break;
-                  case "end":
-                    cellContent = blocks.end;
-                    break;
-                  default:
-                    cellContent = <div>Unknown Cell Type</div>;
-                    break;
-                }
-                return (
-                  <div
-                    key={colIndex}
-                    className="border border-slate-200"
-                    style={{
-                      height: `${320 / row.length}px`,
-                      width: `${320 / row.length}px`,
-                    }}
-                  >
-                    {cellContent}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
+        <div
+          className={`inline-block h-[322px] w-[322px] overflow-auto border border-gray-200 ${IsZoomedIn ? "overflow-auto" : ""}`}
+        >
+          <div className="w-fit">
+            {GameGrid.map((row, rowIndex) => (
+              <div key={rowIndex} className="flex">
+                {row.map((cell, colIndex) => {
+                  let cellContent;
+                  switch (cell) {
+                    case "empty":
+                      cellContent = blocks.empty;
+                      break;
+                    case "a":
+                      cellContent = blocks.a;
+                      break;
+                    case "b":
+                      cellContent = blocks.b;
+                      break;
+                    case "c":
+                      cellContent = blocks.c;
+                      break;
+                    case "d":
+                      cellContent = blocks.d;
+                      break;
+                    case "e":
+                      cellContent = blocks.e;
+                      break;
+                    case "f":
+                      cellContent = blocks.f;
+                      break;
+                    case "g":
+                      cellContent = blocks.g;
+                      break;
+                    case "obstacle":
+                      cellContent = blocks.obstacle;
+                      break;
+                    case "start":
+                      cellContent = blocks.start;
+                      break;
+                    case "end":
+                      cellContent = blocks.end;
+                      break;
+                    default:
+                      cellContent = <div>Unknown Cell Type</div>;
+                      break;
+                  }
+                  return (
+                    <div
+                      key={colIndex}
+                      className="border border-slate-200 transition-all duration-300 ease-in-out"
+                      style={{
+                        height: IsZoomedIn ? "64px" : `${320 / row.length}px`,
+                        width: IsZoomedIn ? "64px" : `${320 / row.length}px`,
+                      }}
+                    >
+                      {cellContent}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="py-4" />
