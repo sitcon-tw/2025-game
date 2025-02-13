@@ -510,15 +510,15 @@ export default function GamePage() {
         amount: 5,
       },
       rotate: {
-        unlocked: false,
+        unlocked: true,
         amount: 0,
       },
       bomb: {
-        unlocked: false,
+        unlocked: true,
         amount: 0,
       },
       teleport: {
-        unlocked: false,
+        unlocked: true,
         amount: 4,
       },
     };
@@ -624,12 +624,28 @@ export default function GamePage() {
         <div className="py-4" />
 
         {/* blocks */}
-        <div className="grid w-[80%] grid-cols-4 justify-between gap-2">
+        <div className="grid w-[80%] grid-cols-4 justify-between gap-2 pb-3">
           {Object.entries(BlockData).map(([key, data]) => (
             <div key={key} className="flex items-end justify-between">
               <div className="h-14 w-14">
                 {data.unlocked
                   ? blocks[key as keyof typeof blocks]
+                  : blocks.unknown}
+              </div>
+              <div className={data.unlocked ? "text-black" : "text-zinc-400"}>
+                x{data.amount}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* props */}
+        <div className="grid w-[80%] grid-cols-4 justify-between gap-2">
+          {Object.entries(PropsData).map(([key, data]) => (
+            <div key={key} className="flex items-end justify-between">
+              <div className="h-14 w-14">
+                {data.unlocked
+                  ? props[key as keyof typeof props]
                   : blocks.unknown}
               </div>
               <div className={data.unlocked ? "text-black" : "text-zinc-400"}>
