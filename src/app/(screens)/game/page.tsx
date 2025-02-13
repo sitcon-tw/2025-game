@@ -29,10 +29,6 @@ export default function GamePage() {
     setIsZoomedIn(!IsZoomedIn);
   }
 
-  const updateGridSize = (rows: number, cols: number) => {
-    setGameGrid(createEmptyGrid(rows, cols));
-  };
-
   const updateValue = (
     row: string | number,
     col: string | number,
@@ -531,7 +527,7 @@ export default function GamePage() {
 
     setLevel(LevelData);
     setScore(ScoreData);
-    setGameGrid(gameGridData8x8);
+    setGameGrid(GameGridData);
     setBlockData(BlockDataFetch);
     setPropsData(PropsDataFetch);
   }, []);
@@ -553,11 +549,13 @@ export default function GamePage() {
           </div>
 
           <div className="flex items-baseline space-x-4">
-            <Scan
-              className="transition-transform hover:scale-110 active:scale-95"
-              onClick={toggleZoom}
-              size={32}
-            />
+            {GameGrid.length !== 5 && (
+              <Scan
+                className="transition-transform hover:scale-110 active:scale-95"
+                onClick={toggleZoom}
+                size={32}
+              />
+            )}
             <div>
               <LogOut
                 onClick={() => console.log("logout")} // TODO: 登入要做的事?
