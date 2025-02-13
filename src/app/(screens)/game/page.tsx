@@ -418,7 +418,7 @@ export default function GamePage() {
     // use fake data first. use api after available.
     const LevelData = 1;
     const ScoreData = 12345678;
-    const GameGridData = [
+    const gameGridData5x5 = [
       ["empty", "start", "empty", "empty", "empty"],
       ["empty", "empty", "empty", "empty", "empty"],
       ["empty", "obstacle", "empty", "empty", "empty"],
@@ -753,6 +753,8 @@ export default function GamePage() {
         amount: 4,
       },
     };
+
+    const GameGridData = gameGridData10x10;
 
     setLevel(LevelData);
     setScore(ScoreData);
