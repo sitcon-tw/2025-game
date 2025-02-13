@@ -487,7 +487,7 @@ export default function GamePage() {
       },
       b: {
         unlocked: true,
-        amount: 6,
+        amount: 0,
       },
       c: {
         unlocked: true,
@@ -649,7 +649,15 @@ export default function GamePage() {
                   ? blocks[key as keyof typeof blocks]
                   : blocks.unknown}
               </div>
-              <div className={data.unlocked ? "text-black" : "text-zinc-400"}>
+              <div
+                className={
+                  data.unlocked
+                    ? data.amount > 0
+                      ? "text-black"
+                      : "text-red-400"
+                    : "text-zinc-400"
+                }
+              >
                 x{data.amount}
               </div>
             </div>
@@ -665,7 +673,15 @@ export default function GamePage() {
                   ? props[key as keyof typeof props]
                   : blocks.unknown}
               </div>
-              <div className={data.unlocked ? "text-black" : "text-zinc-400"}>
+              <div
+                className={
+                  data.unlocked
+                    ? data.amount > 0
+                      ? "text-black"
+                      : "text-red-400"
+                    : "text-zinc-400"
+                }
+              >
                 x{data.amount}
               </div>
             </div>
