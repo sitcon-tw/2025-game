@@ -1,13 +1,21 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { LogOut, Info } from "lucide-react";
+import {
+  LogOut,
+  Info,
+  ArrowDownUp,
+  RotateCcwSquare,
+  Bomb,
+  SquareArrowOutUpRight,
+} from "lucide-react";
 
 export default function GamePage() {
   // react usestate -- dont change anything here!
   const [Level, setLevel] = useState(1);
   const [Score, setScore] = useState(0);
   const [GameGrid, setGameGrid] = useState(createEmptyGrid(5, 5));
+  const [SelectedBlock, setSelectedBlock] = useState("");
 
   function createEmptyGrid(rows: number, cols: number) {
     return Array(rows)
@@ -70,61 +78,86 @@ export default function GamePage() {
       amount: 0,
     },
   });
+  const [PropsData, setPropsData] = useState({
+    switchFloor: {
+      unlocked: false,
+      amount: 0,
+    },
+    rotate: {
+      unlocked: false,
+      amount: 0,
+    },
+    bomb: {
+      unlocked: false,
+      amount: 0,
+    },
+    teleport: {
+      unlocked: false,
+      amount: 0,
+    },
+  });
 
   // blocks in svg format
   const blocks = {
     a: (
       <svg viewBox="0 0 40 40" className="h-full w-full">
-        <line x1="20" y1="0" x2="20" y2="40" stroke="#0EA5E9" strokeWidth="4" />
+        <rect width="40" height="40" fill="#0EA5E9" />
+        <line x1="0" y1="20" x2="40" y2="20" stroke="white" strokeWidth="4" />
       </svg>
     ),
     b: (
       <svg viewBox="0 0 40 40" className="h-full w-full">
-        <line x1="0" y1="20" x2="40" y2="20" stroke="#0EA5E9" strokeWidth="4" />
+        <rect width="40" height="40" fill="#0EA5E9" />
+        <line x1="20" y1="0" x2="20" y2="40" stroke="white" strokeWidth="4" />
       </svg>
     ),
     c: (
       <svg viewBox="0 0 40 40" className="h-full w-full">
-        <line x1="0" y1="20" x2="40" y2="20" stroke="#0EA5E9" strokeWidth="4" />
-        <line x1="20" y1="0" x2="20" y2="40" stroke="#0EA5E9" strokeWidth="4" />
+        <rect width="40" height="40" fill="#0EA5E9" />
+        <line x1="0" y1="20" x2="40" y2="20" stroke="white" strokeWidth="4" />
+        <line x1="20" y1="0" x2="20" y2="40" stroke="white" strokeWidth="4" />
       </svg>
     ),
     d: (
       <svg viewBox="0 0 40 40" className="h-full w-full">
+        <rect width="40" height="40" fill="#0EA5E9" />
         <path
           d="M20,0 L20,20 L40,20"
           fill="none"
-          stroke="#0EA5E9"
+          stroke="white"
           strokeWidth="4"
         />
       </svg>
     ),
     e: (
       <svg viewBox="0 0 40 40" className="h-full w-full">
+        <rect width="40" height="40" fill="#0EA5E9" />
         <path
           d="M20,0 L20,20 L0,20"
           fill="none"
-          stroke="#0EA5E9"
+          stroke="white"
           strokeWidth="4"
         />
       </svg>
     ),
     f: (
       <svg viewBox="0 0 40 40" className="h-full w-full">
+        <rect width="40" height="40" fill="#0EA5E9" />
         <path
           d="M20,40 L20,20 L40,20"
           fill="none"
-          stroke="#0EA5E9"
+          stroke="white"
           strokeWidth="4"
         />
       </svg>
     ),
     g: (
       <svg viewBox="0 0 40 40" className="h-full w-full">
+        <rect width="40" height="40" fill="#0EA5E9" />
         <path
           d="M20,40 L20,20 L0,20"
           fill="none"
-          stroke="#0EA5E9"
+          stroke="white"
           strokeWidth="4"
         />
       </svg>
@@ -144,13 +177,44 @@ export default function GamePage() {
         End
       </div>
     ),
+    unknown: (
+      <div className="flex h-full w-full items-center justify-center border-2 border-zinc-400 bg-zinc-500 text-3xl font-bold text-zinc-100">
+        ?
+      </div>
+    ),
+    empty: (
+      <div className="flex h-full w-full items-center justify-center bg-zinc-200 text-zinc-600"></div>
+    ),
+  };
+
+  const props = {
+    switchFloor: (
+      <div className="flex h-14 w-14 items-center justify-center bg-zinc-200 text-zinc-600">
+        <ArrowDownUp className="h-10 w-10" />
+      </div>
+    ),
+    rotate: (
+      <div className="flex h-14 w-14 items-center justify-center bg-zinc-200 text-zinc-600">
+        <RotateCcwSquare className="h-10 w-10" />
+      </div>
+    ),
+    bomb: (
+      <div className="flex h-14 w-14 items-center justify-center bg-zinc-200 text-zinc-600">
+        <Bomb className="h-10 w-10" />
+      </div>
+    ),
+    teleport: (
+      <div className="flex h-14 w-14 items-center justify-center bg-zinc-200 text-zinc-600">
+        <SquareArrowOutUpRight className="h-10 w-10" />
+      </div>
+    ),
   };
 
   // fetch data here
   useEffect(() => {
     // use fake data first. use api after available.
     const LevelData = 1;
-    const ScoreData = 0;
+    const ScoreData = 12345678;
     const GameGridData = [
       ["empty", "start", "empty", "empty", "empty"],
       ["empty", "empty", "empty", "empty", "empty"],
@@ -158,17 +222,139 @@ export default function GamePage() {
       ["empty", "empty", "empty", "empty", "empty"],
       ["empty", "empty", "empty", "end", "empty"],
     ];
+    const gameGridData10x10 = [
+      [
+        "start",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+      ],
+      [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+      ],
+      [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+      ],
+      [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+      ],
+      [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+      ],
+      [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+      ],
+      [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "end",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+      ],
+      [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+      ],
+      [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+      ],
+      [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+      ],
+    ];
     const BlockDataFetch = {
       a: {
-        unlocked: true,
+        unlocked: false,
         amount: 5,
       },
       b: {
-        unlocked: false,
+        unlocked: true,
         amount: 6,
       },
       c: {
-        unlocked: false,
+        unlocked: true,
         amount: 3,
       },
       d: {
@@ -180,7 +366,7 @@ export default function GamePage() {
         amount: 0,
       },
       f: {
-        unlocked: false,
+        unlocked: true,
         amount: 7,
       },
       g: {
@@ -188,11 +374,30 @@ export default function GamePage() {
         amount: 1,
       },
     };
+    const PropsDataFetch = {
+      switchFloor: {
+        unlocked: true,
+        amount: 5,
+      },
+      rotate: {
+        unlocked: false,
+        amount: 0,
+      },
+      bomb: {
+        unlocked: false,
+        amount: 0,
+      },
+      teleport: {
+        unlocked: false,
+        amount: 4,
+      },
+    };
 
     setLevel(LevelData);
     setScore(ScoreData);
     setGameGrid(GameGridData);
     setBlockData(BlockDataFetch);
+    setPropsData(PropsDataFetch);
   }, []);
 
   return (
@@ -226,7 +431,7 @@ export default function GamePage() {
         <div className="py-4" />
 
         {/* grid part */}
-        <div className="inline-block border border-gray-300">
+        <div className="inline-block h-[322px] w-80 overflow-auto border border-gray-300">
           {GameGrid.map((row, rowIndex) => (
             <div key={rowIndex} className="flex">
               {row.map((cell, colIndex) => {
@@ -266,18 +471,36 @@ export default function GamePage() {
                     cellContent = blocks.end;
                     break;
                   default:
-                    cellContent = <div>Unknown Cell Type</div>; // or some default content
+                    cellContent = <div>Unknown Cell Type</div>;
                     break;
                 }
                 return (
                   <div
                     key={colIndex}
-                    className="h-16 min-h-16 w-16 min-w-16 border border-gray-300"
+                    className={`h-${80 / row.length} w-${80 / row.length} border border-gray-300`}
                   >
                     {cellContent}
                   </div>
                 );
               })}
+            </div>
+          ))}
+        </div>
+
+        <div className="py-4" />
+
+        {/* blocks */}
+        <div className="grid w-[80%] grid-cols-4 justify-between gap-2">
+          {Object.entries(BlockData).map(([key, data]) => (
+            <div key={key} className="flex items-end justify-between">
+              <div className="h-14 w-14">
+                {data.unlocked
+                  ? blocks[key as keyof typeof blocks]
+                  : blocks.unknown}
+              </div>
+              <div className={data.unlocked ? "text-black" : "text-zinc-400"}>
+                x{data.amount}
+              </div>
             </div>
           ))}
         </div>
