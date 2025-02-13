@@ -183,7 +183,7 @@ export default function GamePage() {
       </div>
     ),
     empty: (
-      <div className="flex h-full w-full items-center justify-center bg-zinc-200 text-zinc-600"></div>
+      <div className="flex h-full w-full items-center justify-center bg-zinc-50 text-zinc-600"></div>
     ),
   };
 
@@ -222,6 +222,136 @@ export default function GamePage() {
       ["empty", "empty", "empty", "empty", "empty"],
       ["empty", "empty", "empty", "end", "empty"],
     ];
+    const gameGridData6x6 = [
+      ["start", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "end"],
+    ];
+    const gameGridData7x7 = [
+      ["start", "empty", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "empty", "end"],
+    ];
+    const gameGridData8x8 = [
+      ["start", "empty", "empty", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "empty", "empty", "end"],
+      ["empty", "empty", "empty", "empty", "empty", "empty", "empty", "empty"],
+    ];
+
+    const gameGridData9x9 = [
+      [
+        "start",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+      ],
+      [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+      ],
+      [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+      ],
+      [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+      ],
+      [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+      ],
+      [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+      ],
+      [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+      ],
+      [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+      ],
+      [
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "empty",
+        "end",
+      ],
+    ];
+
     const gameGridData10x10 = [
       [
         "start",
@@ -395,7 +525,7 @@ export default function GamePage() {
 
     setLevel(LevelData);
     setScore(ScoreData);
-    setGameGrid(GameGridData);
+    setGameGrid(gameGridData6x6);
     setBlockData(BlockDataFetch);
     setPropsData(PropsDataFetch);
   }, []);
@@ -431,14 +561,14 @@ export default function GamePage() {
         <div className="py-4" />
 
         {/* grid part */}
-        <div className="inline-block h-[322px] w-80 overflow-auto border border-gray-300">
+        <div className="inline-block h-[322px] w-80 overflow-auto border border-gray-200">
           {GameGrid.map((row, rowIndex) => (
             <div key={rowIndex} className="flex">
               {row.map((cell, colIndex) => {
                 let cellContent;
                 switch (cell) {
                   case "empty":
-                    cellContent = null;
+                    cellContent = blocks.empty;
                     break;
                   case "a":
                     cellContent = blocks.a;
@@ -477,7 +607,11 @@ export default function GamePage() {
                 return (
                   <div
                     key={colIndex}
-                    className={`h-${80 / row.length} w-${80 / row.length} border border-gray-300`}
+                    className="border border-gray-300"
+                    style={{
+                      height: `${320 / row.length}px`,
+                      width: `${320 / row.length}px`,
+                    }}
                   >
                     {cellContent}
                   </div>
