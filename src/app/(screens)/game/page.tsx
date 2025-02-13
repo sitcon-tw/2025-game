@@ -16,30 +16,8 @@ export default function GamePage() {
   const [Level, setLevel] = useState(1);
   const [Score, setScore] = useState(0);
   const [GameGrid, setGameGrid] = useState(createEmptyGrid(5, 5));
-  const [SelectedBlock, setSelectedBlock] = useState("");
+  const [SelectedItem, setSelectedItem] = useState("");
   const [IsZoomedIn, setIsZoomedIn] = useState(false);
-
-  function createEmptyGrid(rows: number, cols: number) {
-    return Array(rows)
-      .fill(null)
-      .map(() => Array(cols).fill("empty"));
-  }
-
-  function toggleZoom() {
-    setIsZoomedIn(!IsZoomedIn);
-  }
-
-  const updateValue = (
-    row: string | number,
-    col: string | number,
-    value: string,
-  ) => {
-    const newRow = typeof row === "string" ? Number(row) : row;
-    const newCol = typeof col === "string" ? Number(col) : col;
-    const newGrid = GameGrid.map((r) => [...r]);
-    newGrid[newRow][newCol] = value;
-    setGameGrid(newGrid);
-  };
 
   /////////////////////////
   //  block a: 橫的
@@ -98,6 +76,52 @@ export default function GamePage() {
       amount: 0,
     },
   });
+
+  function createEmptyGrid(rows: number, cols: number) {
+    return Array(rows)
+      .fill(null)
+      .map(() => Array(cols).fill("empty"));
+  }
+
+  function toggleZoom() {
+    setIsZoomedIn(!IsZoomedIn);
+  }
+
+  function selectBlock(block: string) {
+    setSelectedItem(block);
+    if (
+      BlockData[block as keyof typeof BlockData].amount == 0 ||
+      !BlockData[block as keyof typeof BlockData].unlocked
+    ) {
+      setTimeout(() => {
+        setSelectedItem("");
+      }, 400);
+    }
+  }
+
+  function selectProp(prop: string) {
+    setSelectedItem(prop);
+    if (
+      PropsData[prop as keyof typeof PropsData].amount == 0 ||
+      !PropsData[prop as keyof typeof PropsData].unlocked
+    ) {
+      setTimeout(() => {
+        setSelectedItem("");
+      }, 400);
+    }
+  }
+
+  const updateValue = (
+    row: string | number,
+    col: string | number,
+    value: string,
+  ) => {
+    const newRow = typeof row === "string" ? Number(row) : row;
+    const newCol = typeof col === "string" ? Number(col) : col;
+    const newGrid = GameGrid.map((r) => [...r]);
+    newGrid[newRow][newCol] = value;
+    setGameGrid(newGrid);
+  };
 
   // blocks in svg format
   const blocks = {
@@ -642,7 +666,10 @@ export default function GamePage() {
         <div className="grid w-[80%] grid-cols-4 justify-between gap-2 pb-3">
           {Object.entries(BlockData).map(([key, data]) => (
             <div key={key} className="flex items-end justify-between">
-              <div className="h-14 w-14">
+              <div
+                className={`h-14 w-14 transition-all duration-200 ease-in-out ${SelectedItem === key ? (data.amount == 0 || !data.unlocked ? "border-[27px] border-red-600/80" : "border-[8px] border-orange-400") : ""}`}
+                onClick={() => selectBlock(key)}
+              >
                 {data.unlocked
                   ? blocks[key as keyof typeof blocks]
                   : blocks.unknown}
