@@ -476,7 +476,7 @@ export default function GamePage() {
     ];
     const BlockDataFetch = {
       a: {
-        unlocked: false,
+        unlocked: true,
         amount: 5,
       },
       b: {
@@ -525,7 +525,7 @@ export default function GamePage() {
 
     setLevel(LevelData);
     setScore(ScoreData);
-    setGameGrid(gameGridData6x6);
+    setGameGrid(GameGridData);
     setBlockData(BlockDataFetch);
     setPropsData(PropsDataFetch);
   }, []);
@@ -607,7 +607,7 @@ export default function GamePage() {
                 return (
                   <div
                     key={colIndex}
-                    className="border border-gray-300"
+                    className="border border-slate-200"
                     style={{
                       height: `${320 / row.length}px`,
                       width: `${320 / row.length}px`,
