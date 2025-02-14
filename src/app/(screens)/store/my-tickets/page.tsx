@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { TicketPercent, Ticket } from "lucide-react";
 import { useState } from "react";
+import CouponCodeDialog from "@/components/CouponCodeDialog";
 
 export default function MyTicketsPage() {
   const exampleLottery = [
@@ -47,6 +48,7 @@ export default function MyTicketsPage() {
   ];
 
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
+  const [couponDialogOpen, setCouponDialogOpen] = useState(false);
 
   const toggleExpand = (index: number) => {
     setExpanded((prev) => ({ ...prev, [index]: !prev[index] }));
@@ -69,6 +71,7 @@ export default function MyTicketsPage() {
                   <Button
                     variant="default"
                     className="flex-grow bg-[#6358ec] px-4 py-2 transition active:scale-95"
+                    onClick={() => setCouponDialogOpen(true)}
                   >
                     <span>{coupon.amount} 元折價卷</span>
                   </Button>
@@ -134,6 +137,10 @@ export default function MyTicketsPage() {
           </div>
         </div>
       </section>
+      <CouponCodeDialog
+        isOpen={couponDialogOpen}
+        setIsOpen={setCouponDialogOpen}
+      />
     </>
   );
 }
