@@ -813,45 +813,7 @@ export default function GamePage() {
             {GameGrid.map((row, rowIndex) => (
               <div key={rowIndex} className="flex">
                 {row.map((cell, colIndex) => {
-                  let cellContent;
-                  switch (cell) {
-                    case "empty":
-                      cellContent = blocks.empty;
-                      break;
-                    case "a":
-                      cellContent = blocks.a;
-                      break;
-                    case "b":
-                      cellContent = blocks.b;
-                      break;
-                    case "c":
-                      cellContent = blocks.c;
-                      break;
-                    case "d":
-                      cellContent = blocks.d;
-                      break;
-                    case "e":
-                      cellContent = blocks.e;
-                      break;
-                    case "f":
-                      cellContent = blocks.f;
-                      break;
-                    case "g":
-                      cellContent = blocks.g;
-                      break;
-                    case "obstacle":
-                      cellContent = blocks.obstacle;
-                      break;
-                    case "start":
-                      cellContent = blocks.start;
-                      break;
-                    case "end":
-                      cellContent = blocks.end;
-                      break;
-                    default:
-                      cellContent = <div>Unknown Cell Type</div>;
-                      break;
-                  }
+                  const cellContent = blocks[cell as keyof typeof blocks];
                   return (
                     <div
                       key={colIndex}
