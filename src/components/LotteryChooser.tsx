@@ -182,7 +182,9 @@ export default function LotteryChooser({
                 <X size={32} />
               </Button>
             </div>
-            <div className={`flex w-full pl-1 ${amounts == 0 ? "text-red-500" : ""}`}>
+            <div
+              className={`flex w-full pl-1 ${amounts == 0 ? "text-red-500" : ""}`}
+            >
               <p className="pr-2 text-left text-2xl font-bold">{amounts}</p>
               <p className="self-end text-left"> / {amount} 張抽獎卷可用</p>
             </div>
@@ -202,7 +204,7 @@ export default function LotteryChooser({
             </div>
             <div className="absolute bottom-3 w-full px-10">
               {amounts != 0 && (
-                <span className="flex flex-row items-center justify-center gap-2 text-red-500 mt-2">
+                <span className="mt-2 flex flex-row items-center justify-center gap-2 text-red-500">
                   <OctagonAlert size={24} />
                   您還有抽獎卷沒使用！
                 </span>
@@ -211,7 +213,7 @@ export default function LotteryChooser({
                 whileHover="hover"
                 initial="rest"
                 exit="rest"
-                className="bg-[#6358ec] text-white disabled:opacity-40 mt-2 flex w-full justify-center rounded-lg px-10 py-3 text-lg transition disabled:active:scale-100 active:scale-95"
+                className="mt-2 flex w-full justify-center rounded-lg bg-[#6358ec] px-10 py-3 text-lg text-white transition active:scale-95 disabled:opacity-40 disabled:active:scale-100"
                 onClick={() => submitLottery()}
                 disabled={amounts != 0}
               >
