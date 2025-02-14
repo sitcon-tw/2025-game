@@ -1,7 +1,4 @@
+import { redirect } from "next/navigation";
 export default function FragmentPage() {
-  return (
-    <>
-      <p>板塊頁面</p>
-    </>
-  );
+  redirect("/fragment/link");
 }
