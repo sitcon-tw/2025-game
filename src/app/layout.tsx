@@ -38,7 +38,7 @@ function NavbarItem({
   Icon: LucideIcon;
 }>) {
   const pathname = usePathname();
-  const isActive = pathname === href;
+  const isActive = href === "/" ? pathname == href : pathname.includes(href);
   return (
     <Link href={href} className="flex-1 px-4">
       <div
