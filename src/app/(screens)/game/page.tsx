@@ -842,7 +842,7 @@ export default function GamePage() {
 
           {/* grid part */}
           <div
-            className={`inline-block h-[322px] w-[322px] overflow-auto border border-gray-200 ${IsZoomedIn ? "overflow-auto" : ""}`}
+            className={`inline-block min-h-[322px] w-[322px] overflow-auto border border-gray-200 ${IsZoomedIn ? "overflow-auto" : ""}`}
           >
             <div className="w-fit">
               {GameGrid.map((row, rowIndex) => (
