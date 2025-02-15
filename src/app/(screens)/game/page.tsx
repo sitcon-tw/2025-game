@@ -1,6 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, ReactNode } from "react";
+import { CSS } from "@dnd-kit/utilities";
+import {
+  DndContext,
+  DragEndEvent,
+  useDraggable,
+  useDroppable,
+} from "@dnd-kit/core";
 import {
   LogOut,
   Info,
@@ -10,6 +17,93 @@ import {
   SquareArrowOutUpRight,
   Scan,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import useCustomSensors from "@/hooks/useCustomSensors";
+
+// blocks in svg format
+const blocks = {
+  a: (
+    <svg viewBox="0 0 40 40" className="h-full w-full">
+      <rect width="40" height="40" fill="#0EA5E9" />
+      <line x1="0" y1="20" x2="40" y2="20" stroke="white" strokeWidth="4" />
+    </svg>
+  ),
+  b: (
+    <svg viewBox="0 0 40 40" className="h-full w-full">
+      <rect width="40" height="40" fill="#0EA5E9" />
+      <line x1="20" y1="0" x2="20" y2="40" stroke="white" strokeWidth="4" />
+    </svg>
+  ),
+  c: (
+    <svg viewBox="0 0 40 40" className="h-full w-full">
+      <rect width="40" height="40" fill="#0EA5E9" />
+      <line x1="0" y1="20" x2="40" y2="20" stroke="white" strokeWidth="4" />
+      <line x1="20" y1="0" x2="20" y2="40" stroke="white" strokeWidth="4" />
+    </svg>
+  ),
+  d: (
+    <svg viewBox="0 0 40 40" className="h-full w-full">
+      <rect width="40" height="40" fill="#0EA5E9" />
+      <path
+        d="M20,0 L20,20 L40,20"
+        fill="none"
+        stroke="white"
+        strokeWidth="4"
+      />
+    </svg>
+  ),
+  e: (
+    <svg viewBox="0 0 40 40" className="h-full w-full">
+      <rect width="40" height="40" fill="#0EA5E9" />
+      <path d="M20,0 L20,20 L0,20" fill="none" stroke="white" strokeWidth="4" />
+    </svg>
+  ),
+  f: (
+    <svg viewBox="0 0 40 40" className="h-full w-full">
+      <rect width="40" height="40" fill="#0EA5E9" />
+      <path
+        d="M20,40 L20,20 L40,20"
+        fill="none"
+        stroke="white"
+        strokeWidth="4"
+      />
+    </svg>
+  ),
+  g: (
+    <svg viewBox="0 0 40 40" className="h-full w-full">
+      <rect width="40" height="40" fill="#0EA5E9" />
+      <path
+        d="M20,40 L20,20 L0,20"
+        fill="none"
+        stroke="white"
+        strokeWidth="4"
+      />
+    </svg>
+  ),
+  obstacle: (
+    <svg viewBox="0 0 40 40" className="h-full w-full">
+      <rect x="0" y="0" width="40" height="40" fill="#333333" />
+    </svg>
+  ),
+  start: (
+    <div className="flex h-full w-full items-center justify-center border-2 border-purple-300 bg-purple-200 font-bold text-zinc-500">
+      Start
+    </div>
+  ),
+  end: (
+    <div className="flex h-full w-full items-center justify-center border-2 border-green-300 bg-green-200 font-bold text-zinc-500">
+      End
+    </div>
+  ),
+  unknown: (
+    <div className="flex h-full w-full items-center justify-center border-2 border-zinc-400 bg-zinc-500 text-3xl font-bold text-zinc-100">
+      ?
+    </div>
+  ),
+  empty: (
+    <div className="flex h-full w-full items-center justify-center bg-zinc-50"></div>
+  ),
+};
 
 export default function GamePage() {
   // react usestate -- dont change anything here!
@@ -21,6 +115,8 @@ export default function GamePage() {
   );
   const [SelectedItem, setSelectedItem] = useState("");
   const [IsZoomedIn, setIsZoomedIn] = useState(false);
+  const [isDropped, setIsDropped] = useState(false);
+  const sensors = useCustomSensors();
 
   /////////////////////////
   //  block a: 橫的
@@ -112,6 +208,12 @@ export default function GamePage() {
     return Array(rows)
       .fill(null)
       .map(() => Array(cols).fill("empty"));
+  }
+
+  function placeBlock(row: number, col: number, block: string) {
+    const newGrid = GameGrid.map((r) => [...r]);
+    newGrid[row][col] = block;
+    setGameGrid(newGrid);
   }
 
   function createEmptyPlaceableGrid(rows: number, cols: number) {
@@ -300,96 +402,6 @@ export default function GamePage() {
     setPlaceableGrid(newGrid);
   }
 
-  // blocks in svg format
-  const blocks = {
-    a: (
-      <svg viewBox="0 0 40 40" className="h-full w-full">
-        <rect width="40" height="40" fill="#0EA5E9" />
-        <line x1="0" y1="20" x2="40" y2="20" stroke="white" strokeWidth="4" />
-      </svg>
-    ),
-    b: (
-      <svg viewBox="0 0 40 40" className="h-full w-full">
-        <rect width="40" height="40" fill="#0EA5E9" />
-        <line x1="20" y1="0" x2="20" y2="40" stroke="white" strokeWidth="4" />
-      </svg>
-    ),
-    c: (
-      <svg viewBox="0 0 40 40" className="h-full w-full">
-        <rect width="40" height="40" fill="#0EA5E9" />
-        <line x1="0" y1="20" x2="40" y2="20" stroke="white" strokeWidth="4" />
-        <line x1="20" y1="0" x2="20" y2="40" stroke="white" strokeWidth="4" />
-      </svg>
-    ),
-    d: (
-      <svg viewBox="0 0 40 40" className="h-full w-full">
-        <rect width="40" height="40" fill="#0EA5E9" />
-        <path
-          d="M20,0 L20,20 L40,20"
-          fill="none"
-          stroke="white"
-          strokeWidth="4"
-        />
-      </svg>
-    ),
-    e: (
-      <svg viewBox="0 0 40 40" className="h-full w-full">
-        <rect width="40" height="40" fill="#0EA5E9" />
-        <path
-          d="M20,0 L20,20 L0,20"
-          fill="none"
-          stroke="white"
-          strokeWidth="4"
-        />
-      </svg>
-    ),
-    f: (
-      <svg viewBox="0 0 40 40" className="h-full w-full">
-        <rect width="40" height="40" fill="#0EA5E9" />
-        <path
-          d="M20,40 L20,20 L40,20"
-          fill="none"
-          stroke="white"
-          strokeWidth="4"
-        />
-      </svg>
-    ),
-    g: (
-      <svg viewBox="0 0 40 40" className="h-full w-full">
-        <rect width="40" height="40" fill="#0EA5E9" />
-        <path
-          d="M20,40 L20,20 L0,20"
-          fill="none"
-          stroke="white"
-          strokeWidth="4"
-        />
-      </svg>
-    ),
-    obstacle: (
-      <svg viewBox="0 0 40 40" className="h-full w-full">
-        <rect x="0" y="0" width="40" height="40" fill="#333333" />
-      </svg>
-    ),
-    start: (
-      <div className="flex h-full w-full items-center justify-center border-2 border-purple-300 bg-purple-200 font-bold text-zinc-500">
-        Start
-      </div>
-    ),
-    end: (
-      <div className="flex h-full w-full items-center justify-center border-2 border-green-300 bg-green-200 font-bold text-zinc-500">
-        End
-      </div>
-    ),
-    unknown: (
-      <div className="flex h-full w-full items-center justify-center border-2 border-zinc-400 bg-zinc-500 text-3xl font-bold text-zinc-100">
-        ?
-      </div>
-    ),
-    empty: (
-      <div className="flex h-full w-full items-center justify-center bg-zinc-50"></div>
-    ),
-  };
-
   const props = {
     switchFloor: (
       <div className="flex h-14 w-14 items-center justify-center bg-zinc-200 text-zinc-600">
@@ -421,9 +433,9 @@ export default function GamePage() {
     const gameGridData5x5 = [
       ["empty", "start", "empty", "empty", "empty"],
       ["empty", "empty", "empty", "empty", "empty"],
-      ["empty", "obstacle", "empty", "empty", "empty"],
+      ["empty", "obstacle", "empty", "a", "empty"],
       ["empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "end", "empty"],
+      ["empty", "empty", "empty", "end", "a"],
     ];
     const gameGridData6x6 = [
       ["start", "empty", "empty", "empty", "empty", "empty"],
@@ -754,7 +766,7 @@ export default function GamePage() {
       },
     };
 
-    const GameGridData = gameGridData10x10;
+    const GameGridData = gameGridData5x5;
 
     setLevel(LevelData);
     setScore(ScoreData);
@@ -766,130 +778,248 @@ export default function GamePage() {
     );
   }, []);
 
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+
+    if (!active || !over) return;
+
+    const activeId = active.id.toString().split(",");
+    const overId = over.id.toString().split(",");
+    const [activeType, fragmentID] = activeId;
+    const [overType, overRow, overCol] = overId;
+
+    if (activeType === "fragment" && overType === "grid") {
+      console.log("dropped", fragmentID, overRow, overCol);
+      placeBlock(Number(overRow), Number(overCol), fragmentID);
+      addBlockAmount(fragmentID, -1);
+      setIsDropped(true);
+    }
+  }
+
   return (
     <>
-      <div className="flex h-full w-full flex-col items-center py-12">
-        {/* header */}
-        <div className="flex w-[80%] justify-between">
-          <div className="text-2xl">
-            <div className="flex">
-              <p>關卡：</p>
-              <p>{Level}</p>
+      <DndContext
+        sensors={sensors}
+        onDragEnd={handleDragEnd}
+        onDragStart={() => setIsDropped(false)}
+      >
+        <div className="flex h-full w-full flex-col items-center py-12">
+          {/* header */}
+          <div className="flex w-[80%] justify-between">
+            <div className="text-2xl">
+              <div className="flex">
+                <p>關卡：</p>
+                <p>{Level}</p>
+              </div>
+              <div className="flex">
+                <p>積分：</p>
+                <p>{Score}</p>
+              </div>
             </div>
-            <div className="flex">
-              <p>積分：</p>
-              <p>{Score}</p>
+
+            <div className="flex items-baseline space-x-4">
+              {GameGrid.length !== 5 && (
+                <Scan
+                  className="hover:scale-110 active:scale-95"
+                  onClick={toggleZoom}
+                  size={32}
+                />
+              )}
+              <div>
+                <LogOut
+                  onClick={() => console.log("logout")} // TODO: 登入要做的事?
+                  size={32}
+                />
+                <Info
+                  onClick={() => console.log("info")} // TODO: 顯示遊戲說明
+                  size={32}
+                />
+              </div>
             </div>
           </div>
 
-          <div className="flex items-baseline space-x-4">
-            {GameGrid.length !== 5 && (
-              <Scan
-                className="transition-transform hover:scale-110 active:scale-95"
-                onClick={toggleZoom}
-                size={32}
-              />
-            )}
-            <div>
-              <LogOut
-                onClick={() => console.log("logout")} // TODO: 登入要做的事?
-                size={32}
-              />
-              <Info
-                onClick={() => console.log("info")} // TODO: 顯示遊戲說明
-                size={32}
-              />
+          <div className="py-4" />
+
+          {/* grid part */}
+          <div
+            className={`inline-block h-[322px] w-[322px] overflow-auto border border-gray-200 ${IsZoomedIn ? "overflow-auto" : ""}`}
+          >
+            <div className="w-fit">
+              {GameGrid.map((row, rowIndex) => (
+                <div key={rowIndex} className="flex">
+                  {row.map((cell, colIndex) => {
+                    const cellContent = blocks[cell as keyof typeof blocks];
+
+                    return (
+                      <div key={colIndex}>
+                        <GameMapGridCell
+                          IsZoomedIn={IsZoomedIn}
+                          rowIndex={rowIndex}
+                          colIndex={colIndex}
+                          cellContent={cellContent}
+                          PlaceableGrid={PlaceableGrid}
+                          isDropped={isDropped}
+                          row={row}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
           </div>
-        </div>
 
-        <div className="py-4" />
+          <div className="py-4" />
 
-        {/* grid part */}
-        <div
-          className={`inline-block h-[322px] w-[322px] overflow-auto border border-gray-200 ${IsZoomedIn ? "overflow-auto" : ""}`}
-        >
-          <div className="w-fit">
-            {GameGrid.map((row, rowIndex) => (
-              <div key={rowIndex} className="flex">
-                {row.map((cell, colIndex) => {
-                  const cellContent = blocks[cell as keyof typeof blocks];
-                  return (
-                    <div
-                      key={colIndex}
-                      className={`border border-slate-200 transition-all duration-300 ease-in-out ${PlaceableGrid[rowIndex][colIndex] ? "animate-pulse border-[4px] border-orange-300 duration-700 ease-in-out" : ""}`}
-                      style={{
-                        height: IsZoomedIn ? "64px" : `${320 / row.length}px`,
-                        width: IsZoomedIn ? "64px" : `${320 / row.length}px`,
-                      }}
-                      onClick={() => {
-                        if (PlaceableGrid[rowIndex][colIndex]) {
-                          console.log("hi");
-                        }
-                      }}
-                    >
-                      {cellContent}
-                    </div>
-                  );
-                })}
+          {/* blocks */}
+          <div className="grid w-[80%] grid-cols-4 justify-between gap-2 pb-3">
+            {Object.entries(BlockData).map(([key, data]) => (
+              <BlockInInventory
+                key={key}
+                id={key}
+                data={data}
+                isDropped={isDropped}
+              />
+            ))}
+          </div>
+
+          {/* props */}
+          <div className="grid w-[80%] grid-cols-4 justify-between gap-2">
+            {Object.entries(PropsData).map(([key, data]) => (
+              <div key={key} className="flex items-end justify-start gap-2">
+                <div className="h-14 w-14">
+                  {data.unlocked
+                    ? props[key as keyof typeof props]
+                    : blocks.unknown}
+                </div>
+                <div
+                  className={
+                    data.unlocked
+                      ? data.amount > 0
+                        ? "text-black"
+                        : "text-red-400"
+                      : "text-zinc-400"
+                  }
+                >
+                  x{data.amount}
+                </div>
               </div>
             ))}
           </div>
         </div>
+      </DndContext>
+    </>
+  );
+}
 
-        <div className="py-4" />
+function GameMapGridCell({
+  IsZoomedIn,
+  rowIndex,
+  colIndex,
+  cellContent,
+  PlaceableGrid,
+  row,
+  isDropped,
+}: {
+  IsZoomedIn: boolean;
+  rowIndex: number;
+  colIndex: number;
+  cellContent: ReactNode;
+  PlaceableGrid: boolean[][];
+  row: string[];
+  isDropped: boolean;
+}) {
+  const { isOver, setNodeRef } = useDroppable({
+    id: `grid,${rowIndex},${colIndex}`,
+  });
 
-        {/* blocks */}
-        <div className="grid w-[80%] grid-cols-4 justify-between gap-2 pb-3">
-          {Object.entries(BlockData).map(([key, data]) => (
-            <div key={key} className="flex items-end justify-between">
-              <div
-                className={`h-14 w-14 transition-all duration-200 ease-in-out ${SelectedItem === key ? (data.amount == 0 || !data.unlocked ? "border-[27px] border-red-600/80" : "border-[8px] border-orange-400") : ""}`}
-                onClick={() => selectBlock(key)}
-              >
-                {data.unlocked
-                  ? blocks[key as keyof typeof blocks]
-                  : blocks.unknown}
-              </div>
-              <div
-                className={
-                  data.unlocked
-                    ? data.amount > 0
-                      ? "text-black"
-                      : "text-red-400"
-                    : "text-zinc-400"
-                }
-              >
-                x{data.amount}
-              </div>
-            </div>
-          ))}
+  return (
+    <div
+      ref={setNodeRef}
+      className={`border ease-in-out ${isOver && !isDropped ? "animate-pulse border-[4px] border-orange-300 ease-in-out" : ""}`}
+      style={{
+        height: IsZoomedIn ? "64px" : `${320 / row.length}px`,
+        width: IsZoomedIn ? "64px" : `${320 / row.length}px`,
+      }}
+      onClick={() => {
+        if (PlaceableGrid[rowIndex][colIndex]) {
+          console.log("hi");
+        }
+      }}
+    >
+      {cellContent}
+    </div>
+  );
+}
+
+function BlockInInventory({
+  id,
+  data,
+  isDropped,
+}: {
+  id: string;
+  data: {
+    unlocked: boolean;
+    amount: number;
+    up: boolean;
+    down: boolean;
+    left: boolean;
+    right: boolean;
+  };
+  isDropped: boolean;
+}) {
+  const isDisabled = data.amount <= 0 || !data.unlocked;
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({
+      id: `fragment,${id}`,
+      disabled: isDisabled,
+    });
+  const style = {
+    transform: CSS.Translate.toString(transform),
+  };
+  const isMoving =
+    Math.abs(transform?.x ?? 0 - 0) != 0 ||
+    Math.abs(transform?.y ?? 0 - 0) != 0;
+
+  const needDuration = !isMoving && !isDropped;
+
+  return (
+    <div
+      key={id}
+      className={cn(
+        "relative flex items-end justify-start gap-2",
+        isDisabled && "opacity-50",
+      )}
+    >
+      <div className="relative">
+        <div className="pointer-events-none absolute inset-0 bottom-0 left-0 top-0 opacity-50">
+          {data.unlocked && blocks[id as keyof typeof blocks]}
         </div>
-
-        {/* props */}
-        <div className="grid w-[80%] grid-cols-4 justify-between gap-2">
-          {Object.entries(PropsData).map(([key, data]) => (
-            <div key={key} className="flex items-end justify-between">
-              <div className="h-14 w-14">
-                {data.unlocked
-                  ? props[key as keyof typeof props]
-                  : blocks.unknown}
-              </div>
-              <div
-                className={
-                  data.unlocked
-                    ? data.amount > 0
-                      ? "text-black"
-                      : "text-red-400"
-                    : "text-zinc-400"
-                }
-              >
-                x{data.amount}
-              </div>
-            </div>
-          ))}
+        <div
+          ref={setNodeRef}
+          style={style}
+          {...listeners}
+          {...attributes}
+          className={cn(
+            `h-14 w-14 ease-in-out ${false ? (data.amount == 0 || !data.unlocked ? "border-[27px] border-red-600/80" : "border-[8px] border-orange-400") : ""} ${isMoving && isDropped ? "hidden" : ""}`,
+            isDisabled ? "cursor-not-allowed" : "cursor-move",
+            needDuration && "duration-200",
+          )}
+        >
+          {data.unlocked ? blocks[id as keyof typeof blocks] : blocks.unknown}
         </div>
       </div>
-    </>
+      <div
+        className={
+          data.unlocked
+            ? data.amount > 0
+              ? "text-black"
+              : "text-red-400"
+            : "text-zinc-400"
+        }
+      >
+        x{data.amount}
+      </div>
+    </div>
   );
 }
