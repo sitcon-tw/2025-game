@@ -67,7 +67,7 @@ CREATE TABLE "TeamScoreboard" (
 -- CreateTable
 CREATE TABLE "Achievement" (
     "achievement_id" UUID NOT NULL,
-    "prize" INTEGER NOT NULL,
+    "prize" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "Achievement_pkey" PRIMARY KEY ("achievement_id")
 );
@@ -108,11 +108,20 @@ CREATE TABLE "Stage" (
 CREATE TABLE "Blocker" (
     "blocker_id" UUID NOT NULL,
     "stage_id" UUID NOT NULL,
-    "x" INTEGER NOT NULL,
-    "y" INTEGER NOT NULL,
-    "z" INTEGER NOT NULL,
+    "x" INTEGER NOT NULL DEFAULT 0,
+    "y" INTEGER NOT NULL DEFAULT 0,
+    "z" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "Blocker_pkey" PRIMARY KEY ("blocker_id")
+);
+
+-- CreateTable
+CREATE TABLE "Coupon" (
+    "coupon_id" UUID NOT NULL,
+    "type" TEXT NOT NULL,
+    "used" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "Coupon_pkey" PRIMARY KEY ("coupon_id")
 );
 
 -- CreateIndex
