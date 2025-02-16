@@ -27,7 +27,9 @@ export const GET = async (request: NextRequest) => {
  * @param {NextRequest} request
  * @return {*}
  */
+// TODO: Update user data
 export const POST = async (request: NextRequest) => {
+  // token, name, linktree
   const playerData = await request.json();
   const player = await createPlayer(playerData);
   if (!player) return internalServerError();

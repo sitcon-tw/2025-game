@@ -28,6 +28,8 @@ const query = {
       } else return internalServerError();
     }
   },
+  getItem: async () => {},
+  getBlock: async () => {},
   getPlayer: async (playerId: string) => {
     const player = await prisma.player.findUnique({
       where: { player_id: playerId },
@@ -35,8 +37,12 @@ const query = {
     if (!player) return;
     return player;
   },
+  getScore: async () => {},
   getStage: async (stageId: string) => {},
   getTeam: async (teamId: string) => {},
   setPlayer: async () => {},
+  setScore: async () => {},
+  useCoupon: async () => {},
+  createCoupon: async () => {},
 };
 export const { createPlayer, getPlayer, getStage } = query;
