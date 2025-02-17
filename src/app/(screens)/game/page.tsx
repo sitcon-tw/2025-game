@@ -20,6 +20,9 @@ import {
 import { cn } from "@/lib/utils";
 import useCustomSensors from "@/hooks/useCustomSensors";
 
+const BLOCK_SIZE = 56;
+const GAME_MAP_SIZE = 320;
+
 // blocks in svg format
 const blocks = {
   a: (
@@ -105,6 +108,52 @@ const blocks = {
   ),
 };
 
+const props = {
+  switchFloor: (
+    <div className="flex h-full w-full items-center justify-center bg-zinc-200 text-zinc-600">
+      <ArrowDownUp className="h-10 w-10" />
+    </div>
+  ),
+  rotate: (
+    <div className="flex h-full w-full items-center justify-center bg-zinc-200 text-zinc-600">
+      <RotateCcwSquare className="h-10 w-10" />
+    </div>
+  ),
+  bomb: (
+    <div className="flex h-full w-full items-center justify-center bg-zinc-200 text-zinc-600">
+      <Bomb className="h-10 w-10" />
+    </div>
+  ),
+  teleport: (
+    <div className="flex h-full w-full items-center justify-center bg-zinc-200 text-zinc-600">
+      <SquareArrowOutUpRight className="h-10 w-10" />
+    </div>
+  ),
+};
+
+const blockAndPropsElements = {
+  ...blocks,
+  ...props,
+};
+
+interface Block {
+  unlocked: boolean;
+  amount: number;
+  up: boolean;
+  down: boolean;
+  left: boolean;
+  right: boolean;
+}
+
+interface Prop {
+  unlocked: boolean;
+  amount: number;
+}
+interface InventoryItem {
+  data: Block | Prop;
+  id: string;
+}
+
 export default function GamePage() {
   // react usestate -- dont change anything here!
   const [Level, setLevel] = useState(1);
@@ -116,7 +165,11 @@ export default function GamePage() {
   const [SelectedItem, setSelectedItem] = useState("");
   const [IsZoomedIn, setIsZoomedIn] = useState(false);
   const [isDropped, setIsDropped] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isDraggingBlockOverMap, setIsDraggingBlockOverMap] = useState(false);
   const sensors = useCustomSensors();
+  const rowCount = GameGrid.length;
+  const colCount = GameGrid.length > 0 ? GameGrid[0].length : 0;
 
   /////////////////////////
   //  block a: 橫的
@@ -398,32 +451,8 @@ export default function GamePage() {
         }
       }
     }
-    console.log(newGrid);
     setPlaceableGrid(newGrid);
   }
-
-  const props = {
-    switchFloor: (
-      <div className="flex h-14 w-14 items-center justify-center bg-zinc-200 text-zinc-600">
-        <ArrowDownUp className="h-10 w-10" />
-      </div>
-    ),
-    rotate: (
-      <div className="flex h-14 w-14 items-center justify-center bg-zinc-200 text-zinc-600">
-        <RotateCcwSquare className="h-10 w-10" />
-      </div>
-    ),
-    bomb: (
-      <div className="flex h-14 w-14 items-center justify-center bg-zinc-200 text-zinc-600">
-        <Bomb className="h-10 w-10" />
-      </div>
-    ),
-    teleport: (
-      <div className="flex h-14 w-14 items-center justify-center bg-zinc-200 text-zinc-600">
-        <SquareArrowOutUpRight className="h-10 w-10" />
-      </div>
-    ),
-  };
 
   // fetch data here
   useEffect(() => {
@@ -766,7 +795,7 @@ export default function GamePage() {
       },
     };
 
-    const GameGridData = gameGridData10x10;
+    const GameGridData = gameGridData5x5;
 
     setLevel(LevelData);
     setScore(ScoreData);
@@ -779,6 +808,8 @@ export default function GamePage() {
   }, []);
 
   function handleDragEnd(event: DragEndEvent) {
+    setIsDragging(false);
+    setIsDraggingBlockOverMap(false);
     const { active, over } = event;
 
     if (!active || !over) return;
@@ -789,21 +820,47 @@ export default function GamePage() {
     const [overType, overRow, overCol] = overId;
 
     if (activeType === "fragment" && overType === "grid") {
-      console.log("dropped", fragmentID, overRow, overCol);
       placeBlock(Number(overRow), Number(overCol), fragmentID);
       addBlockAmount(fragmentID, -1);
       setIsDropped(true);
     }
   }
 
+  function handleDragOver() {
+    setIsDraggingBlockOverMap(true);
+  }
+
+  const inventoryItems: InventoryItem[] = [
+    ...Object.entries(BlockData).map(([key, data]) => ({
+      data,
+      id: key,
+    })),
+    ...Object.entries(PropsData).map(([key, data]) => ({
+      data,
+      id: key,
+    })),
+  ].toSorted(
+    (a, b) => (b.data.amount > 0 ? 1 : 0) - (a.data.amount > 0 ? 1 : 0),
+  );
+
+  function handleDragStart() {
+    setIsDropped(false);
+    setIsDragging(true);
+  }
+
   return (
     <>
       <DndContext
+        onDragOver={handleDragOver}
         sensors={sensors}
         onDragEnd={handleDragEnd}
-        onDragStart={() => setIsDropped(false)}
+        onDragStart={handleDragStart}
       >
-        <div className="flex h-full w-full flex-col items-center py-12">
+        <div
+          className={cn(
+            "flex h-full w-full flex-col items-center overflow-hidden py-4",
+          )}
+        >
           {/* header */}
           <div className="flex w-[80%] justify-between">
             <div className="text-2xl">
@@ -837,74 +894,84 @@ export default function GamePage() {
               </div>
             </div>
           </div>
+          <div className="py-3" />
+          {/* game area */}
+          <div className="flex w-full flex-col items-center justify-center overflow-hidden">
+            {/* grid part */}
+            <div
+              className={`inline-block overflow-auto border border-gray-200 ${IsZoomedIn ? "overflow-auto" : ""}`}
+              style={{
+                width: IsZoomedIn
+                  ? `${GAME_MAP_SIZE + 2}px`
+                  : `${GAME_MAP_SIZE + 2}px`,
+                height: IsZoomedIn
+                  ? `${GAME_MAP_SIZE + 2}px`
+                  : `${GAME_MAP_SIZE + 2}px`,
+                // minHeight: IsZoomedIn
+                //   ? `${GAME_MAP_SIZE + 2}px`
+                //   : `${GAME_MAP_SIZE + 2}px`,
+              }}
+            >
+              <div className="w-fit">
+                {GameGrid.map((row, rowIndex) => (
+                  <div key={rowIndex} className="flex">
+                    {row.map((cell, colIndex) => {
+                      const cellContent =
+                        blockAndPropsElements[
+                          cell as keyof typeof blockAndPropsElements
+                        ];
 
-          <div className="py-4" />
-
-          {/* grid part */}
-          <div
-            className={`inline-block min-h-[322px] h-[322px] w-[322px] overflow-auto border border-gray-200 ${IsZoomedIn ? "overflow-auto" : ""}`}
-          >
-            <div className="w-fit">
-              {GameGrid.map((row, rowIndex) => (
-                <div key={rowIndex} className="flex">
-                  {row.map((cell, colIndex) => {
-                    const cellContent = blocks[cell as keyof typeof blocks];
-
-                    return (
-                      <div key={colIndex}>
-                        <GameMapGridCell
-                          IsZoomedIn={IsZoomedIn}
-                          rowIndex={rowIndex}
-                          colIndex={colIndex}
-                          cellContent={cellContent}
-                          PlaceableGrid={PlaceableGrid}
-                          isDropped={isDropped}
-                          row={row}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="py-4" />
-
-          {/* blocks */}
-          <div className="grid w-[80%] grid-cols-4 justify-between gap-2 pb-3">
-            {Object.entries(BlockData).map(([key, data]) => (
-              <BlockInInventory
-                key={key}
-                id={key}
-                data={data}
-                isDropped={isDropped}
-              />
-            ))}
-          </div>
-
-          {/* props */}
-          <div className="grid w-[80%] grid-cols-4 justify-between gap-2">
-            {Object.entries(PropsData).map(([key, data]) => (
-              <div key={key} className="flex items-end justify-start gap-2">
-                <div className="h-14 w-14">
-                  {data.unlocked
-                    ? props[key as keyof typeof props]
-                    : blocks.unknown}
-                </div>
-                <div
-                  className={
-                    data.unlocked
-                      ? data.amount > 0
-                        ? "text-black"
-                        : "text-red-400"
-                      : "text-zinc-400"
-                  }
-                >
-                  x{data.amount}
-                </div>
+                      return (
+                        <div key={colIndex}>
+                          <GameMapGridCell
+                            // setIsDraggingBlockOverMap={setIsDraggingBlockOverMap}
+                            IsZoomedIn={IsZoomedIn}
+                            rowIndex={rowIndex}
+                            colIndex={colIndex}
+                            cellContent={cellContent}
+                            PlaceableGrid={PlaceableGrid}
+                            isDropped={isDropped}
+                            row={row}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+            <div className="py-3" />
+            {/* inventory */}
+            {/* <div className="h-full min-h-32 w-screen overflow-x-scroll bg-green-200 px-6 pt-6"> */}
+            <div
+              className={cn("grid w-[80%] justify-between gap-2 transition")}
+              style={{
+                gridAutoColumns: "minmax(0, 1fr)",
+                gridTemplateColumns: "repeat(auto-fill, minmax(80px, 1fr)",
+              }}
+            >
+              {/* <div className="flex justify-start gap-4 pb-3"> */}
+              {inventoryItems.map(({ data, id }) => (
+                <BlockInInventory
+                  isOverMap={isDraggingBlockOverMap}
+                  width={
+                    isDraggingBlockOverMap
+                      ? GAME_MAP_SIZE / rowCount
+                      : BLOCK_SIZE
+                  }
+                  height={
+                    isDraggingBlockOverMap
+                      ? GAME_MAP_SIZE / colCount
+                      : BLOCK_SIZE
+                  }
+                  key={id}
+                  id={id}
+                  data={data}
+                  isDropped={isDropped}
+                />
+              ))}
+              {/* </div> */}
+            </div>
           </div>
         </div>
       </DndContext>
@@ -953,19 +1020,18 @@ function GameMapGridCell({
 }
 
 function BlockInInventory({
+  isOverMap,
+  width,
+  height,
   id,
   data,
   isDropped,
 }: {
+  isOverMap: boolean;
+  width: number;
+  height: number;
   id: string;
-  data: {
-    unlocked: boolean;
-    amount: number;
-    up: boolean;
-    down: boolean;
-    left: boolean;
-    right: boolean;
-  };
+  data: Block | Prop;
   isDropped: boolean;
 }) {
   const isDisabled = data.amount <= 0 || !data.unlocked;
@@ -974,8 +1040,20 @@ function BlockInInventory({
       id: `fragment,${id}`,
       disabled: isDisabled,
     });
-  const style = {
-    transform: CSS.Translate.toString(transform),
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        width: BLOCK_SIZE,
+        height: BLOCK_SIZE,
+      }
+    : undefined;
+
+  const scaleStyle = {
+    transform: isDragging
+      ? `scaleX(${width / BLOCK_SIZE}) scaleY(${height / BLOCK_SIZE})`
+      : undefined,
+    width: BLOCK_SIZE,
+    height: BLOCK_SIZE,
   };
   const isMoving =
     Math.abs(transform?.x ?? 0 - 0) != 0 ||
@@ -993,7 +1071,8 @@ function BlockInInventory({
     >
       <div className="relative">
         <div className="pointer-events-none absolute inset-0 bottom-0 left-0 top-0 opacity-50">
-          {data.unlocked && blocks[id as keyof typeof blocks]}
+          {data.unlocked &&
+            blockAndPropsElements[id as keyof typeof blockAndPropsElements]}
         </div>
         <div
           ref={setNodeRef}
@@ -1001,12 +1080,19 @@ function BlockInInventory({
           {...listeners}
           {...attributes}
           className={cn(
-            `h-14 w-14 ease-in-out ${false ? (data.amount == 0 || !data.unlocked ? "border-[27px] border-red-600/80" : "border-[8px] border-orange-400") : ""} ${isMoving && isDropped ? "hidden" : ""}`,
+            `h-14 w-14 ease-in-out ${isMoving && isDropped ? "hidden" : ""} ${isDragging && "z-10"}`,
             isDisabled ? "cursor-not-allowed" : "cursor-move",
             needDuration && "duration-200",
           )}
         >
-          {data.unlocked ? blocks[id as keyof typeof blocks] : blocks.unknown}
+          <div
+            className={cn(`relative`, !isDisabled && "transition-all")}
+            style={scaleStyle}
+          >
+            {data.unlocked
+              ? blockAndPropsElements[id as keyof typeof blockAndPropsElements]
+              : blockAndPropsElements.unknown}
+          </div>
         </div>
       </div>
       <div
