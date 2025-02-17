@@ -5,6 +5,8 @@ import { CSS } from "@dnd-kit/utilities";
 import {
   DndContext,
   DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
   useDraggable,
   useDroppable,
 } from "@dnd-kit/core";
@@ -165,6 +167,7 @@ export default function GamePage() {
   const [SelectedItem, setSelectedItem] = useState("");
   const [IsZoomedIn, setIsZoomedIn] = useState(false);
   const [isDropped, setIsDropped] = useState(false);
+  const [draggingBlockID, setDraggingBlockID] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [isDraggingBlockOverMap, setIsDraggingBlockOverMap] = useState(false);
   const sensors = useCustomSensors();
@@ -795,7 +798,7 @@ export default function GamePage() {
       },
     };
 
-    const GameGridData = gameGridData5x5;
+    const GameGridData = gameGridData10x10;
 
     setLevel(LevelData);
     setScore(ScoreData);
@@ -810,6 +813,7 @@ export default function GamePage() {
   function handleDragEnd(event: DragEndEvent) {
     setIsDragging(false);
     setIsDraggingBlockOverMap(false);
+    setDraggingBlockID("");
     const { active, over } = event;
 
     if (!active || !over) return;
@@ -843,7 +847,15 @@ export default function GamePage() {
     (a, b) => (b.data.amount > 0 ? 1 : 0) - (a.data.amount > 0 ? 1 : 0),
   );
 
-  function handleDragStart() {
+  function handleDragStart(event: DragStartEvent) {
+    const { active } = event;
+
+    if (!active) return;
+
+    const activeId = active.id.toString().split(",");
+    const [activeType, fragmentID] = activeId;
+
+    setDraggingBlockID(fragmentID);
     setIsDropped(false);
     setIsDragging(true);
   }
@@ -856,6 +868,30 @@ export default function GamePage() {
         onDragEnd={handleDragEnd}
         onDragStart={handleDragStart}
       >
+        {draggingBlockID && !isDropped && (
+          <DragOverlay>
+            <div
+              className="pointer-events-none absolute z-10"
+              style={{
+                width:
+                  isDraggingBlockOverMap && !IsZoomedIn
+                    ? GAME_MAP_SIZE / rowCount
+                    : BLOCK_SIZE,
+                height:
+                  isDraggingBlockOverMap && !IsZoomedIn
+                    ? GAME_MAP_SIZE / colCount
+                    : BLOCK_SIZE,
+                display: isDragging ? "block" : "none",
+              }}
+            >
+              {
+                blockAndPropsElements[
+                  draggingBlockID as keyof typeof blockAndPropsElements
+                ]
+              }
+            </div>
+          </DragOverlay>
+        )}
         <div
           className={cn(
             "flex h-full w-full flex-col items-center overflow-hidden py-4",
@@ -896,7 +932,7 @@ export default function GamePage() {
           </div>
           <div className="py-3" />
           {/* game area */}
-          <div className="flex w-full flex-col items-center justify-center overflow-hidden">
+          <div className="flex h-full w-full flex-col items-center justify-center overflow-hidden">
             {/* grid part */}
             <div
               className={`inline-block overflow-auto border border-gray-200 ${IsZoomedIn ? "overflow-auto" : ""}`}
@@ -907,9 +943,9 @@ export default function GamePage() {
                 height: IsZoomedIn
                   ? `${GAME_MAP_SIZE + 2}px`
                   : `${GAME_MAP_SIZE + 2}px`,
-                // minHeight: IsZoomedIn
-                //   ? `${GAME_MAP_SIZE + 2}px`
-                //   : `${GAME_MAP_SIZE + 2}px`,
+                minHeight: IsZoomedIn
+                  ? `${GAME_MAP_SIZE + 2}px`
+                  : `${GAME_MAP_SIZE + 2}px`,
               }}
             >
               <div className="w-fit">
@@ -940,15 +976,12 @@ export default function GamePage() {
                 ))}
               </div>
             </div>
-            <div className="py-3" />
             {/* inventory */}
-            {/* <div className="h-full min-h-32 w-screen overflow-x-scroll bg-green-200 px-6 pt-6"> */}
             <div
-              className={cn("grid w-[80%] justify-between gap-2 transition")}
-              style={{
-                gridAutoColumns: "minmax(0, 1fr)",
-                gridTemplateColumns: "repeat(auto-fill, minmax(80px, 1fr)",
-              }}
+              className={cn(
+                "flex w-screen items-start gap-4 overflow-x-scroll bg-green-200 px-6 py-9 transition",
+                isDragging ? "opacity-50" : "opacity-100",
+              )}
             >
               {/* <div className="flex justify-start gap-4 pb-3"> */}
               {inventoryItems.map(({ data, id }) => (
@@ -1003,10 +1036,11 @@ function GameMapGridCell({
   return (
     <div
       ref={setNodeRef}
-      className={`border ease-in-out ${isOver && !isDropped ? "animate-pulse border-[4px] border-orange-300 ease-in-out" : ""}`}
+      className={`border transition ease-in-out ${isOver && !isDropped ? "animate-pulse border-[4px] border-orange-300 ease-in-out" : ""}`}
       style={{
         height: IsZoomedIn ? "64px" : `${320 / row.length}px`,
         width: IsZoomedIn ? "64px" : `${320 / row.length}px`,
+        transitionProperty: "height, width",
       }}
       onClick={() => {
         if (PlaceableGrid[rowIndex][colIndex]) {
@@ -1042,16 +1076,16 @@ function BlockInInventory({
     });
   const style = transform
     ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        // transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
         width: BLOCK_SIZE,
         height: BLOCK_SIZE,
       }
     : undefined;
 
   const scaleStyle = {
-    transform: isDragging
-      ? `scaleX(${width / BLOCK_SIZE}) scaleY(${height / BLOCK_SIZE})`
-      : undefined,
+    // transform: isDragging
+    //   ? `scaleX(${width / BLOCK_SIZE}) scaleY(${height / BLOCK_SIZE})`
+    //   : undefined,
     width: BLOCK_SIZE,
     height: BLOCK_SIZE,
   };
