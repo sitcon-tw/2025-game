@@ -174,6 +174,62 @@ export default function GamePage() {
   const rowCount = GameGrid.length;
   const colCount = GameGrid.length > 0 ? GameGrid[0].length : 0;
 
+  const startRow = GameGrid.findIndex((row) => row.includes("start")) ?? 0;
+  const startCol =
+    (GameGrid[startRow] && GameGrid[startRow].indexOf("start")) ?? 0;
+
+  const visited = GameGrid.map((row) => row.map(() => false));
+
+  function dfs(
+    grid: string[][],
+    i: number,
+    j: number,
+    findEnd = false,
+  ): boolean {
+    const type = grid[i][j];
+    if (type === "obstacle") return false;
+    if (findEnd || type === "end") return true;
+
+    const block = BlockData[type as keyof typeof BlockData];
+
+    const isAllDirectionAllowed =
+      type === "empty" || type === "start" || type === "end";
+
+    if (!block && !isAllDirectionAllowed) return false;
+
+    let result = false;
+
+    const directions: {
+      name: "up" | "down" | "left" | "right";
+      i: number;
+      j: number;
+      reverse: "up" | "down" | "left" | "right";
+    }[] = [
+      { name: "up", i: i - 1, j, reverse: "down" },
+      { name: "down", i: i + 1, j, reverse: "up" },
+      { name: "left", i, j: j - 1, reverse: "right" },
+      { name: "right", i, j: j + 1, reverse: "left" },
+    ];
+
+    for (const { name, i: newI, j: newJ, reverse } of directions) {
+      if (newI < 0 || newI >= rowCount || newJ < 0 || newJ >= colCount)
+        continue;
+      if (visited[newI][newJ]) continue;
+      const canGoTo = isAllDirectionAllowed || block[name];
+      const nextBlock = grid[newI][newJ];
+      const nextBlockIsAllDirectionAllowed =
+        nextBlock === "empty" || nextBlock === "start" || nextBlock === "end";
+      const canGoFrom =
+        nextBlockIsAllDirectionAllowed ||
+        BlockData[nextBlock as keyof typeof BlockData]?.[reverse];
+      if (!canGoTo || !canGoFrom) continue;
+      visited[newI][newJ] = true;
+      result ||= dfs(grid, newI, newJ, findEnd);
+    }
+
+    return result;
+  }
+
   /////////////////////////
   //  block a: 橫的
   //  block b: 直的
@@ -269,6 +325,14 @@ export default function GamePage() {
   function placeBlock(row: number, col: number, block: string) {
     const newGrid = GameGrid.map((r) => [...r]);
     newGrid[row][col] = block;
+
+    visited[startRow][startCol] = true;
+    const isPathAvailable = dfs(newGrid, startRow, startCol);
+    if (!isPathAvailable) {
+      alert("你不能把路徑堵死！");
+      return;
+    }
+
     setGameGrid(newGrid);
   }
 
@@ -550,7 +614,7 @@ export default function GamePage() {
         "empty",
         "empty",
         "empty",
-        "empty",
+        "end",
         "empty",
         "empty",
         "empty",
@@ -690,7 +754,7 @@ export default function GamePage() {
       },
       b: {
         unlocked: true,
-        amount: 3,
+        amount: 10,
         up: true,
         down: true,
         left: false,
@@ -698,7 +762,7 @@ export default function GamePage() {
       },
       c: {
         unlocked: true,
-        amount: 1,
+        amount: 10,
         up: true,
         down: true,
         left: true,
