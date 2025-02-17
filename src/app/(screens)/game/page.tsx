@@ -487,14 +487,16 @@ export default function GamePage() {
       ["empty", "empty", "empty", "empty", "empty", "empty", "end"],
     ];
     const gameGridData8x8 = [
-      ["start", "empty", "empty", "empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty", "empty", "empty", "end"],
-      ["empty", "empty", "empty", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "end"],
+      ["empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty"],
     ];
 
     const gameGridData9x9 = [
@@ -552,50 +554,6 @@ export default function GamePage() {
         "empty",
         "empty",
         "empty",
-      ],
-      [
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-      ],
-      [
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-      ],
-      [
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-      ],
-      [
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "end",
       ],
     ];
 
@@ -798,7 +756,7 @@ export default function GamePage() {
       },
     };
 
-    const GameGridData = gameGridData10x10;
+    const GameGridData = gameGridData9x9;
 
     setLevel(LevelData);
     setScore(ScoreData);
@@ -809,6 +767,8 @@ export default function GamePage() {
       createEmptyPlaceableGrid(GameGridData.length, GameGridData[0].length),
     );
   }, []);
+
+  const showZoomButton = GameGrid.length > 5 || GameGrid[0].length > 5;
 
   function handleDragEnd(event: DragEndEvent) {
     setIsDragging(false);
@@ -911,7 +871,7 @@ export default function GamePage() {
             </div>
 
             <div className="flex items-baseline space-x-4">
-              {GameGrid.length !== 5 && (
+              {showZoomButton && (
                 <Scan
                   className="hover:scale-110 active:scale-95"
                   onClick={toggleZoom}
@@ -935,7 +895,7 @@ export default function GamePage() {
           <div className="flex h-full w-full flex-col items-center justify-center overflow-hidden">
             {/* grid part */}
             <div
-              className={`inline-block overflow-auto border border-gray-200 ${IsZoomedIn ? "overflow-auto" : ""}`}
+              className={`flex flex-col justify-center overflow-auto border border-gray-200`}
               style={{
                 width: IsZoomedIn
                   ? `${GAME_MAP_SIZE + 2}px`
@@ -948,9 +908,15 @@ export default function GamePage() {
                   : `${GAME_MAP_SIZE + 2}px`,
               }}
             >
-              <div className="w-fit">
+              <div className="w-full overflow-scroll">
                 {GameGrid.map((row, rowIndex) => (
-                  <div key={rowIndex} className="flex">
+                  <div
+                    key={rowIndex}
+                    className={cn(
+                      "flex",
+                      rowCount < colCount ? "justify-start" : "justify-center",
+                    )}
+                  >
                     {row.map((cell, colIndex) => {
                       const cellContent =
                         blockAndPropsElements[
@@ -967,7 +933,8 @@ export default function GamePage() {
                             cellContent={cellContent}
                             PlaceableGrid={PlaceableGrid}
                             isDropped={isDropped}
-                            row={row}
+                            rowCount={rowCount}
+                            colCount={colCount}
                           />
                         </div>
                       );
@@ -1018,7 +985,8 @@ function GameMapGridCell({
   colIndex,
   cellContent,
   PlaceableGrid,
-  row,
+  rowCount,
+  colCount,
   isDropped,
 }: {
   IsZoomedIn: boolean;
@@ -1026,20 +994,23 @@ function GameMapGridCell({
   colIndex: number;
   cellContent: ReactNode;
   PlaceableGrid: boolean[][];
-  row: string[];
   isDropped: boolean;
+  rowCount: number;
+  colCount: number;
 }) {
   const { isOver, setNodeRef } = useDroppable({
     id: `grid,${rowIndex},${colIndex}`,
   });
+
+  const maxSideCount = Math.max(rowCount, colCount);
 
   return (
     <div
       ref={setNodeRef}
       className={`border transition ease-in-out ${isOver && !isDropped ? "animate-pulse border-[4px] border-orange-300 ease-in-out" : ""}`}
       style={{
-        height: IsZoomedIn ? "64px" : `${320 / row.length}px`,
-        width: IsZoomedIn ? "64px" : `${320 / row.length}px`,
+        height: IsZoomedIn ? "64px" : `${GAME_MAP_SIZE / maxSideCount}px`,
+        width: IsZoomedIn ? "64px" : `${GAME_MAP_SIZE / maxSideCount}px`,
         transitionProperty: "height, width",
       }}
       onClick={() => {
