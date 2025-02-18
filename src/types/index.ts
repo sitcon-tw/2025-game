@@ -15,6 +15,6 @@ export type PlayerData = {
 
 export type CouponData = {
   couponId?: string; // generate by server
-  type: number; // set discount
+  type?: number; // set discount
   used?: boolean; // default when true can't use
 };
