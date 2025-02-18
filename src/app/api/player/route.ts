@@ -35,3 +35,8 @@ export const POST = async (request: NextRequest) => {
   if (!player) return internalServerError();
   return success({ message: "User regist complete" });
 };
+
+// {
+//   status: 200,
+//   message: "User regist complete"
+// }
