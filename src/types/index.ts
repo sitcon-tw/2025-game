@@ -11,6 +11,8 @@ export type PlayerData = {
   name: string; // data.user_id
   avatar?: string; //
   linktree?: string; //
+  point: number; //
+  score: number; //
 };
 
 // for self fragment & all fragment api
@@ -63,5 +65,22 @@ export type TeamMemberData = {
   members: Array<{
     name: string;
     isActivated: boolean; // 是否已啟動指南針計畫
+  }>;
+};
+
+export type StageData = {
+  level: number; // 對該玩家來說是第幾關
+  floor: number; // 總層數
+  size: number; // 地圖大小 正方形
+  map: Array<Array<Array<{ id: string }>>>; // map[layer][row][column]
+};
+
+export type LotteryBoxData = {
+  lotteryBox: Array<{
+    id: number;
+    name: string;
+    description: string;
+    isFinished: boolean; // 是否已經完成
+    prizeBlockType?: string; // 如果已完成，得到的獎勵方塊
   }>;
 };
