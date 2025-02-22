@@ -8,8 +8,10 @@ const query = {
     try {
       const player = await prisma.player.create({
         data: {
+          player_id: playerData.token,
           name: playerData.name,
-          linktree: playerData.linktree,
+          avatar: playerData.avatar ?? "",
+          linktree: playerData.linktree ?? "",
         },
       });
       return player.player_id;
@@ -26,6 +28,8 @@ const query = {
       } else return internalServerError();
     }
   },
+  getItem: async () => {},
+  getBlock: async () => {},
   getPlayer: async (playerId: string) => {
     const player = await prisma.player.findUnique({
       where: { player_id: playerId },
@@ -33,6 +37,12 @@ const query = {
     if (!player) return;
     return player;
   },
-  getStage: async () => {},
+  getScore: async () => {},
+  getStage: async (stageId: string) => {},
+  getTeam: async (teamId: string) => {},
+  setPlayer: async () => {},
+  setScore: async () => {},
+  useCoupon: async () => {},
+  createCoupon: async () => {},
 };
 export const { createPlayer, getPlayer, getStage } = query;

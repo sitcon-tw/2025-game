@@ -75,6 +75,9 @@ const response = {
   success: (data: object): NextResponse => {
     return new NextResponse(JSON.stringify(data), { status: 200 });
   },
+  updated: (): NextResponse => {
+    return new NextResponse();
+  },
 };
 
 export const {
@@ -85,4 +88,5 @@ export const {
   internalServerError,
   notFound,
   success,
+  updated,
 } = response;
