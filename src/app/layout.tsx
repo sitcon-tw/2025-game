@@ -19,7 +19,7 @@ export default function RootLayout({
         </div>
         <div className="w-full">
           <footer className="flex border-t-2 border-gray-400 bg-gray-200 px-2 py-2 text-center text-sm text-gray-600">
-            <NavbarItem href="/" name="遊戲" Icon={Gamepad} />
+            <NavbarItem href="/game" name="遊戲" Icon={Gamepad} />
             <NavbarItem href="/fragment" name="板塊" Icon={Blocks} />
             <NavbarItem href="/store" name="商店" Icon={Store} />
             <NavbarItem href="/personal" name="個人" Icon={UserRound} />
