@@ -1,6 +1,6 @@
 {
-  "name": "2025playground",
-  "version": "0.1.0",
+  "name": "2025-game",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -49,6 +49,7 @@
     "input-otp": "^1.4.2",
     "lucide-react": "^0.468.0",
     "next": "15.0.4",
+    "next-qrcode": "^2.5.1",
     "next-themes": "^0.4.4",
     "qrcode.react": "^4.2.0",
     "react": "^19.0.0",
@@ -72,11 +73,12 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.3",
     "husky": "^9.1.7",
-    "postcss": "^8.5.2",
-    "prettier": "^3.5.1",
-    "prettier-plugin-tailwindcss": "^0.6.11",
-    "prisma": "^6.3.1",
-    "tailwindcss": "^3.4.17",
-    "typescript": "^5.7.3"
-  }
+    "postcss": "^8",
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.9",
+    "prisma": "^6.2.1",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  },
+  "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
 }
