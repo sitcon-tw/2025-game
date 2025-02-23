@@ -15,7 +15,7 @@ datasource db {
 
 // 玩家資料
 model Player {
-  player_id    String // 廢棄 改用kktix_token
+  token    String // 廢棄 改用kktix_token
   name         String // 抓kktix的name
   avatar       String?
   linktree     String?
@@ -27,14 +27,14 @@ model Player {
   achievements AchievementStatus[]
   scores       PlayerScoreboard?
 
-  @@id([player_id])
+  @@id([token])
 }
 
 model PlayerBooth {
-  player_id String
+  token String
   booth_id  String @db.Uuid
 
-  @@id([player_id, booth_id])
+  @@id([token, booth_id])
 }
 
 // 隊伍資料
@@ -61,22 +61,22 @@ model Fragment {
 
 model PlayerFragment {
   fragment_id String   @db.Uuid
-  player_id   String
+  token   String
   type        String
   amount      Int
-  player      Player   @relation(fields: [player_id], references: [player_id])
+  player      Player   @relation(fields: [token], references: [token])
   fragment    Fragment @relation(fields: [fragment_id], references: [fragment_id])
 
-  @@id([fragment_id, player_id])
+  @@id([fragment_id, token])
 }
 
 // 排行榜
 model PlayerScoreboard {
-  player_id String
+  token String
   score     Int
-  player    Player @relation(fields: [player_id], references: [player_id])
+  player    Player @relation(fields: [token], references: [token])
 
-  @@id([player_id])
+  @@id([token])
 }
 
 model TeamScoreboard {
@@ -99,11 +99,11 @@ model Achievement {
 // 成就狀態
 model AchievementStatus {
   achievement_id String      @db.Uuid
-  player_id      String      @db.Text
+  token      String      @db.Text
   achievement    Achievement @relation(fields: [achievement_id], references: [achievement_id])
-  player         Player      @relation(fields: [player_id], references: [player_id])
+  player         Player      @relation(fields: [token], references: [token])
 
-  @@id([achievement_id, player_id])
+  @@id([achievement_id, token])
 }
 
 // 攤位(Complete)
