@@ -9,13 +9,13 @@ const query = {
     try {
       const player = await prisma.player.create({
         data: {
-          player_id: playerData.token,
+          token: playerData.token,
           name: playerData.name,
           avatar: playerData.avatar ?? "",
           linktree: playerData.linktree ?? "",
         },
       });
-      return player.player_id;
+      return player.token;
     } catch (error: unknown) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         switch (error.code) {
@@ -34,15 +34,15 @@ const query = {
     let result;
     if (type)
       result = await prisma.fragment.findMany({
-        where: { player_id: playerId, type: type },
+        where: { token: playerId, type: type },
       });
-    result = await prisma.fragment.findMany({ where: { player_id: playerId } });
+    result = await prisma.fragment.findMany({ where: { token: playerId } });
     return result;
   },
   getItem: async () => {},
   getPlayer: async (playerId: string) => {
     const player = await prisma.player.findUnique({
-      where: { player_id: playerId },
+      where: { token: playerId },
     });
     if (!player) return;
     return player;
@@ -51,7 +51,7 @@ const query = {
     let score;
     if (type === "player")
       score = prisma.playerScoreboard.findUnique({
-        where: { player_id: id },
+        where: { token: id },
       });
     if (type === "team")
       score = prisma.teamScoreboard.findUnique({ where: { team_id: id } });
@@ -63,7 +63,7 @@ const query = {
       const ranks = await prisma.playerScoreboard.findMany({
         orderBy: [{ score: "asc" }],
       });
-      rank = ranks.findIndex((r) => r.player_id === id) + 1;
+      rank = ranks.findIndex((r) => r.token === id) + 1;
     }
     if (type === "team") {
       const ranks = await prisma.teamScoreboard.findMany({
@@ -86,17 +86,17 @@ const query = {
   setPlayer: async () => {},
   setScore: async (playerId: string, teamId: string, score: number) => {
     let playerScore = await prisma.playerScoreboard.findUnique({
-      where: { player_id: playerId },
+      where: { token: playerId },
     });
 
     if (!playerScore) {
       playerScore = await prisma.playerScoreboard.create({
-        data: { player_id: playerId, score: score },
+        data: { token: playerId, score: score },
       });
     } else {
       const newScore = playerScore.score + score;
       playerScore = await prisma.playerScoreboard.update({
-        where: { player_id: playerId },
+        where: { token: playerId },
         data: { score: newScore },
       });
     }
