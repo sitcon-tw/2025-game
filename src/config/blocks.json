@@ -1,0 +1,44 @@
+{
+  "a": {
+    "up": false,
+    "down": false,
+    "left": true,
+    "right": true
+  },
+  "b": {
+    "up": true,
+    "down": true,
+    "left": false,
+    "right": false
+  },
+  "c": {
+    "up": true,
+    "down": true,
+    "left": true,
+    "right": true
+  },
+  "d": {
+    "up": true,
+    "down": false,
+    "left": false,
+    "right": true
+  },
+  "e": {
+    "up": true,
+    "down": false,
+    "left": true,
+    "right": false
+  },
+  "f": {
+    "up": false,
+    "down": true,
+    "left": false,
+    "right": true
+  },
+  "g": {
+    "up": false,
+    "down": true,
+    "left": true,
+    "right": false
+  }
+}
