@@ -278,7 +278,7 @@ export default function GamePage() {
 
     const visited = GameGrid.map((row) => row.map(() => false));
     visited[startRow][startCol] = true;
-    const isPathAvailable = dfs(newGrid, startRow, startCol, visited);
+    const isPathAvailable = dfs(newGrid, startRow, startCol, visited, false);
     if (!isPathAvailable) {
       alert("你不能把路徑堵死！");
       return;

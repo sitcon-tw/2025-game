@@ -5,6 +5,7 @@ export function dfs(
   i: number,
   j: number,
   visited: boolean[][],
+  canWalkOnEmpty: boolean = true,
   findEnd = false,
 ): boolean {
   const type = grid[i][j];
@@ -14,7 +15,7 @@ export function dfs(
   const block = blocksConfig[type as keyof typeof blocksConfig];
 
   const isAllDirectionAllowed =
-    type === "empty" || type === "start" || type === "end";
+    (type === "empty" && canWalkOnEmpty) || type === "start" || type === "end";
 
   if (!block && !isAllDirectionAllowed) return false;
 
@@ -41,13 +42,15 @@ export function dfs(
     const canGoTo = isAllDirectionAllowed || block[name];
     const nextBlock = grid[newI][newJ];
     const nextBlockIsAllDirectionAllowed =
-      nextBlock === "empty" || nextBlock === "start" || nextBlock === "end";
+      (nextBlock === "empty" && canWalkOnEmpty) ||
+      nextBlock === "start" ||
+      nextBlock === "end";
     const canGoFrom =
       nextBlockIsAllDirectionAllowed ||
       blocksConfig[nextBlock as keyof typeof blocksConfig]?.[reverse];
     if (!canGoTo || !canGoFrom) continue;
     visited[newI][newJ] = true;
-    result ||= dfs(grid, newI, newJ, visited, findEnd);
+    result ||= dfs(grid, newI, newJ, visited, canWalkOnEmpty, findEnd);
   }
 
   return result;
