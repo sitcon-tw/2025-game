@@ -15,36 +15,32 @@ datasource db {
 
 // 玩家資料
 model Player {
-  token    String // 廢棄 改用kktix_token
-  name         String // 抓kktix的name
-  avatar       String?
-  linktree     String?
-  stage        Int                 @default(0) // 已通過關卡數
-  currentStage String? // 關卡ID
-  team_id      String?             @db.Uuid
+  token    String // kktix_token
+  name         String // opass user_id
+  avatar       String? // jpg, png with token
+  linktree     String? // linktree url
+  stage        Int     @default(0) // completed stage
+  currentStage String? // stage_id
+  team_id      String? @db.Uuid // team_id
+  compass      Boolean @default(false) // compass status
+
   team         Team?               @relation(fields: [team_id], references: [team_id])
-  fragments    PlayerFragment[]
+  fragments    Fragment[]
   achievements AchievementStatus[]
   scores       PlayerScoreboard?
+  boothStatus  BoothStatus[]
 
   @@id([token])
 }
 
-model PlayerBooth {
-  token String
-  booth_id  String @db.Uuid
-
-  @@id([token, booth_id])
-}
-
 // 隊伍資料
 model Team {
-  team_id    String          @default(uuid()) @db.Uuid
-  name       String
-  player1_id String          @unique
-  player2_id String          @unique
-  player3_id String          @unique
-  player4_id String          @unique
+  team_id    String          @default(uuid()) @db.Uuid // team_id
+  name       String // team name
+  player1_id String          @unique // token
+  player2_id String          @unique // token
+  player3_id String          @unique // token
+  player4_id String          @unique // token
   players    Player[]
   scores     TeamScoreboard?
 
@@ -53,19 +49,11 @@ model Team {
 
 // 碎片資料
 model Fragment {
-  fragment_id String           @default(uuid()) @db.Uuid
-  players     PlayerFragment[]
-
-  @@id([fragment_id])
-}
-
-model PlayerFragment {
-  fragment_id String   @db.Uuid
+  fragment_id Int    @default(autoincrement()) // fragment_id
   token   String
-  type        String
-  amount      Int
-  player      Player   @relation(fields: [token], references: [token])
-  fragment    Fragment @relation(fields: [fragment_id], references: [fragment_id])
+  type        String // share, compass, self
+  amount      Int // count
+  player      Player @relation(fields: [token], references: [token])
 
   @@id([fragment_id, token])
 }
@@ -80,8 +68,8 @@ model PlayerScoreboard {
 }
 
 model TeamScoreboard {
-  team_id String @db.Uuid
-  score   Int
+  team_id String @db.Uuid // team_id
+  score   Int // score
   team    Team   @relation(fields: [team_id], references: [team_id])
 
   @@id([team_id])
@@ -89,14 +77,17 @@ model TeamScoreboard {
 
 // 成就
 model Achievement {
-  achievement_id String              @default(uuid()) @db.Uuid
-  prize          Int                 @default(0)
+  achievement_id String              @default(uuid()) @db.Uuid // achievement_id
+  name           String // achievement name
+  description    String // achievement description
+  prize          Int                 @default(0) // count?
   statuses       AchievementStatus[]
 
   @@id([achievement_id])
 }
 
 // 成就狀態
+// use object
 model AchievementStatus {
   achievement_id String      @db.Uuid
   token      String      @db.Text
@@ -108,18 +99,28 @@ model AchievementStatus {
 
 // 攤位(Complete)
 model Booth {
-  booth_id String @default(uuid()) @db.Uuid
+  booth_id String        @default(uuid()) @db.Uuid
   name     String
+  statuses BoothStatus[]
 
   @@id([booth_id])
 }
 
+model BoothStatus {
+  booth_id  String @db.Uuid
+  token String @db.Text
+  booth     Booth  @relation(fields: [booth_id], references: [booth_id])
+  player    Player @relation(fields: [token], references: [token])
+
+  @@id([booth_id, token])
+}
+
 // 關卡ID
 model Stage {
-  stage_id      String    @default(uuid()) @db.Uuid
-  floor         Int
-  size          Int       @default(0)
-  blocker_count Int       @default(0)
+  stage_id      String    @default(uuid()) @db.Uuid // stage_id
+  floor         Int // floor
+  size          Int       @default(0) // size
+  blocker_count Int       @default(0) // blocker count
   blockers      Blocker[]
 
   @@id([stage_id])
@@ -127,11 +128,11 @@ model Stage {
 
 // 障礙物
 model Blocker {
-  blocker_id String @default(uuid()) @db.Uuid
-  stage_id   String @db.Uuid
-  x          Int    @default(0)
-  y          Int    @default(0)
-  z          Int    @default(0)
+  blocker_id String @default(uuid()) @db.Uuid // blocker_id
+  stage_id   String @db.Uuid // stage_id
+  col        Int    @default(0) // col
+  layer      Int    @default(0) // layer
+  row        Int    @default(0) // row
   stage      Stage  @relation(fields: [stage_id], references: [stage_id])
 
   @@id([blocker_id])
@@ -139,9 +140,18 @@ model Blocker {
 
 // 折價券
 model Coupon {
-  coupon_id String  @default(uuid()) @db.Uuid
-  type      Int     @default(0)
-  used      Boolean @default(false)
+  coupon_id String  @default(uuid()) @db.Uuid // coupon_id
+  type      Int     @default(0) // type
+  used      Boolean @default(false) // used
 
   @@id(coupon_id)
+}
+
+// 抽獎券
+model Lottery {
+  token  String @db.Text // token
+  lottery_id String @db.Text // lottery_id
+  type       String // type
+
+  @@id([token, lottery_id])
 }
