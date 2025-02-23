@@ -3,12 +3,15 @@
 import { SquareUserRound, UserRound } from "lucide-react";
 import { useQRCode } from "next-qrcode";
 import { Button } from "@/components/ui/button";
+import usePlayerData from "@/hooks/usePlayerData";
 
 export default function PersonalPage() {
   const { Canvas } = useQRCode();
+  const { playerData, isError, isLoading, error } = usePlayerData();
+
   return (
     <div className="flex h-full w-full flex-col px-[2rem] pt-[2rem] text-[#4B5563]">
-      <div className="h-[4rem] w-full bg-[#E5E7EB]">
+      <div className="w-full bg-[#E5E7EB]">
         <div className="flex h-full w-full px-[0.75rem] py-[0.5rem]">
           <div className="flex h-full flex-initial">
             <SquareUserRound
@@ -18,10 +21,12 @@ export default function PersonalPage() {
             />
           </div>
           <div className="flex flex-none flex-col pl-[0.75rem] text-left font-bold">
+            <div>玩家名稱：</div>
             <div>個人排名：</div>
             <div>團體排名：</div>
           </div>
           <div className="flex-1 flex-col pl-[0.5rem] text-right font-bold">
+            <div>{playerData?.name}</div>
             <div>1000/2000</div>
             <div>10/99</div>
           </div>
