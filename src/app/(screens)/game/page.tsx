@@ -25,7 +25,7 @@ import useCustomSensors from "@/hooks/useCustomSensors";
 import { dfs } from "@/utils/dfs";
 import usePlayerData from "@/hooks/usePlayerData";
 import { useQuery } from "@tanstack/react-query";
-import { PlayerData, StageData } from "@/types";
+import { FragmentData, PlayerData, StageData } from "@/types";
 
 const BLOCK_SIZE = 56;
 const GAME_MAP_SIZE = 320;
@@ -165,7 +165,7 @@ export default function GamePage() {
   // react usestate -- dont change anything here!
   const [Level, setLevel] = useState(1);
   const [Score, setScore] = useState(0);
-  const [GameGrid, setGameGrid] = useState(createEmptyGrid(5, 5));
+  const [gameGrid, setGameGrid] = useState(createEmptyGrid(5, 5));
   const [PlaceableGrid, setPlaceableGrid] = useState(
     createEmptyPlaceableGrid(5, 5),
   );
@@ -176,12 +176,12 @@ export default function GamePage() {
   const [isDragging, setIsDragging] = useState(false);
   const [isDraggingBlockOverMap, setIsDraggingBlockOverMap] = useState(false);
   const sensors = useCustomSensors();
-  const rowCount = GameGrid.length;
-  const colCount = GameGrid.length > 0 ? GameGrid[0].length : 0;
+  const rowCount = gameGrid.length;
+  const colCount = gameGrid.length > 0 ? gameGrid[0].length : 0;
 
-  const startRow = GameGrid.findIndex((row) => row.includes("start")) ?? 0;
+  const startRow = gameGrid.findIndex((row) => row.includes("start")) ?? 0;
   const startCol =
-    (GameGrid[startRow] && GameGrid[startRow].indexOf("start")) ?? 0;
+    (gameGrid[startRow] && gameGrid[startRow].indexOf("start")) ?? 0;
 
   /////////////////////////
   //  block a: 橫的
@@ -192,7 +192,7 @@ export default function GamePage() {
   //  block f: ┌
   //  block g: ┐
   /////////////////////////
-  const [BlockData, setBlockData] = useState({
+  const [BlockData, setBlockData] = useState<Record<string, Block>>({
     a: {
       unlocked: false,
       amount: 0,
@@ -276,10 +276,10 @@ export default function GamePage() {
   }
 
   function placeBlock(row: number, col: number, block: string): boolean {
-    const newGrid = GameGrid.map((r) => [...r]);
+    const newGrid = gameGrid.map((r) => [...r]);
     newGrid[row][col] = block;
 
-    const visited = GameGrid.map((row) => row.map(() => false));
+    const visited = gameGrid.map((row) => row.map(() => false));
     visited[startRow][startCol] = true;
     const isPathAvailable = dfs(newGrid, startRow, startCol, visited, true);
     if (!isPathAvailable) {
@@ -313,7 +313,7 @@ export default function GamePage() {
     } else {
       const { up, down, left, right } =
         BlockData[block as keyof typeof BlockData];
-      findPlaceableGrids(up, down, left, right, GameGrid, BlockData);
+      findPlaceableGrids(up, down, left, right, gameGrid, BlockData);
     }
   }
 
@@ -336,7 +336,7 @@ export default function GamePage() {
   ) {
     const newRow = typeof row === "string" ? Number(row) : row;
     const newCol = typeof col === "string" ? Number(col) : col;
-    const newGrid = GameGrid.map((r) => [...r]);
+    const newGrid = gameGrid.map((r) => [...r]);
     newGrid[newRow][newCol] = value;
     setGameGrid(newGrid);
   }
@@ -483,6 +483,21 @@ export default function GamePage() {
     error: playerDataError,
   } = usePlayerData();
 
+  const { data: fragments } = useQuery({
+    queryKey: ["fragments", playerData?.token],
+    queryFn: async () => {
+      const response = await fetch("/api/fragment?token=" + playerData?.token);
+
+      if (!response.ok) {
+        const errorMessage = `Error: ${response.status} ${response.statusText}`;
+        throw new Error(errorMessage);
+      }
+
+      const data: FragmentData = await response.json();
+      return data;
+    },
+  });
+
   const {
     data: stageData,
     isLoading,
@@ -506,6 +521,7 @@ export default function GamePage() {
   const emptyMap = Array(5).fill(Array(5).fill("empty"));
   const stageMap = stageData?.map ?? emptyMap;
 
+  const fragmentsString = JSON.stringify(fragments ?? []);
   const stageMapString = JSON.stringify(stageMap);
   // fetch data here
   useEffect(() => {
@@ -590,19 +606,46 @@ export default function GamePage() {
       },
     };
 
-    const GameGridData = JSON.parse(stageMapString);
+    const allFragments = Object.entries(blocksConfig).map(([key, value]) => ({
+      type: key,
+      amount: 0,
+    }));
+
+    const gameGridData = JSON.parse(stageMapString);
+    const fragmentsData: FragmentData = JSON.parse(fragmentsString);
+    const formattedFragmentData = [...allFragments, ...fragmentsData]
+      .map((fragment) => {
+        const fragmentDetails =
+          blocksConfig[fragment.type as keyof typeof blocksConfig];
+        return {
+          unlocked: true,
+          type: fragment.type,
+          amount: fragment.amount,
+          up: fragmentDetails.up,
+          down: fragmentDetails.down,
+          left: fragmentDetails.left,
+          right: fragmentDetails.right,
+        };
+      })
+      .reduce(
+        (acc, fragment) => {
+          acc[fragment.type] = fragment;
+          return acc;
+        },
+        {} as Record<string, Block>,
+      );
 
     setLevel(LevelData);
     setScore(ScoreData);
-    setGameGrid(GameGridData);
-    setBlockData(BlockDataFetch);
+    setGameGrid(gameGridData);
+    setBlockData(formattedFragmentData);
     setPropsData(PropsDataFetch);
     setPlaceableGrid(
-      createEmptyPlaceableGrid(GameGridData.length, GameGridData[0].length),
+      createEmptyPlaceableGrid(gameGridData.length, gameGridData[0].length),
     );
-  }, [stageMapString]);
+  }, [fragmentsString, stageMapString]);
 
-  const showZoomButton = GameGrid.length > 5 || GameGrid[0].length > 5;
+  const showZoomButton = gameGrid.length > 5 || gameGrid[0].length > 5;
 
   function handleDragEnd(event: DragEndEvent) {
     setIsDragging(false);
@@ -749,7 +792,7 @@ export default function GamePage() {
               }}
             >
               <div className="w-full overflow-scroll">
-                {GameGrid.map((row, rowIndex) => (
+                {gameGrid.map((row, rowIndex) => (
                   <div
                     key={rowIndex}
                     className={cn(
