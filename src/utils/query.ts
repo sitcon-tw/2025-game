@@ -1,7 +1,88 @@
 import { prisma } from "@/utils/prisma";
-import { PlayerData } from "@/types";
+import { PlayerData, StageData } from "@/types";
+import { dfs } from "@/utils/dfs";
 import { badRequest, conflict, internalServerError } from "@/utils/response";
 import { Prisma } from "@prisma/client";
+
+function getRandomInt(max: number) {
+  return Math.floor(Math.random() * max);
+}
+
+function generateStage(
+  size: number,
+  obstaclesPercentage: number = 0.3,
+  retries = 10,
+) {
+  const grid = Array.from({ length: size }, () =>
+    Array.from({ length: size }, () => "empty"),
+  );
+
+  if (retries === 0) {
+    grid[0][0] = "start";
+    grid[size - 1][size - 1] = "end";
+    return grid;
+  }
+
+  const startRow = getRandomInt(size);
+  const startColumn = getRandomInt(size);
+  grid[startRow][startColumn] = "start";
+
+  let endRow = getRandomInt(size);
+  let endColumn = getRandomInt(size);
+
+  let whileTimes = 0;
+  while (
+    (endRow === startRow && endColumn === startColumn) ||
+    endRow === startRow ||
+    endColumn === startColumn ||
+    Math.abs(endRow - startRow) + Math.abs(endColumn - startColumn) < size / 2
+  ) {
+    if (whileTimes > 100) {
+      return generateStage(size, obstaclesPercentage, retries - 1);
+    }
+    whileTimes++;
+    endRow = getRandomInt(size);
+    endColumn = getRandomInt(size);
+  }
+  grid[endRow][endColumn] = "end";
+
+  const obstaclesCount = Math.floor(size * size * obstaclesPercentage);
+  for (let i = 0; i < obstaclesCount; i++) {
+    let row = getRandomInt(size);
+    let column = getRandomInt(size);
+    whileTimes = 0;
+    while (grid[row][column] !== "empty") {
+      if (whileTimes > 100) {
+        return generateStage(size, obstaclesPercentage, retries - 1);
+      }
+      whileTimes++;
+      row = getRandomInt(size);
+      column = getRandomInt(size);
+    }
+    grid[row][column] = "obstacle";
+  }
+
+  const visited = Array.from({ length: size }, () =>
+    Array.from({ length: size }, () => false),
+  );
+
+  const isSolvable = dfs(grid, startRow, startColumn, visited, true);
+
+  if (!isSolvable) {
+    return generateStage(
+      size,
+      Math.max(obstaclesPercentage - 0.1, 0),
+      retries - 1,
+    );
+  }
+
+  return grid;
+}
+
+function getStageSize(level: number) {
+  if (level <= 10) return 5;
+  return Math.ceil((level - 10) / 5) + 5;
+}
 
 const query = {
   createCoupon: async () => {},
@@ -73,11 +154,46 @@ const query = {
     }
     return rank;
   },
-  getStage: async (stageId: string) => {
+  getStage: async (stageId: number) => {
     const stage = await prisma.stage.findUnique({
       where: { stage_id: stageId },
     });
-    return stage;
+
+    if (!stage) {
+      // generate stage
+      const size = getStageSize(stageId);
+      const stageMap = generateStage(size);
+      const mapString = JSON.stringify(stageMap);
+
+      await prisma.stage.create({
+        data: {
+          stage_id: stageId,
+          map: mapString,
+        },
+      });
+
+      return {
+        level: stageId,
+        floor: 1,
+        map: mapString,
+        size: size,
+      };
+    }
+
+    const stageMapText = stage.map;
+    try {
+      const stageMap = JSON.parse(stageMapText);
+      if (!stageMap || !Array.isArray(stageMap) || !Array.isArray(stageMap[0]))
+        return internalServerError();
+      return {
+        level: stage.stage_id,
+        floor: 1,
+        map: stageMap,
+        size: stageMap.length,
+      };
+    } catch (error) {
+      return internalServerError();
+    }
   },
   getTeam: async (teamId: string) => {
     const team = await prisma.team.findUnique({ where: { team_id: teamId } });

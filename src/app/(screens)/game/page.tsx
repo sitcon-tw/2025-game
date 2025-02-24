@@ -23,6 +23,9 @@ import {
 import { cn } from "@/lib/utils";
 import useCustomSensors from "@/hooks/useCustomSensors";
 import { dfs } from "@/utils/dfs";
+import usePlayerData from "@/hooks/usePlayerData";
+import { useQuery } from "@tanstack/react-query";
+import { PlayerData, StageData } from "@/types";
 
 const BLOCK_SIZE = 56;
 const GAME_MAP_SIZE = 320;
@@ -272,19 +275,20 @@ export default function GamePage() {
       .map(() => Array(cols).fill("empty"));
   }
 
-  function placeBlock(row: number, col: number, block: string) {
+  function placeBlock(row: number, col: number, block: string): boolean {
     const newGrid = GameGrid.map((r) => [...r]);
     newGrid[row][col] = block;
 
     const visited = GameGrid.map((row) => row.map(() => false));
     visited[startRow][startCol] = true;
-    const isPathAvailable = dfs(newGrid, startRow, startCol, visited, false);
+    const isPathAvailable = dfs(newGrid, startRow, startCol, visited, true);
     if (!isPathAvailable) {
       alert("你不能把路徑堵死！");
-      return;
+      return false;
     }
 
     setGameGrid(newGrid);
+    return true;
   }
 
   function createEmptyPlaceableGrid(rows: number, cols: number) {
@@ -472,228 +476,43 @@ export default function GamePage() {
     setPlaceableGrid(newGrid);
   }
 
+  const {
+    playerData,
+    isLoading: isPlayerDataLoading,
+    isError: isPlayerDataError,
+    error: playerDataError,
+  } = usePlayerData();
+
+  const {
+    data: stageData,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["stage", playerData?.stage],
+    queryFn: async () => {
+      const response = await fetch("/api/stage?token=" + playerData?.token);
+
+      if (!response.ok) {
+        const errorMessage = `Error: ${response.status} ${response.statusText}`;
+        throw new Error(errorMessage);
+      }
+
+      const data: StageData = await response.json();
+      return data;
+    },
+  });
+
+  const emptyMap = Array(5).fill(Array(5).fill("empty"));
+  const stageMap = stageData?.map ?? emptyMap;
+
+  const stageMapString = JSON.stringify(stageMap);
   // fetch data here
   useEffect(() => {
     // use fake data first. use api after available.
     const LevelData = 1;
     const ScoreData = 12345678;
-    const gameGridData5x5 = [
-      ["empty", "start", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty"],
-      ["empty", "obstacle", "empty", "a", "empty"],
-      ["empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "end", "a"],
-    ];
-    const gameGridData6x6 = [
-      ["start", "empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty", "end"],
-    ];
-    const gameGridData7x7 = [
-      ["start", "empty", "empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty", "empty", "end"],
-    ];
-    const gameGridData8x8 = [
-      ["empty", "empty", "empty", "empty", "end"],
-      ["empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty"],
-      ["empty", "empty", "empty", "empty", "empty"],
-    ];
 
-    const gameGridData9x9 = [
-      [
-        "start",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-      ],
-      [
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-      ],
-      [
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-      ],
-      [
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-      ],
-      [
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "end",
-        "empty",
-        "empty",
-        "empty",
-      ],
-    ];
-
-    const gameGridData10x10 = [
-      [
-        "start",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-      ],
-      [
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-      ],
-      [
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-      ],
-      [
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-      ],
-      [
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-      ],
-      [
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-      ],
-      [
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "end",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-      ],
-      [
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-      ],
-      [
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-      ],
-      [
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-        "empty",
-      ],
-    ];
     const BlockDataFetch = {
       a: {
         unlocked: true,
@@ -771,7 +590,7 @@ export default function GamePage() {
       },
     };
 
-    const GameGridData = gameGridData9x9;
+    const GameGridData = JSON.parse(stageMapString);
 
     setLevel(LevelData);
     setScore(ScoreData);
@@ -781,7 +600,7 @@ export default function GamePage() {
     setPlaceableGrid(
       createEmptyPlaceableGrid(GameGridData.length, GameGridData[0].length),
     );
-  }, []);
+  }, [stageMapString]);
 
   const showZoomButton = GameGrid.length > 5 || GameGrid[0].length > 5;
 
@@ -799,8 +618,14 @@ export default function GamePage() {
     const [overType, overRow, overCol] = overId;
 
     if (activeType === "fragment" && overType === "grid") {
-      placeBlock(Number(overRow), Number(overCol), fragmentID);
-      addBlockAmount(fragmentID, -1);
+      const successful = placeBlock(
+        Number(overRow),
+        Number(overCol),
+        fragmentID,
+      );
+      if (successful) {
+        addBlockAmount(fragmentID, -1);
+      }
       setIsDropped(true);
     }
   }
@@ -1030,7 +855,6 @@ function GameMapGridCell({
       }}
       onClick={() => {
         if (PlaceableGrid[rowIndex][colIndex]) {
-          console.log("hi");
         }
       }}
     >
