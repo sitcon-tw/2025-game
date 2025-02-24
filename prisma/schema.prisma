@@ -53,9 +53,10 @@ model Fragment {
   token       String
   type        String // share, compass, self
   amount      Int // count
+  shared      Boolean @default(false) // shared status
   player      Player @relation(fields: [token], references: [token])
 
-  @@id([fragment_id, token])
+  @@id([fragment_id])
 }
 
 // 排行榜
