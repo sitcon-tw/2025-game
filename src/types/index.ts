@@ -16,13 +16,10 @@ export type PlayerData = {
 };
 
 // for self fragment & all fragment api
-export type FragmentData = {
-  fragments: Array<{
-    id: string; // 板塊類別含障礙物、板塊、傳送門
-    quantity: number; // 數量
-  }>;
-};
-
+export type FragmentData = Array<{
+  type: string; // 板塊類別含障礙物、板塊、傳送門
+  amount: number; // 數量
+}>;
 // for shared fragment & compass api
 export type SharedFragmentData = {
   players: Array<{
