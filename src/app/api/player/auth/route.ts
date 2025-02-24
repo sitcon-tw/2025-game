@@ -15,13 +15,12 @@ export const POST = async (request: NextRequest) => {
     await createPlayer({
       token: data.token,
       name: resultJson.user_id,
-      point: 0,
       score: 0,
+      stage: 1,
     });
     return success({
       token: data.token,
       name: resultJson.user_id,
-      point: 0,
       score: 0,
     });
   }
