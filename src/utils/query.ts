@@ -4,6 +4,20 @@ import { dfs } from "@/utils/dfs";
 import { badRequest, conflict, internalServerError } from "@/utils/response";
 import { Prisma } from "@prisma/client";
 
+function groupBy<T>(array: T[], key: (item: T) => string): Record<string, T[]> {
+  return array.reduce(
+    (result, item) => {
+      const groupKey = key(item);
+      if (!result[groupKey]) {
+        result[groupKey] = [];
+      }
+      result[groupKey].push(item);
+      return result;
+    },
+    {} as Record<string, T[]>,
+  );
+}
+
 function getRandomInt(max: number) {
   return Math.floor(Math.random() * max);
 }
@@ -94,6 +108,7 @@ const query = {
           name: playerData.name,
           avatar: playerData.avatar ?? "",
           linktree: playerData.linktree ?? "",
+          stage: playerData.stage ?? 1,
         },
       });
       return player.token;
@@ -111,14 +126,47 @@ const query = {
     }
   },
   getBlock: async (playerId: string) => {},
-  getFragment: async (playerId: string, type?: string) => {
-    let result;
-    if (type)
-      result = await prisma.fragment.findMany({
-        where: { token: playerId, type: type },
-      });
-    result = await prisma.fragment.findMany({ where: { token: playerId } });
+  getFragments: async (playerId: string) => {
+    const ownedFragments = await prisma.fragment.findMany({
+      where: { token: playerId },
+    });
+    const groupedFragments = groupBy(ownedFragments, (f) => f.type);
+    const result = Object.entries(groupedFragments).map(
+      ([type, fragments]) => ({
+        type,
+        amount: (fragments ?? []).reduce((acc, f) => acc + f.amount, 0),
+      }),
+    );
     return result;
+  },
+  removeRandomNotSharedFragment: async (playerId: string) => {
+    const fragments = await prisma.fragment.findMany({
+      where: { token: playerId, shared: false },
+    });
+    if (fragments.length === 0) return;
+    const fragment = fragments[getRandomInt(fragments.length)];
+    await prisma.fragment.delete({
+      where: { fragment_id: fragment.fragment_id },
+    });
+  },
+  addFragment: async (playerId: string, type: string, amount: number) => {
+    const fragment = (
+      await prisma.fragment.findMany({
+        where: { token: playerId, type: type, shared: false },
+      })
+    )[0];
+
+    if (!fragment) {
+      await prisma.fragment.create({
+        data: { token: playerId, type: type, amount: amount, shared: false },
+      });
+    } else {
+      const id = fragment.fragment_id;
+      await prisma.fragment.update({
+        where: { fragment_id: id },
+        data: { amount: fragment.amount + amount, shared: false },
+      });
+    }
   },
   getItem: async () => {},
   getPlayer: async (playerId: string) => {
@@ -175,7 +223,7 @@ const query = {
       return {
         level: stageId,
         floor: 1,
-        map: mapString,
+        map: stageMap,
         size: size,
       };
     }
@@ -243,4 +291,11 @@ const query = {
     return coupon;
   },
 };
-export const { createPlayer, getPlayer, getStage } = query;
+export const {
+  createPlayer,
+  getPlayer,
+  getStage,
+  getFragments,
+  addFragment,
+  removeRandomNotSharedFragment,
+} = query;
