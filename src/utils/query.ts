@@ -126,7 +126,7 @@ const query = {
     }
   },
   getBlock: async (playerId: string) => {},
-  getFragments: async (playerId: string) => {
+  getAllFragments: async (playerId: string) => {
     const ownedFragments = await prisma.fragment.findMany({
       where: { token: playerId },
     });
@@ -139,6 +139,13 @@ const query = {
     );
     return result;
   },
+  // 未測
+  // getSelfFragment: async (playerId: string) => {
+  //   const ownedFragments = await prisma.fragment.findMany({
+  //     where: { token: playerId, shared: false },
+  //   });
+  //   return ownedFragments;
+  // },
   removeRandomNotSharedFragment: async (playerId: string) => {
     const fragments = await prisma.fragment.findMany({
       where: { token: playerId, shared: false },
@@ -295,7 +302,7 @@ export const {
   createPlayer,
   getPlayer,
   getStage,
-  getFragments,
+  getAllFragments,
   addFragment,
   removeRandomNotSharedFragment,
 } = query;

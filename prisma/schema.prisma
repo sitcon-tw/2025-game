@@ -50,11 +50,11 @@ model Team {
 // 碎片資料
 model Fragment {
   fragment_id Int    @default(autoincrement()) // fragment_id
-  token       String
+  token       String // 誰的板塊
   type        String // share, compass, self
   amount      Int // count
-  shared      Boolean @default(false) // shared status
-  player      Player @relation(fields: [token], references: [token])
+  shared      Boolean @default(false) // shared 是否為shared板塊
+  player      Player @relation(fields: [token], references: [token]) // 被誰shared
 
   @@id([fragment_id])
 }

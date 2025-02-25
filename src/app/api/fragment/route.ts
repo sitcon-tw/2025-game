@@ -1,4 +1,4 @@
-import { getFragments } from "@/utils/query";
+import { getAllFragments } from "@/utils/query";
 import { badRequest, forbidden, success } from "@/utils/response";
 import { NextRequest } from "next/server";
 
@@ -11,7 +11,7 @@ export const GET = async (request: NextRequest) => {
   const result = await fetch(`https://sitcon.opass.app/status?token=${token}`);
   if (result.status === 400) return forbidden("並非本次與會者");
 
-  const fragments = (await getFragments(token)) ?? [];
+  const fragments = (await getAllFragments(token)) ?? [];
   return success(fragments);
 
   // 用token向資料庫拿取該player關聯的所有板塊，包含指南針 & QrCode共享
