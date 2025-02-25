@@ -53,7 +53,7 @@ model Fragment {
   token       String // 誰的板塊
   type        String // share, compass, self
   amount      Int // count
-  shared      Boolean @default(false) // shared 是否為shared板塊
+  shared      Boolean @default(false) // 如果是自己的是否被shared過
   player      Player @relation(fields: [token], references: [token]) // 被誰shared
 
   @@id([fragment_id])
