@@ -26,6 +26,7 @@ import { dfs } from "@/utils/dfs";
 import usePlayerData from "@/hooks/usePlayerData";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FragmentData, PlayerData, StageData } from "@/types";
+import { motion, AnimatePresence } from "framer-motion";
 
 const BLOCK_SIZE = 56;
 const GAME_MAP_SIZE = 320;
@@ -172,9 +173,15 @@ export default function GamePage() {
   const [SelectedItem, setSelectedItem] = useState("");
   const [IsZoomedIn, setIsZoomedIn] = useState(false);
   const [isDropped, setIsDropped] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [draggingBlockID, setDraggingBlockID] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [isDraggingBlockOverMap, setIsDraggingBlockOverMap] = useState(false);
+  const [dialogTitle, setDialogTitle] = useState("");
+  const [dialogContent, setDialogContent] = useState("");
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const sensors = useCustomSensors();
   const rowCount = gameGrid.length;
   const colCount = gameGrid.length > 0 ? gameGrid[0].length : 0;
@@ -183,6 +190,7 @@ export default function GamePage() {
 
   const stageClearMutation = useMutation({
     mutationFn: async () => {
+      setIsLoading(true);
       console.log("stage clear mutation");
       const response = await fetch("/api/stage", {
         method: "POST",
@@ -217,6 +225,10 @@ export default function GamePage() {
       queryClient.invalidateQueries({
         queryKey: ["stage", playerData?.stage],
       });
+      showDialog("恭喜過關", "恭喜你通過了這個關卡！");
+    },
+    onSettled: () => {
+      setIsLoading(false);
     },
   });
 
@@ -318,13 +330,17 @@ export default function GamePage() {
 
   function placeBlock(row: number, col: number, block: string): boolean {
     const newGrid = gameGrid.map((r) => [...r]);
+    if (newGrid[row][col] !== "empty") {
+      showDialog("無法放置", "這裡已經有被放置板塊了！");
+      return false;
+    }
     newGrid[row][col] = block;
 
     let visited = gameGrid.map((row) => row.map(() => false));
     visited[startRow][startCol] = true;
     const isPathAvailable = dfs(newGrid, startRow, startCol, visited, true);
     if (!isPathAvailable) {
-      alert("你不能把路徑堵死！");
+      showDialog("無法放置", "你不能把路堵死！！");
       return false;
     }
 
@@ -569,7 +585,11 @@ export default function GamePage() {
     },
   });
 
-  const isLoading = isPlayerDataLoading || isFragmentsLoading || isStageLoading;
+  function showDialog(title: string, content: string) {
+    setDialogTitle(title);
+    setDialogContent(content);
+    setIsDialogOpen(true);
+  }
 
   const emptyMap = Array(5).fill(Array(5).fill("empty"));
   const stageMap = stageData?.map ?? emptyMap;
@@ -910,6 +930,36 @@ export default function GamePage() {
           </div>
         </div>
       </DndContext>
+      <AnimatePresence>
+        {isDialogOpen && (
+          <motion.div
+            className="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-70"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: isDialogOpen ? 1 : 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.div
+              className="flex w-2/3 flex-col items-center gap-2 rounded-lg bg-white p-4"
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.5, opacity: 0 }}
+              transition={{ duration: 0.3, type: "spring" }}
+            >
+              <div className="text-2xl font-bold">{dialogTitle}</div>
+              <div className="text-lg">
+                <p>{dialogContent}</p>
+              </div>
+              <button
+                className="mt-4 rounded-lg bg-blue-500 px-4 py-2 text-white"
+                onClick={() => setIsDialogOpen(false)}
+              >
+                完成
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
@@ -942,11 +992,10 @@ function GameMapGridCell({
   return (
     <div
       ref={setNodeRef}
-      className={`border transition ease-in-out ${isOver && !isDropped ? "animate-pulse border-[4px] border-orange-300 ease-in-out" : ""}`}
+      className={`border ease-in-out ${isOver && !isDropped ? "animate-pulse border-[4px] border-orange-300 ease-in-out" : ""}`}
       style={{
         height: IsZoomedIn ? "64px" : `${GAME_MAP_SIZE / maxSideCount}px`,
         width: IsZoomedIn ? "64px" : `${GAME_MAP_SIZE / maxSideCount}px`,
-        transitionProperty: "height, width",
       }}
       onClick={() => {
         if (PlaceableGrid[rowIndex][colIndex]) {
