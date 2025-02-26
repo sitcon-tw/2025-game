@@ -38,10 +38,10 @@ model Player {
 model Team {
   team_id    String          @default(uuid()) @db.Uuid // team_id
   name       String // team name
-  player1_id String          @unique // token
-  player2_id String          @unique // token
-  player3_id String          @unique // token
-  player4_id String          @unique // token
+  player1_id String?          @unique // token
+  player2_id String?          @unique // token
+  player3_id String?          @unique // token
+  player4_id String?          @unique // token
   players    Player[]
   scores     TeamScoreboard?
 
