@@ -3,6 +3,7 @@ import { PlayerData, StageData } from "@/types";
 import { dfs } from "@/utils/dfs";
 import { badRequest, conflict, internalServerError } from "@/utils/response";
 import { Prisma } from "@prisma/client";
+import { NextResponse } from "next/server";
 
 function getRandomInt(max: number) {
   return Math.floor(Math.random() * max);
@@ -158,7 +159,17 @@ const query = {
     }
     return rank;
   },
-  getStage: async (stageId: number) => {
+  getStage: async (
+    stageId: number,
+  ): Promise<
+    | {
+        level: number;
+        floor: number;
+        map: string[][];
+        size: number;
+      }
+    | undefined
+  > => {
     const stage = await prisma.stage.findUnique({
       where: { stage_id: stageId },
     });
@@ -188,7 +199,7 @@ const query = {
     try {
       const stageMap = JSON.parse(stageMapText);
       if (!stageMap || !Array.isArray(stageMap) || !Array.isArray(stageMap[0]))
-        return internalServerError();
+        throw new Error("Invalid stage map.");
       return {
         level: stage.stage_id,
         floor: 1,
@@ -196,7 +207,7 @@ const query = {
         size: stageMap.length,
       };
     } catch (error) {
-      return internalServerError();
+      return undefined;
     }
   },
   getTeam: async (teamId: string) => {
