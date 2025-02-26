@@ -1,4 +1,4 @@
-import { createPlayer, getPlayer } from "@/utils/query";
+import { createPlayer, getPlayer, getScore } from "@/utils/query";
 import { addFragment } from "@/utils/fragment/query";
 import { forbidden, success } from "@/utils/response";
 import { NextRequest } from "next/server";
@@ -21,7 +21,7 @@ export const POST = async (request: NextRequest) => {
     // TODO: modify the amount of fragments later
     addFragment(data.token, "a", 5);
     addFragment(data.token, "b", 5);
-    addFragment(data.token, "c", 3);
+    addFragment(data.token, "c", 5);
     return success({
       token: data.token,
       name: resultJson.user_id,
@@ -29,5 +29,9 @@ export const POST = async (request: NextRequest) => {
       stage: 1,
     });
   }
-  return success(player);
+  const score = await getScore(token, "player");
+  return success({
+    ...player,
+    score: score?.score ?? 0,
+  });
 };

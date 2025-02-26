@@ -214,6 +214,9 @@ export default function GamePage() {
       queryClient.invalidateQueries({
         queryKey: ["fragments", playerData?.token],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["stage", playerData?.stage],
+      });
     },
   });
 
@@ -531,7 +534,7 @@ export default function GamePage() {
     error: playerDataError,
   } = usePlayerData();
 
-  const { data: fragments } = useQuery({
+  const { data: fragments, isLoading: isFragmentsLoading } = useQuery({
     queryKey: ["fragments", playerData?.token],
     queryFn: async () => {
       const response = await fetch("/api/fragment?token=" + playerData?.token);
@@ -548,7 +551,7 @@ export default function GamePage() {
 
   const {
     data: stageData,
-    isLoading,
+    isLoading: isStageLoading,
     isError,
     error,
   } = useQuery({
@@ -565,6 +568,8 @@ export default function GamePage() {
       return data;
     },
   });
+
+  const isLoading = isPlayerDataLoading || isFragmentsLoading || isStageLoading;
 
   const emptyMap = Array(5).fill(Array(5).fill("empty"));
   const stageMap = stageData?.map ?? emptyMap;
@@ -826,7 +831,12 @@ export default function GamePage() {
           <div className="flex h-full w-full flex-col items-center justify-center overflow-hidden">
             {/* grid part */}
             <div
-              className={`flex flex-col justify-center overflow-auto border border-gray-200`}
+              className={cn(
+                `flex flex-col justify-center overflow-auto border border-gray-200 transition-opacity`,
+                {
+                  "opacity-50": isLoading,
+                },
+              )}
               style={{
                 width: IsZoomedIn
                   ? `${GAME_MAP_SIZE + 2}px`
@@ -841,13 +851,7 @@ export default function GamePage() {
             >
               <div className="w-full overflow-scroll">
                 {gameGrid.map((row, rowIndex) => (
-                  <div
-                    key={rowIndex}
-                    className={cn(
-                      "flex",
-                      rowCount < colCount ? "justify-start" : "justify-center",
-                    )}
-                  >
+                  <div key={rowIndex} className={cn("flex", "justify-start")}>
                     {row.map((cell, colIndex) => {
                       const cellContent =
                         blockAndPropsElements[

@@ -264,4 +264,5 @@ export const {
   getStage,
   removeRandomNotSharedFragment,
   playerStageClear,
+  getScore,
 } = query;
