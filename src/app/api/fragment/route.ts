@@ -1,4 +1,4 @@
-import { getAllFragments } from "@/utils/query";
+import { getAllFragments } from "@/utils/fragment/query";
 import { badRequest, forbidden, success } from "@/utils/response";
 import { NextRequest } from "next/server";
 

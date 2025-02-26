@@ -4,20 +4,6 @@ import { dfs } from "@/utils/dfs";
 import { badRequest, conflict, internalServerError } from "@/utils/response";
 import { Prisma } from "@prisma/client";
 
-function groupBy<T>(array: T[], key: (item: T) => string): Record<string, T[]> {
-  return array.reduce(
-    (result, item) => {
-      const groupKey = key(item);
-      if (!result[groupKey]) {
-        result[groupKey] = [];
-      }
-      result[groupKey].push(item);
-      return result;
-    },
-    {} as Record<string, T[]>,
-  );
-}
-
 function getRandomInt(max: number) {
   return Math.floor(Math.random() * max);
 }
@@ -126,26 +112,7 @@ const query = {
     }
   },
   getBlock: async (playerId: string) => {},
-  getAllFragments: async (playerId: string) => {
-    const ownedFragments = await prisma.fragment.findMany({
-      where: { token: playerId },
-    });
-    const groupedFragments = groupBy(ownedFragments, (f) => f.type);
-    const result = Object.entries(groupedFragments).map(
-      ([type, fragments]) => ({
-        type,
-        amount: (fragments ?? []).reduce((acc, f) => acc + f.amount, 0),
-      }),
-    );
-    return result;
-  },
-  // 未測
-  // getSelfFragment: async (playerId: string) => {
-  //   const ownedFragments = await prisma.fragment.findMany({
-  //     where: { token: playerId, shared: false },
-  //   });
-  //   return ownedFragments;
-  // },
+
   removeRandomNotSharedFragment: async (playerId: string) => {
     const fragments = await prisma.fragment.findMany({
       where: { token: playerId, shared: false },
@@ -155,25 +122,6 @@ const query = {
     await prisma.fragment.delete({
       where: { fragment_id: fragment.fragment_id },
     });
-  },
-  addFragment: async (playerId: string, type: string, amount: number) => {
-    const fragment = (
-      await prisma.fragment.findMany({
-        where: { token: playerId, type: type, shared: false },
-      })
-    )[0];
-
-    if (!fragment) {
-      await prisma.fragment.create({
-        data: { token: playerId, type: type, amount: amount, shared: false },
-      });
-    } else {
-      const id = fragment.fragment_id;
-      await prisma.fragment.update({
-        where: { fragment_id: id },
-        data: { amount: fragment.amount + amount, shared: false },
-      });
-    }
   },
   getItem: async () => {},
   getPlayer: async (playerId: string) => {
@@ -302,7 +250,5 @@ export const {
   createPlayer,
   getPlayer,
   getStage,
-  getAllFragments,
-  addFragment,
   removeRandomNotSharedFragment,
 } = query;

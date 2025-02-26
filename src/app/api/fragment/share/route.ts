@@ -1,28 +1,33 @@
-import { forbidden, success } from "@/utils/response";
+import { forbidden, success, badRequest } from "@/utils/response";
 import { NextRequest } from "next/server";
 import { SharedFragmentData } from "@/types";
-import { setSharedFragments } from "@/utils/fragment/querys";
+import { setSharedFragments, getSharedFragments } from "@/utils/fragment/query";
 
 type PostReq = {
   token: string;
   friendToken: string;
   fragments: Array<{
-    type: number;
-    quantity: number;
+    type: string;
+    amount: number;
   }>;
+};
+
+type GetReq = {
+  token: string;
 };
 
 // Qrcode分享的板塊資料
 export const GET = async (request: NextRequest) => {
-  const data = await request.json();
-  const { token } = data;
+  const searchParams = request.nextUrl.searchParams;
+  const token = searchParams.get("token");
+  if (!token) return badRequest("Token is required.");
   // 先確認是否存在使用者
-  const result = await fetch(`https://sitcon.opass.app/status?token=${token}`);
-  if (result.status === 400) return forbidden("並非本次與會者");
+  // const result = await fetch(`https://sitcon.opass.app/status?token=${token}`);
+  // if (result.status === 400) return forbidden("並非本次與會者");
 
-  // 用token向資料庫拿取該player被分享的板塊資料，不包含指南針 & 自己的板塊
-  // prisma query here
-  // return SharedFragmentData
+  const result = await getSharedFragments(token);
+
+  return result;
 };
 
 // 掃QRcode的client發request 獲得 被掃的人的板塊資訊
@@ -30,12 +35,10 @@ export const POST = async (request: NextRequest) => {
   const { token, friendToken, fragments }: PostReq = await request.json();
 
   // 先確認是否存在使用者
-  const result = await fetch(`https://sitcon.opass.app/status?token=${token}`);
-  if (result.status === 400) return forbidden("並非本次與會者");
+  // const result = await fetch(`https://sitcon.opass.app/status?token=${token}`);
+  // if (result.status === 400) return forbidden("並非本次與會者");
 
-  //  檢查是否3片以下
+  const result = await setSharedFragments(token, friendToken, fragments);
 
-  await setSharedFragments(token, friendToken, fragments);
-
-  return success({ message: "Shared success" });
+  return result;
 };
