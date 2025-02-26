@@ -1,4 +1,5 @@
-import { addFragment, createPlayer, getPlayer } from "@/utils/query";
+import { createPlayer, getPlayer } from "@/utils/query";
+import { addFragment } from "@/utils/fragment/query";
 import { forbidden, success } from "@/utils/response";
 import { NextRequest } from "next/server";
 

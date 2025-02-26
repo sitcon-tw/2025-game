@@ -1,4 +1,4 @@
-import { getFragments } from "@/utils/query";
+import { getAllFragments } from "@/utils/fragment/query";
 import { badRequest, forbidden, success } from "@/utils/response";
 import { NextRequest } from "next/server";
 
@@ -11,10 +11,28 @@ export const GET = async (request: NextRequest) => {
   const result = await fetch(`https://sitcon.opass.app/status?token=${token}`);
   if (result.status === 400) return forbidden("並非本次與會者");
 
-  const fragments = (await getFragments(token)) ?? [];
-  return success(fragments);
+  const response = await getAllFragments(token);
 
-  // 用token向資料庫拿取該player關聯的所有板塊，包含指南針 & QrCode共享
-  // prisma query here
-  // return FragmentData
+  return response;
 };
+
+// // 攤位活動工作人員發送
+// export const POST = async (request: NextRequest) => {
+//   const { token } = await request.json();
+
+//   // 先確認是否存在使用者
+//   const result = await fetch(`https://sitcon.opass.app/status?token=${token}`);
+//   if (result.status === 400) return forbidden("並非本次與會者");
+
+//   const probabilityList = {
+//     a: 0.1,
+//     b: 0.2,
+//     c: 0.3,
+//     d: 0.4,
+//     e: 0.5,
+//   };
+
+//   const response = await
+
+//   return response;
+// };
