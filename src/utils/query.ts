@@ -10,7 +10,7 @@ function getRandomInt(max: number) {
 
 function generateStage(
   size: number,
-  obstaclesPercentage: number = 0.3,
+  obstaclesPercentage: number = 0.5,
   retries = 10,
 ) {
   const grid = Array.from({ length: size }, () =>
