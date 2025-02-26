@@ -17,6 +17,7 @@ export const POST = async (request: NextRequest) => {
       name: resultJson.user_id,
       score: 0,
       stage: 1,
+      points: 0,
     });
     // TODO: modify the amount of fragments later
     addFragment(data.token, "a", 5);
@@ -27,6 +28,7 @@ export const POST = async (request: NextRequest) => {
       name: resultJson.user_id,
       score: 0,
       stage: 1,
+      points: 0,
     });
   }
   const score = await getScore(token, "player");
