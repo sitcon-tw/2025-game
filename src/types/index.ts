@@ -13,6 +13,7 @@ export type PlayerData = {
   linktree?: string; //
   score: number; //
   stage: number; //
+  points: number; //
 };
 
 // for self fragment & all fragment api

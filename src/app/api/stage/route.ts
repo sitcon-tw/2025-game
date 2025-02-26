@@ -52,6 +52,12 @@ export const POST = async (request: NextRequest) => {
     return badRequest("Token is required.");
   }
 
+  const player = await getPlayer(token);
+
+  if (!player) {
+    return badRequest("Player not found.");
+  }
+
   // 檢查是否通過關卡
 
   const visited: boolean[][] = Array.from({ length: map.length }, () =>
@@ -107,7 +113,7 @@ export const POST = async (request: NextRequest) => {
   const fragmentRemoved = await removeRandomNotSharedFragment(token);
 
   // 更新玩家關卡 & 增加分數
-  playerStageClear(token);
+  playerStageClear(token, player.stage);
 
   return success({ fragmentRemoved });
 

@@ -208,16 +208,29 @@ const query = {
     let playerScore = await prisma.playerScoreboard.findUnique({
       where: { token: playerId },
     });
+    const player = await getPlayer(playerId);
+    const points = player?.points ?? 0;
 
     if (!playerScore) {
       playerScore = await prisma.playerScoreboard.create({
         data: { token: playerId, score: score },
       });
+      await prisma.player.update({
+        where: { token: playerId },
+        data: { points: score },
+      });
     } else {
+      console.log(playerScore.score, points, score);
       const newScore = playerScore.score + score;
+      const newPoints = points + score;
+      console.log(newScore, newPoints);
       playerScore = await prisma.playerScoreboard.update({
         where: { token: playerId },
         data: { score: newScore },
+      });
+      await prisma.player.update({
+        where: { token: playerId },
+        data: { points: newPoints },
       });
     }
 
@@ -249,13 +262,13 @@ const query = {
     });
     return coupon;
   },
-  playerStageClear: async (playerId: string) => {
-    const player = await prisma.player.update({
+  playerStageClear: async (playerId: string, stageNumber: number) => {
+    await prisma.player.update({
       where: { token: playerId },
       data: { stage: { increment: 1 } },
     });
     // add score
-    await query.setScore(playerId, 100);
+    await query.setScore(playerId, stageNumber * 50);
   },
 };
 export const {
