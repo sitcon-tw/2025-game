@@ -122,7 +122,7 @@ const query = {
       where: { fragment_id: fragment.fragment_id },
       data: { amount: fragment.amount - 1 },
     });
-    return fragment;
+    return fragment.type;
   },
   getItem: async () => {},
   getPlayer: async (playerId: string) => {

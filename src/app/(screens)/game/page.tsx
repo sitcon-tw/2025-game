@@ -211,10 +211,11 @@ export default function GamePage() {
         throw new Error(errorMessage);
       }
 
-      const data: { success: boolean } = await response.json();
+      const data = await response.json();
+      console.log("stage clear data", data);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       console.log("stage clear success");
       queryClient.invalidateQueries({
         queryKey: ["player-data"],
@@ -225,7 +226,18 @@ export default function GamePage() {
       queryClient.invalidateQueries({
         queryKey: ["stage", playerData?.stage],
       });
-      showDialog("恭喜過關", "恭喜你通過了這個關卡！");
+      const fragmentRemoved = data.fragmentRemoved;
+      console.log("fragmentRemoved", fragmentRemoved);
+      showDialog(
+        "恭喜過關",
+        `恭喜你通過了這個關卡！${
+          fragmentRemoved
+            ? `但你失去了一個 ${
+                blocksConfig[fragmentRemoved as keyof typeof blocksConfig].name
+              } ...`
+            : ""
+        }`,
+      );
     },
     onSettled: () => {
       setIsLoading(false);

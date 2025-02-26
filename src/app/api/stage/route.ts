@@ -104,12 +104,12 @@ export const POST = async (request: NextRequest) => {
   }
 
   // 隨機清除一個板塊
-  removeRandomNotSharedFragment(token);
+  const fragmentRemoved = await removeRandomNotSharedFragment(token);
 
   // 更新玩家關卡 & 增加分數
   playerStageClear(token);
 
-  return success({ message: "Stage solved." });
+  return success({ fragmentRemoved });
 
   // const { token, blockId, position } = data;
   // const { row, column, layer } = position;
