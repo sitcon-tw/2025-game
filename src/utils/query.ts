@@ -112,16 +112,17 @@ const query = {
     }
   },
   getBlock: async (playerId: string) => {},
-
   removeRandomNotSharedFragment: async (playerId: string) => {
     const fragments = await prisma.fragment.findMany({
-      where: { token: playerId, shared: false },
+      where: { token: playerId, shared: false, amount: { gt: 0 } },
     });
     if (fragments.length === 0) return;
     const fragment = fragments[getRandomInt(fragments.length)];
-    await prisma.fragment.delete({
+    await prisma.fragment.update({
       where: { fragment_id: fragment.fragment_id },
+      data: { amount: fragment.amount - 1 },
     });
+    return fragment;
   },
   getItem: async () => {},
   getPlayer: async (playerId: string) => {
@@ -203,7 +204,7 @@ const query = {
     return team;
   },
   setPlayer: async () => {},
-  setScore: async (playerId: string, teamId: string, score: number) => {
+  setScore: async (playerId: string, score: number, teamId?: string) => {
     let playerScore = await prisma.playerScoreboard.findUnique({
       where: { token: playerId },
     });
@@ -219,6 +220,9 @@ const query = {
         data: { score: newScore },
       });
     }
+
+    // 沒有 teamId 就不用更新 teamScore
+    if (!teamId) return { updatedPlayerScore: playerScore };
 
     let teamScore = await prisma.teamScoreboard.findUnique({
       where: { team_id: teamId },
@@ -245,10 +249,19 @@ const query = {
     });
     return coupon;
   },
+  playerStageClear: async (playerId: string) => {
+    const player = await prisma.player.update({
+      where: { token: playerId },
+      data: { stage: { increment: 1 } },
+    });
+    // add score
+    await query.setScore(playerId, 100);
+  },
 };
 export const {
   createPlayer,
   getPlayer,
   getStage,
   removeRandomNotSharedFragment,
+  playerStageClear,
 } = query;

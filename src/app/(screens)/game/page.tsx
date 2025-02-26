@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 import useCustomSensors from "@/hooks/useCustomSensors";
 import { dfs } from "@/utils/dfs";
 import usePlayerData from "@/hooks/usePlayerData";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FragmentData, PlayerData, StageData } from "@/types";
 
 const BLOCK_SIZE = 56;
@@ -179,6 +179,44 @@ export default function GamePage() {
   const rowCount = gameGrid.length;
   const colCount = gameGrid.length > 0 ? gameGrid[0].length : 0;
 
+  const queryClient = useQueryClient();
+
+  const stageClearMutation = useMutation({
+    mutationFn: async () => {
+      console.log("stage clear mutation");
+      const response = await fetch("/api/stage", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token: playerData?.token,
+          // level: Level,
+          // score: Score,
+          // gameGrid: gameGrid,
+          map: gameGrid,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorMessage = `Error: ${response.status} ${response.statusText}`;
+        throw new Error(errorMessage);
+      }
+
+      const data: { success: boolean } = await response.json();
+      return data;
+    },
+    onSuccess: () => {
+      console.log("stage clear success");
+      queryClient.invalidateQueries({
+        queryKey: ["player-data"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["fragments", playerData?.token],
+      });
+    },
+  });
+
   const startRow = gameGrid.findIndex((row) => row.includes("start")) ?? 0;
   const startCol =
     (gameGrid[startRow] && gameGrid[startRow].indexOf("start")) ?? 0;
@@ -279,12 +317,22 @@ export default function GamePage() {
     const newGrid = gameGrid.map((r) => [...r]);
     newGrid[row][col] = block;
 
-    const visited = gameGrid.map((row) => row.map(() => false));
+    let visited = gameGrid.map((row) => row.map(() => false));
     visited[startRow][startCol] = true;
     const isPathAvailable = dfs(newGrid, startRow, startCol, visited, true);
     if (!isPathAvailable) {
       alert("你不能把路徑堵死！");
       return false;
+    }
+
+    // check for stage clear
+    visited = gameGrid.map((row) => row.map(() => false));
+    visited[startRow][startCol] = true;
+    const isStageClear = dfs(newGrid, startRow, startCol, visited, false);
+    console.log("isStageClear", isStageClear);
+    if (isStageClear) {
+      console.log("level clear");
+      stageClearMutation.mutate();
     }
 
     setGameGrid(newGrid);
@@ -745,11 +793,11 @@ export default function GamePage() {
             <div className="text-2xl">
               <div className="flex">
                 <p>關卡：</p>
-                <p>{Level}</p>
+                <p>{playerData?.stage ?? 1}</p>
               </div>
               <div className="flex">
                 <p>積分：</p>
-                <p>{Score}</p>
+                <p>{playerData?.score ?? 0}</p>
               </div>
             </div>
 

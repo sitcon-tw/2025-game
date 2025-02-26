@@ -2,7 +2,13 @@ import { NextRequest } from "next/server";
 import { StageData } from "@/types";
 import { dfs } from "@/utils/dfs";
 import { badRequest, success } from "@/utils/response";
-import { getPlayer, getStage } from "@/utils/query";
+import {
+  getPlayer,
+  getStage,
+  playerStageClear,
+  removeRandomNotSharedFragment,
+} from "@/utils/query";
+import { getAllFragments } from "@/utils/fragment/query";
 
 export const GET = async (request: NextRequest) => {
   const searchParams = request.nextUrl.searchParams;
@@ -30,10 +36,23 @@ export const GET = async (request: NextRequest) => {
 // 錯誤情況1: 並非本次與會者invalid token
 // 錯誤情況2: 抓取資料問題
 
+const fragmentsIgnores = ["start", "end", "empty", "obstacle"];
+
 export const POST = async (request: NextRequest) => {
   const data = await request.json();
 
   const map: string[][] = data.map;
+  const token = data.token;
+
+  if (!map) {
+    return badRequest("Map is required.");
+  }
+
+  if (!token) {
+    return badRequest("Token is required.");
+  }
+
+  // 檢查是否通過關卡
 
   const visited: boolean[][] = Array.from({ length: map.length }, () =>
     Array.from({ length: map[0].length }, () => false),
@@ -52,6 +71,45 @@ export const POST = async (request: NextRequest) => {
   }
 
   const isSolved = dfs(map, startRow, startCol, visited, false);
+
+  if (!isSolved) {
+    return badRequest("Stage not solved.");
+  }
+
+  // 檢查使用的板塊數量是否正確
+
+  const fragmentsUsed = map
+    .flat(5)
+    .filter((cell) => !fragmentsIgnores.includes(cell))
+    .reduce<Record<string, number>>((acc, cell) => {
+      if (cell !== "start" && cell !== "end") {
+        acc[cell] = (acc[cell] || 0) + 1;
+      }
+      return acc;
+    }, {});
+
+  const fragmentsOwned: { type: string; amount: number }[] = await (
+    await getAllFragments(token)
+  ).json();
+
+  const isFragmentsValid = Object.entries(fragmentsUsed).every(
+    ([type, amount]) => {
+      const fragment = fragmentsOwned.find((f) => f.type === type);
+      return fragment && fragment.amount >= amount;
+    },
+  );
+
+  if (!isFragmentsValid) {
+    return badRequest("Not enough fragments.");
+  }
+
+  // 隨機清除一個板塊
+  removeRandomNotSharedFragment(token);
+
+  // 更新玩家關卡 & 增加分數
+  playerStageClear(token);
+
+  return success({ message: "Stage solved." });
 
   // const { token, blockId, position } = data;
   // const { row, column, layer } = position;
