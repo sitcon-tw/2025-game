@@ -76,14 +76,10 @@ export const getSharedFragments = async (token: string) => {
   try {
     const sharedFragments = await prisma.fragment.findMany({
       where: { token: token, shared: true },
-      select: {
-        type: true,
-        amount: true,
-        shared_player: { select: { name: true } },
-      },
+      include: { shared_player: true },
     });
 
-    let formatedSharedFragments = groupBy(
+    const formatedSharedFragments = groupBy(
       sharedFragments,
       (f) => f.shared_player?.name || "none",
     );
@@ -99,7 +95,6 @@ export const getSelfFragments = async (token: string) => {
   try {
     const selfFragments = await prisma.fragment.findMany({
       where: { token: token, shared: false },
-      select: { type: true, amount: true, shared: true },
     });
 
     return success(selfFragments);
@@ -114,33 +109,24 @@ export const getTeamFragments = async (token: string) => {
     // 先找player
     const player = await prisma.player.findUnique({
       where: { token: token },
-      select: {
-        team: true,
-        name: true,
-        compass: true,
-        fragments: {
-          where: { shared: false },
-          select: { type: true, amount: true, shared: true },
-        },
-      },
+      include: { team: true },
     });
-    if (!player) return conflict("player not found");
 
-    if (!player?.team || !player.compass) {
-      return success({ name: player.name, fragments: player.fragments });
-    }
+    if (!player?.team) return badRequest("player not in team");
 
     // 找出所有玩家的fragment
-    const teamFragments = await prisma.player.findMany({
-      where: { team_id: player.team.team_id, compass: true },
-      // include: { fragments: true },
-      select: {
-        name: true,
-        fragments: {
-          where: { shared: false },
-          select: { type: true, amount: true },
-        },
-      },
+    const teamPlayers = await prisma.player.findMany({
+      where: { team_id: player.team.team_id },
+      include: { fragments: true },
+    });
+
+    // 整理格式
+    const teamFragments = teamPlayers.map((player) => {
+      const fragments = player.fragments.filter((f) => f.shared === false);
+      return {
+        name: player.name,
+        fragments: fragments,
+      };
     });
 
     // 將自己排序到最前面
@@ -231,13 +217,8 @@ export const getAllFragments = async (token: string) => {
 
     // 如果有隊伍
     const teamPlayers = await prisma.player.findMany({
-      where: { team_id: player.team.team_id, compass: true },
-      select: {
-        token: true,
-        fragments: {
-          select: { type: true, amount: true, shared: true },
-        },
-      },
+      where: { team_id: player.team.team_id },
+      include: { fragments: true },
     });
 
     const groupedFragments = Object.values(
