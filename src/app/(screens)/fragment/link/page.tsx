@@ -2,109 +2,118 @@
 import QrCodeScanner from "@/components/QrCodeScanner";
 import { ChevronUp, ChevronDown, FilePenLine, X } from "lucide-react";
 import Block from "@/components/Block";
+import Fragment from "@/components/Fragment";
 import { useEffect, useState, useCallback } from "react";
 import { QRCodeSVG } from "qrcode.react";
 
+type BlockType =
+  | "a"
+  | "b"
+  | "c"
+  | "d"
+  | "e"
+  | "f"
+  | "g"
+  | "obstacle"
+  | "start"
+  | "end"
+  | "unknown"
+  | "empty";
+
 type DisplayBlock = {
-  type: string;
+  type: BlockType;
   blockImg: string;
-  quantity: number;
+  amount: number;
 };
 
-type SharingBlock = {
-  type: string;
-  quantity: number;
+type Block = {
+  type: BlockType;
+  amount: number;
 };
-const initialDisplayBlocks = [
+
+// TODO:: 把DisplayBlockType 拿掉，直接用BlockType 並且點擊+ - 應該要先更新 displayBlocks 之後再更新 sharingBlocks
+// 或者兩個都抓一樣的state 把sharingBlock刪掉
+const initialDisplayBlocks: Array<DisplayBlock> = [
   {
-    type: "0",
-    quantity: 0,
+    type: "a",
+    amount: 0,
     blockImg: "https://picsum.photos/id/1/50/50",
   },
   {
-    type: "1",
-    quantity: 0,
+    type: "b",
+    amount: 0,
     blockImg: "https://picsum.photos/id/1/50/50",
   },
   {
-    type: "2",
-    quantity: 0,
+    type: "c",
+    amount: 0,
     blockImg: "https://picsum.photos/id/1/50/50",
   },
   {
-    type: "3",
-    quantity: 0,
+    type: "d",
+    amount: 0,
     blockImg: "https://picsum.photos/id/1/50/50",
   },
   {
-    type: "4",
-    quantity: 0,
+    type: "e",
+    amount: 0,
     blockImg: "https://picsum.photos/id/1/50/50",
   },
   {
-    type: "5",
-    quantity: 0,
+    type: "f",
+    amount: 0,
     blockImg: "https://picsum.photos/id/1/50/50",
   },
   {
-    type: "6",
-    quantity: 0,
-    blockImg: "https://picsum.photos/id/1/50/50",
-  },
-  {
-    type: "7",
-    quantity: 0,
+    type: "g",
+    amount: 0,
     blockImg: "https://picsum.photos/id/1/50/50",
   },
 ];
 
-const testBlocks = [
+const testBlocks: Array<Block> = [
   {
-    type: "0",
-    quantity: 2,
+    type: "a",
+    amount: 2,
   },
   {
-    type: "4",
-    quantity: 96,
+    type: "b",
+    amount: 96,
   },
   {
-    type: "7",
-    quantity: 12,
+    type: "c",
+    amount: 12,
   },
 ];
 // TODO:: get blocks from API
-const myBlocks = [
+const myBlocks: Array<Block> = [
   {
-    type: "0",
-    quantity: 1,
+    type: "a",
+    amount: 1,
   },
   {
-    type: "1",
-    quantity: 2,
+    type: "b",
+    amount: 2,
   },
   {
-    type: "2",
-    quantity: 3,
+    type: "c",
+    amount: 3,
   },
   {
-    type: "3",
-    quantity: 4,
+    type: "d",
+    amount: 4,
   },
   {
-    type: "4",
-    quantity: 1,
+    type: "e",
+    amount: 1,
   },
   {
-    type: "5",
-    quantity: 1,
+    type: "f",
+    amount: 1,
   },
   {
-    type: "6",
-    quantity: 1,
-  },
-  {
-    type: "7",
-    quantity: 1,
+    type: "g",
+    amount: 1,
   },
 ];
 
@@ -144,11 +153,7 @@ export default function LinkPage() {
             <h3>我的玩家連結板塊</h3>
             <div className="flex gap-8">
               {testBlocks.map((block, index) => (
-                <Block
-                  key={index}
-                  type={block.type}
-                  quantity={block.quantity}
-                />
+                <Fragment key={index} type={block.type} amount={block.amount} />
               ))}
             </div>
           </div>
@@ -181,10 +186,10 @@ export default function LinkPage() {
                 />
                 <div className="flex gap-10">
                   {sharedBlock.blocks.map((block, index) => (
-                    <Block
+                    <Fragment
                       key={index}
                       type={block.type}
-                      quantity={block.quantity}
+                      amount={block.amount}
                     />
                   ))}
                 </div>
@@ -206,7 +211,7 @@ const Popup = ({
   setPopupType: React.Dispatch<React.SetStateAction<"edit" | "qrcode" | null>>;
 }) => {
   const [qrcodePayload, setQrcodePayload] = useState<string>("");
-  const [sharingBlocks, setSharingBlocks] = useState<SharingBlock[]>([]);
+  const [sharingBlocks, setSharingBlocks] = useState<Block[]>([]);
   const [displayBlocks, setDisplayBlocks] =
     useState<DisplayBlock[]>(initialDisplayBlocks);
 
@@ -228,9 +233,9 @@ const Popup = ({
         );
 
         if (shBlock) {
-          return { ...block, quantity: shBlock.quantity };
+          return { ...block, amount: shBlock.amount };
         } else {
-          return { ...block, quantity: 0 };
+          return { ...block, amount: 0 };
         }
       });
     });
@@ -238,28 +243,28 @@ const Popup = ({
 
   const getIsAddable = (type: string) => {
     const myBlock = myBlocks.find((block) => block.type === type);
-    const myBlockQuantity = myBlock ? myBlock.quantity : 0;
+    const myBlockAmount = myBlock ? myBlock.amount : 0;
 
     const sharedBlock = sharingBlocks.find((block) => block.type === type);
-    const sharedQuantity = sharedBlock ? sharedBlock.quantity : 0;
+    const sharedAmount = sharedBlock ? sharedBlock.amount : 0;
 
-    const totalQuantity = sharingBlocks.reduce(
-      (acc, curr) => acc + curr.quantity,
+    const totalAmount = sharingBlocks.reduce(
+      (acc, curr) => acc + curr.amount,
       0,
     );
 
-    if (totalQuantity >= 3) return false;
+    if (totalAmount >= 3) return false;
 
-    if (sharedQuantity >= myBlockQuantity) return false;
+    if (sharedAmount >= myBlockAmount) return false;
 
     return true;
   };
 
   const getIsSubtractable = (type: string) => {
     const sharedBlock = sharingBlocks.find((block) => block.type === type);
-    const sharedQuantity = sharedBlock ? sharedBlock.quantity : 0;
+    const sharedAmount = sharedBlock ? sharedBlock.amount : 0;
 
-    if (sharedQuantity <= 0) return false;
+    if (sharedAmount <= 0) return false;
     return true;
   };
 
@@ -268,12 +273,10 @@ const Popup = ({
 
     setSharingBlocks((prevBlocks) => {
       if (!prevBlocks.find((block) => block.type === type)) {
-        return [...prevBlocks, { type, quantity: 1 }];
+        return [...prevBlocks, { type: type as BlockType, amount: 1 }];
       } else {
         return prevBlocks.map((block) =>
-          block.type === type
-            ? { ...block, quantity: block.quantity + 1 }
-            : block,
+          block.type === type ? { ...block, amount: block.amount + 1 } : block,
         );
       }
     });
@@ -286,14 +289,13 @@ const Popup = ({
     setSharingBlocks((prevBlocks) => {
       const block = prevBlocks.find((block) => block.type === type);
       if (!block) return prevBlocks;
-      if (block.quantity - 1 === 0) {
+      if (block.amount - 1 === 0) {
         return prevBlocks.filter((block) => block.type !== type);
       } else {
         return prevBlocks.map((block) => {
-          return {
-            ...block,
-            quantity: block.quantity - 1,
-          };
+          return block.type === type
+            ? { ...block, amount: block.amount - 1 }
+            : block;
         });
       }
     });
@@ -335,7 +337,7 @@ const Popup = ({
                     }
                     onClick={() => handleAddBlock(block.type)}
                   />
-                  <p>{block.quantity}</p>
+                  <p>{block.amount}</p>
                   <ChevronDown
                     className={
                       getIsSubtractable(block.type)
