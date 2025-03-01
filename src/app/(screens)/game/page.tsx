@@ -785,10 +785,11 @@ export default function GamePage() {
       data,
       id: key,
     })),
-    ...Object.entries(PropsData).map(([key, data]) => ({
-      data,
-      id: key,
-    })),
+    // TODO: 待道具功能完成後再加入
+    // ...Object.entries(PropsData).map(([key, data]) => ({
+    //   data,
+    //   id: key,
+    // })),
   ].toSorted(
     (a, b) => (b.data.amount > 0 ? 1 : 0) - (a.data.amount > 0 ? 1 : 0),
   );
