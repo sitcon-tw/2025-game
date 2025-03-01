@@ -34,7 +34,7 @@ export default function Layout({
       }).then((res) => res.json());
     },
     // TODO: 修改更好的間隔
-    refetchInterval: 1000,
+    refetchInterval: 1000 * 10,
   });
 
   useEffect(() => {
