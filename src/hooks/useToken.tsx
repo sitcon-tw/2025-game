@@ -32,9 +32,9 @@ export function TokenProvider({ children }: { children: React.ReactNode }) {
   const isClient = useIsClient();
 
   if (!isClient) {
-    return <TokenContext.Provider value={ null}>
-    {children}
-  </TokenContext.Provider>;
+    return (
+      <TokenContext.Provider value={null}>{children}</TokenContext.Provider>
+    );
   }
 
   return (
@@ -44,11 +44,7 @@ export function TokenProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-function TokenProviderClient({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function TokenProviderClient({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useLocalStorage("token", "");
   return (
     <>
