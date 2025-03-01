@@ -866,10 +866,6 @@ export default function GamePage() {
                 />
               )}
               <div>
-                <LogOut
-                  onClick={() => console.log("logout")} // TODO: 登入要做的事?
-                  size={32}
-                />
                 <Info
                   onClick={() => console.log("info")} // TODO: 顯示遊戲說明
                   size={32}

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut } from "lucide-react";
 import { usePathname } from "next/navigation";
 export default function Layout({
   children,
@@ -12,13 +11,6 @@ export default function Layout({
 
   return (
     <div className="flex h-full w-full flex-col">
-      <section>
-        <LogOut
-          onClick={() => console.log("logout")} // TODO: 登入要做的事?
-          className="absolute right-6 top-6 z-20"
-          size={32}
-        />
-      </section>
       <div className="w-full flex-1 overflow-y-scroll">{children}</div>
       <section className="flex w-full gap-[2px]">
         <InnerBarItem href="/fragment/link" name="玩家連結" />
