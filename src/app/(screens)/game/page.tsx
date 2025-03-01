@@ -27,6 +27,7 @@ import usePlayerData from "@/hooks/usePlayerData";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FragmentData, PlayerData, StageData } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 
 const BLOCK_SIZE = 56;
 const GAME_MAP_SIZE = 320;
@@ -143,6 +144,23 @@ const blockAndPropsElements = {
   ...blocks,
   ...props,
 };
+
+function getBlockElement(block: string) {
+  // const randomRotation = Math.floor(Math.random() * 4) * 90;
+
+  return (
+    <Image
+      src={`/images/fragments/${block}.png`}
+      alt="板塊"
+      width="300"
+      height="300"
+      // style={{
+      //   transform: `rotate(${randomRotation}deg)`,
+      // }}
+    />
+  );
+  return blockAndPropsElements[block as keyof typeof blockAndPropsElements];
+}
 
 interface Block {
   unlocked: boolean;
@@ -786,6 +804,7 @@ export default function GamePage() {
     setDraggingBlockID(fragmentID);
     setIsDropped(false);
     setIsDragging(true);
+    console.log("drag start", fragmentID);
   }
 
   return (
@@ -812,11 +831,7 @@ export default function GamePage() {
                 display: isDragging ? "block" : "none",
               }}
             >
-              {
-                blockAndPropsElements[
-                  draggingBlockID as keyof typeof blockAndPropsElements
-                ]
-              }
+              {getBlockElement(draggingBlockID)}
             </div>
           </DragOverlay>
         )}
@@ -885,15 +900,13 @@ export default function GamePage() {
                 {gameGrid.map((row, rowIndex) => (
                   <div key={rowIndex} className={cn("flex", "justify-start")}>
                     {row.map((cell, colIndex) => {
-                      const cellContent =
-                        blockAndPropsElements[
-                          cell as keyof typeof blockAndPropsElements
-                        ];
-
+                      const cellContent = getBlockElement(cell);
                       return (
                         <div key={colIndex}>
                           <GameMapGridCell
+                            isDragging={isDragging}
                             // setIsDraggingBlockOverMap={setIsDraggingBlockOverMap}
+                            cellType={cell}
                             IsZoomedIn={IsZoomedIn}
                             rowIndex={rowIndex}
                             colIndex={colIndex}
@@ -983,13 +996,17 @@ function GameMapGridCell({
   cellContent,
   PlaceableGrid,
   rowCount,
+  cellType,
   colCount,
   isDropped,
+  isDragging,
 }: {
   IsZoomedIn: boolean;
   rowIndex: number;
+  isDragging: boolean;
   colIndex: number;
   cellContent: ReactNode;
+  cellType: string;
   PlaceableGrid: boolean[][];
   isDropped: boolean;
   rowCount: number;
@@ -1000,11 +1017,12 @@ function GameMapGridCell({
   });
 
   const maxSideCount = Math.max(rowCount, colCount);
+  const isPlaceable = cellType === "empty";
 
   return (
     <div
       ref={setNodeRef}
-      className={`border ease-in-out ${isOver && !isDropped ? "animate-pulse border-[4px] border-orange-300 ease-in-out" : ""}`}
+      className={`relative border ease-in-out ${isOver && !isDropped ? "animate-pulse border-[4px] border-orange-300 ease-in-out" : ""}`}
       style={{
         height: IsZoomedIn ? "64px" : `${GAME_MAP_SIZE / maxSideCount}px`,
         width: IsZoomedIn ? "64px" : `${GAME_MAP_SIZE / maxSideCount}px`,
@@ -1014,6 +1032,21 @@ function GameMapGridCell({
         }
       }}
     >
+      {
+        <div
+          className={cn(
+            `absolute inset-0 z-10 opacity-0 transition-opacity`,
+            {
+              "opacity-50": !isPlaceable && isDragging,
+            },
+            cellType === "start" || cellType === "end"
+              ? "bg-yellow-500"
+              : cellType === "obstacle"
+                ? "bg-red-500"
+                : "bg-blue-500",
+          )}
+        ></div>
+      }
       {cellContent}
     </div>
   );
@@ -1071,8 +1104,7 @@ function BlockInInventory({
     >
       <div className="relative">
         <div className="pointer-events-none absolute inset-0 bottom-0 left-0 top-0 opacity-50">
-          {data.unlocked &&
-            blockAndPropsElements[id as keyof typeof blockAndPropsElements]}
+          {data.unlocked && getBlockElement(id)}
         </div>
         <div
           ref={setNodeRef}
@@ -1090,7 +1122,7 @@ function BlockInInventory({
             style={scaleStyle}
           >
             {data.unlocked
-              ? blockAndPropsElements[id as keyof typeof blockAndPropsElements]
+              ? getBlockElement(id)
               : blockAndPropsElements.unknown}
           </div>
         </div>
