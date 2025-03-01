@@ -880,7 +880,7 @@ export default function GamePage() {
             {/* grid part */}
             <div
               className={cn(
-                `flex flex-col justify-center overflow-auto border border-gray-200 transition-opacity`,
+                `flex flex-col justify-center overflow-auto border border-gray-300 transition-opacity`,
                 {
                   "opacity-50": isLoading,
                 },
@@ -1023,7 +1023,7 @@ function GameMapGridCell({
   return (
     <div
       ref={setNodeRef}
-      className={`relative border ease-in-out ${isOver && !isDropped ? "animate-pulse border-[4px] border-orange-300 ease-in-out" : ""}`}
+      className={`relative border border-gray-300 ease-in-out ${isOver && !isDropped ? "animate-pulse border-[4px] border-orange-300 ease-in-out" : ""}`}
       style={{
         height: IsZoomedIn ? "64px" : `${GAME_MAP_SIZE / maxSideCount}px`,
         width: IsZoomedIn ? "64px" : `${GAME_MAP_SIZE / maxSideCount}px`,
