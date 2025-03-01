@@ -148,6 +148,9 @@ const blockAndPropsElements = {
 function getBlockElement(block: string) {
   // const randomRotation = Math.floor(Math.random() * 4) * 90;
 
+  if (block === "obstacle")
+    return <div className="brightness-[40%]">{getBlockElement("empty")}</div>;
+
   return (
     <Image
       src={`/images/fragments/${block}.png`}
