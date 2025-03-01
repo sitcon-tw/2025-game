@@ -1,3 +1,5 @@
+"use client";
+
 import { useSearchParams } from "next/navigation";
 import {
   createContext,
@@ -9,6 +11,16 @@ import {
 } from "react";
 import { useLocalStorage } from "@uidotdev/usehooks";
 
+function useIsClient() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  return isClient;
+}
+
 const TokenContext = createContext<TokenContextType | null>(null);
 
 type TokenContextType = {
@@ -17,6 +29,26 @@ type TokenContextType = {
 };
 
 export function TokenProvider({ children }: { children: React.ReactNode }) {
+  const isClient = useIsClient();
+
+  if (!isClient) {
+    return <TokenContext.Provider value={ null}>
+    {children}
+  </TokenContext.Provider>;
+  }
+
+  return (
+    <>
+      <TokenProviderClient>{children}</TokenProviderClient>
+    </>
+  );
+}
+
+function TokenProviderClient({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [token, setToken] = useLocalStorage("token", "");
   return (
     <>
@@ -38,9 +70,5 @@ export default function useToken() {
     }
   }, [context, token]);
 
-  if (context === null) {
-    throw new Error("useToken must be used within a TokenProvider");
-  }
-
-  return token ?? context.token;
+  return token ?? context?.token ?? null;
 }
