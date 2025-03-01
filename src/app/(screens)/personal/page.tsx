@@ -40,7 +40,7 @@ export default function PersonalPage() {
           </div>
           <div className="mx-auto flex">
             <Canvas
-              text={"https://sitcon.org/2025"}
+              text={playerData?.token ?? "null"}
               options={{
                 errorCorrectionLevel: "M",
                 margin: 3,

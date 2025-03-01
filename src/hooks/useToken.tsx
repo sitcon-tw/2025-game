@@ -7,6 +7,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { useLocalStorage } from "@uidotdev/usehooks";
 
 const TokenContext = createContext<TokenContextType | null>(null);
 
@@ -16,7 +17,7 @@ type TokenContextType = {
 };
 
 export function TokenProvider({ children }: { children: React.ReactNode }) {
-  const [token, setToken] = useState("");
+  const [token, setToken] = useLocalStorage("token", "");
   return (
     <>
       <TokenContext.Provider value={{ token, setToken }}>

@@ -1,13 +1,14 @@
 import { forbidden, success } from "@/utils/response";
 import { NextRequest } from "next/server";
 import { AchievementData } from "@/types";
+import { API_URL } from "@/lib/const";
 
 export const GET = async (request: NextRequest) => {
   const data = await request.json();
   const { token } = data;
 
   // 先確認是否存在使用者
-  const result = await fetch(`https://sitcon.opass.app/status?token=${token}`);
+  const result = await fetch(`${API_URL}/status?token=${token}`);
   if (result.status === 400) return forbidden("並非本次與會者");
 
   // 用token向資料庫拿取該player的所有成就解鎖狀態
@@ -24,7 +25,7 @@ export const POST = async (request: NextRequest) => {
   const { token, achievementId } = data;
 
   // 先確認是否存在使用者
-  const result = await fetch(`https://sitcon.opass.app/status?token=${token}`);
+  const result = await fetch(`${API_URL}/status?token=${token}`);
   if (result.status === 400) return forbidden("並非本次與會者");
 
   // 用token向prisma拿取對應 achievementId 的成就資料

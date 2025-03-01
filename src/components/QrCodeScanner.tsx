@@ -41,10 +41,17 @@ const QrCodeScanner = ({
       // qrScanner
       //   .start(cameraId, config, qrCodeSuccessCallback, () => {})
       //   .catch((err) => console.error("Failed to start QR Scanner:", err));
+
+      function successCallback(decodedText: string) {
+        if (!qrCodeSuccessCallback) return;
+        console.log("decodedText", decodedText);
+        qrCodeSuccessCallback(decodedText);
+      }
+
       qrScanner.start(
         { facingMode: "environment" },
         config,
-        qrCodeSuccessCallback,
+        successCallback,
         () => {},
       );
     }

@@ -2,11 +2,12 @@ import { createPlayer, getPlayer, getScore } from "@/utils/query";
 import { addFragment } from "@/utils/fragment/query";
 import { forbidden, success } from "@/utils/response";
 import { NextRequest } from "next/server";
+import { API_URL } from "@/lib/const";
 
 export const POST = async (request: NextRequest) => {
   const data = await request.json();
   const token = data.token;
-  const result = await fetch(`https://sitcon.opass.app/status?token=${token}`);
+  const result = await fetch(`${API_URL}/status?token=${token}`);
   if (result.status === 400) return forbidden("並非本次與會者");
   // NOTE: 目前 OPass API 怪怪的，所以要先處理一下，等 API 修好後可以拿掉
   const resultJson = await result.json();

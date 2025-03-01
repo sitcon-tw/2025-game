@@ -3,22 +3,6 @@ import { NextRequest } from "next/server";
 import { BoothData } from "@/types";
 import { API_URL } from "@/lib/const";
 
-export const GET = async (request: NextRequest) => {
-  const data = await request.json();
-  const { token } = data;
-
-  // 先確認是否存在使用者
-  const result = await fetch(`${API_URL}/status?token=${token}`);
-  if (result.status === 400) return forbidden("並非本次與會者");
-
-  // 用token向資料庫拿取該player關聯的所有攤位解鎖狀態
-  // prisma query here
-
-  // return BoothData
-};
-// 錯誤情況 1: 並非本次與會者invalid token
-// 錯誤情況 2: 抓取資料問題
-
 export const POST = async (request: NextRequest) => {
   const data = await request.json();
   const { token, boothId } = data;
