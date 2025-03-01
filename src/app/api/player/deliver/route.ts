@@ -1,15 +1,60 @@
-import { forbidden, success } from "@/utils/response";
+import { badRequest, forbidden, success } from "@/utils/response";
 import { NextRequest } from "next/server";
 import { BoothData } from "@/types";
-import { API_URL } from "@/lib/const";
+import blockConfig from "@/config/blocks.json";
+
+import {
+  API_URL,
+  invalidToken,
+  invalidUser,
+  puzzleSuccess,
+  puzzleTaken,
+} from "@/lib/const";
+import { generateRandomFragments } from "@/utils/fragment/query";
+import { sendNotification } from "@/utils/query";
 
 export const POST = async (request: NextRequest) => {
   const data = await request.json();
-  const { token, boothId } = data;
+  const { boothToken, playerToken } = data;
 
   // 先確認是否存在使用者
-  const result = await fetch(`${API_URL}/status?token=${token}`);
+  const result = await fetch(`${API_URL}/status?token=${playerToken}`);
   if (result.status === 400) return forbidden("並非本次與會者");
+
+  const body = new FormData();
+  body.append("receiver", playerToken);
+
+  const response = await fetch(
+    `${API_URL}/event/puzzle/deliver?token=${boothToken}`,
+    {
+      method: "POST",
+      body: body,
+    },
+  ).then((res) => res.json());
+
+  if (!response.message) {
+    // 隨機給予玩家拼圖碎片
+    const fragment = await generateRandomFragments(playerToken, [
+      { type: "a", weight: 10 },
+      { type: "b", weight: 10 },
+      { type: "g", weight: 15 },
+      { type: "f", weight: 15 },
+      { type: "e", weight: 15 },
+      { type: "d", weight: 15 },
+      { type: "c", weight: 20 },
+    ]);
+    const fragmentName = blockConfig[fragment as keyof typeof blockConfig].name;
+    // 通知玩家拼圖碎片獲得
+    sendNotification(
+      playerToken,
+      "拼圖碎片獲得",
+      "恭喜你獲得了拼圖碎片：" + fragmentName,
+    );
+    return success({ message: puzzleSuccess });
+  } else if (response.message === puzzleTaken) return badRequest(puzzleTaken);
+  else if (response.message === invalidToken) return badRequest(invalidToken);
+  else if (response.message === invalidUser) return badRequest(invalidUser);
+  else return badRequest("Unknown error");
 
   // 用token向prisma拿取對應 boothId 的成就資料
   // boothId.isFinished = true

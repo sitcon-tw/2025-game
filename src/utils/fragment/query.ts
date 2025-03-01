@@ -160,6 +160,8 @@ export const generateRandomFragments = async (
   }
 
   addFragment(token, type, 1);
+
+  return type;
 };
 
 export const addFragment = async (

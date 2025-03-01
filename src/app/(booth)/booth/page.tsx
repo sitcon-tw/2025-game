@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 // import Scanner from "./Scanner";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { sendPuzzle2Player } from "@/lib/sendPuzzle2Player";
+// import { sendPuzzle2Player } from "@/lib/sendPuzzle2Player";
 import { invalidToken, puzzleSuccess, puzzleTaken } from "@/lib/const";
 import { getBoothName } from "@/lib/getBoothName";
 import { getPlayerPuzzle } from "@/lib/getPlayerPuzzle";
@@ -12,6 +12,7 @@ import { QrCode } from "lucide-react";
 import QrCodeScanner from "@/components/QrCodeScanner";
 import { useQuery } from "@tanstack/react-query";
 import useToken from "@/hooks/useToken";
+
 export default function Page() {
   // const [playerToken, setPlayerToken] = useState<string | null>(null);
   const boothToken = useToken() ?? "";
@@ -97,4 +98,24 @@ export default function Page() {
       <ToastContainer />
     </div>
   );
+}
+
+async function sendPuzzle2Player(playerToken: string, boothToken: string) {
+  const body = new FormData();
+  body.append("receiver", playerToken);
+
+  return fetch(`/api/player/deliver`, {
+    method: "POST",
+    body: JSON.stringify({ boothToken, playerToken }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((res) => {
+      if (res.status === 400) return res.text();
+      return res.json();
+    })
+    .catch((err) => {
+      return err;
+    });
 }
