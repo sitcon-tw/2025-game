@@ -819,7 +819,7 @@ export default function GamePage() {
         {draggingBlockID && !isDropped && (
           <DragOverlay>
             <div
-              className="pointer-events-none absolute z-10"
+              className="pointer-events-none absolute z-10 border-2 border-gray-300"
               style={{
                 width:
                   isDraggingBlockOverMap && !IsZoomedIn
@@ -966,7 +966,7 @@ export default function GamePage() {
             transition={{ duration: 0.3 }}
           >
             <motion.div
-              className="flex w-2/3 flex-col items-center gap-2 rounded-lg bg-white p-4"
+              className="flex w-2/3 flex-col items-center gap-2 rounded-lg bg-primary p-4"
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.5, opacity: 0 }}
@@ -977,7 +977,7 @@ export default function GamePage() {
                 <p>{dialogContent}</p>
               </div>
               <button
-                className="mt-4 rounded-lg bg-blue-500 px-4 py-2 text-white"
+                className="mt-4 rounded-lg bg-secondary px-4 py-2 text-foreground"
                 onClick={() => setIsDialogOpen(false)}
               >
                 完成
@@ -1023,7 +1023,7 @@ function GameMapGridCell({
   return (
     <div
       ref={setNodeRef}
-      className={`relative border border-gray-300 ease-in-out ${isOver && !isDropped ? "animate-pulse border-[4px] border-orange-300 ease-in-out" : ""}`}
+      className={`border-gray-300"} relative border ease-in-out`}
       style={{
         height: IsZoomedIn ? "64px" : `${GAME_MAP_SIZE / maxSideCount}px`,
         width: IsZoomedIn ? "64px" : `${GAME_MAP_SIZE / maxSideCount}px`,
@@ -1033,6 +1033,7 @@ function GameMapGridCell({
         }
       }}
     >
+      {/* isOver && !isDropped */}
       {
         <div
           className={cn(
@@ -1045,6 +1046,17 @@ function GameMapGridCell({
               : cellType === "obstacle"
                 ? "bg-red-500"
                 : "bg-blue-500",
+          )}
+        ></div>
+      }
+      {
+        <div
+          className={cn(
+            `absolute inset-0 z-10 bg-green-500 opacity-0 transition-opacity`,
+            {
+              "opacity-50":
+                isOver && !isDropped && !(!isPlaceable && isDragging),
+            },
           )}
         ></div>
       }
@@ -1104,7 +1116,7 @@ function BlockInInventory({
       )}
     >
       <div className="relative">
-        <div className="pointer-events-none absolute inset-0 bottom-0 left-0 top-0 opacity-50">
+        <div className="pointer-events-none absolute inset-0 bottom-0 left-0 top-0 border-2 border-gray-300 opacity-50">
           {data.unlocked && getBlockElement(id)}
         </div>
         <div
@@ -1119,7 +1131,10 @@ function BlockInInventory({
           )}
         >
           <div
-            className={cn(`relative`, !isDisabled && "transition-all")}
+            className={cn(
+              `relative border-2 border-gray-300`,
+              !isDisabled && "transition-all",
+            )}
             style={scaleStyle}
           >
             {data.unlocked
