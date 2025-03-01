@@ -2,7 +2,13 @@ import { NextRequest } from "next/server";
 import { StageData } from "@/types";
 import { dfs } from "@/utils/dfs";
 import { badRequest, success } from "@/utils/response";
-import { getPlayer, getStage } from "@/utils/query";
+import {
+  getPlayer,
+  getStage,
+  playerStageClear,
+  removeRandomNotSharedFragment,
+} from "@/utils/query";
+import { getAllFragments } from "@/utils/fragment/query";
 
 export const GET = async (request: NextRequest) => {
   const searchParams = request.nextUrl.searchParams;
@@ -30,44 +36,140 @@ export const GET = async (request: NextRequest) => {
 // 錯誤情況1: 並非本次與會者invalid token
 // 錯誤情況2: 抓取資料問題
 
+const fragmentsIgnores = ["start", "end", "empty", "obstacle"];
+
 export const POST = async (request: NextRequest) => {
-  const data = await request.json();
+  try {
+    const data = await request.json();
 
-  const map: string[][] = data.map;
+    const map: string[][] = data.map;
+    const token = data.token;
 
-  const visited: boolean[][] = Array.from({ length: map.length }, () =>
-    Array.from({ length: map[0].length }, () => false),
-  );
+    if (!map) {
+      return badRequest("Map is required.");
+    }
 
-  const startRow = map.findIndex((row) => row.includes("start"));
+    if (!token) {
+      return badRequest("Token is required.");
+    }
 
-  if (startRow === -1) {
-    return badRequest("Start cell not found.");
+    const player = await getPlayer(token);
+
+    if (!player) {
+      return badRequest("Player not found.");
+    }
+
+    const stageNumber = player.stage;
+
+    // 檢查關卡是否被修改
+
+    const originStage = await getStage(stageNumber);
+
+    if (!originStage) {
+      return badRequest("Stage not found or generating error.");
+    }
+
+    if (
+      originStage.map.length !== map.length ||
+      originStage.map[0].length !== map[0].length
+    ) {
+      return badRequest("Stage size mismatch.");
+    }
+
+    const isMapValid = map.every((row, rowIndex) =>
+      row.every((cell, colIndex) => {
+        const originStageCell = originStage.map[rowIndex][colIndex];
+        const stageCell = map[rowIndex][colIndex];
+        // 僅有 empty 格子可以被修改
+        if (originStageCell !== "empty" && originStageCell !== stageCell) {
+          return false;
+        }
+        return true;
+      }),
+    );
+
+    if (!isMapValid) {
+      return badRequest("Invalid map.");
+    }
+
+    // 檢查是否通過關卡
+
+    const visited: boolean[][] = Array.from({ length: map.length }, () =>
+      Array.from({ length: map[0].length }, () => false),
+    );
+
+    const startRow = map.findIndex((row) => row.includes("start"));
+
+    if (startRow === -1) {
+      return badRequest("Start cell not found.");
+    }
+
+    const startCol = map[startRow] && map[startRow].indexOf("start");
+
+    if (startCol === -1) {
+      return badRequest("Start cell not found.");
+    }
+
+    const isSolved = dfs(map, startRow, startCol, visited, false);
+
+    if (!isSolved) {
+      return badRequest("Stage not solved.");
+    }
+
+    // 檢查使用的板塊數量是否正確
+
+    const fragmentsUsed = map
+      .flat(5)
+      .filter((cell) => !fragmentsIgnores.includes(cell))
+      .reduce<Record<string, number>>((acc, cell) => {
+        if (cell !== "start" && cell !== "end") {
+          acc[cell] = (acc[cell] || 0) + 1;
+        }
+        return acc;
+      }, {});
+
+    const fragmentsOwned: { type: string; amount: number }[] = await (
+      await getAllFragments(token)
+    ).json();
+
+    const isFragmentsValid = Object.entries(fragmentsUsed).every(
+      ([type, amount]) => {
+        const fragment = fragmentsOwned.find((f) => f.type === type);
+        return fragment && fragment.amount >= amount;
+      },
+    );
+
+    if (!isFragmentsValid) {
+      return badRequest("Not enough fragments.");
+    }
+
+    // 隨機清除一個板塊
+    const fragmentRemoved = await removeRandomNotSharedFragment(token);
+
+    // 更新玩家關卡 & 增加分數
+    playerStageClear(token, player.stage);
+
+    return success({ fragmentRemoved });
+
+    // const { token, blockId, position } = data;
+    // const { row, column, layer } = position;
+
+    // 使用 token 查詢對應stageID 的stage
+    // 將blockId 放置在 row, column, layer 指定的位置
+    // 判定玩家是否擁有該板塊 並且至少一塊
+    // 判定是否有其他東西
+    //    有則拒絕不給放
+    //    沒有則玩家對應板塊的數量 - 1
+    // 判定是否過關(isStageComplete())
+    // 如果過關
+    // 1.玩家point、score增加
+    // 2.製造新的關卡 (根據size加倍)(createStage())
+    // 將更新後的stageData 存入database
+    // return 更新過後的stageData 給前端
+  } catch (error) {
+    console.error(error);
+    return badRequest("Something went wrong.");
   }
-
-  const startCol = map[startRow] && map[startRow].indexOf("start");
-
-  if (startCol === -1) {
-    return badRequest("Start cell not found.");
-  }
-
-  const isSolved = dfs(map, startRow, startCol, visited, false);
-
-  // const { token, blockId, position } = data;
-  // const { row, column, layer } = position;
-
-  // 使用 token 查詢對應stageID 的stage
-  // 將blockId 放置在 row, column, layer 指定的位置
-  // 判定玩家是否擁有該板塊 並且至少一塊
-  // 判定是否有其他東西
-  //    有則拒絕不給放
-  //    沒有則玩家對應板塊的數量 - 1
-  // 判定是否過關(isStageComplete())
-  // 如果過關
-  // 1.玩家point、score增加
-  // 2.製造新的關卡 (根據size加倍)(createStage())
-  // 將更新後的stageData 存入database
-  // return 更新過後的stageData 給前端
 };
 // 錯誤情況1: 並非本次與會者invalid token
 // 錯誤情況2: 非法的blockId

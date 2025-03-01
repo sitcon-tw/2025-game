@@ -24,8 +24,9 @@ import { cn } from "@/lib/utils";
 import useCustomSensors from "@/hooks/useCustomSensors";
 import { dfs } from "@/utils/dfs";
 import usePlayerData from "@/hooks/usePlayerData";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FragmentData, PlayerData, StageData } from "@/types";
+import { motion, AnimatePresence } from "framer-motion";
 
 const BLOCK_SIZE = 56;
 const GAME_MAP_SIZE = 320;
@@ -172,12 +173,76 @@ export default function GamePage() {
   const [SelectedItem, setSelectedItem] = useState("");
   const [IsZoomedIn, setIsZoomedIn] = useState(false);
   const [isDropped, setIsDropped] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [draggingBlockID, setDraggingBlockID] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [isDraggingBlockOverMap, setIsDraggingBlockOverMap] = useState(false);
+  const [dialogTitle, setDialogTitle] = useState("");
+  const [dialogContent, setDialogContent] = useState("");
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const sensors = useCustomSensors();
   const rowCount = gameGrid.length;
   const colCount = gameGrid.length > 0 ? gameGrid[0].length : 0;
+
+  const queryClient = useQueryClient();
+
+  const stageClearMutation = useMutation({
+    mutationFn: async () => {
+      setIsLoading(true);
+      console.log("stage clear mutation");
+      const response = await fetch("/api/stage", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token: playerData?.token,
+          // level: Level,
+          // score: Score,
+          // gameGrid: gameGrid,
+          map: gameGrid,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorMessage = `Error: ${response.status} ${response.statusText}`;
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+      console.log("stage clear data", data);
+      return data;
+    },
+    onSuccess: (data) => {
+      console.log("stage clear success");
+      queryClient.invalidateQueries({
+        queryKey: ["player-data"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["fragments", playerData?.token],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["stage", playerData?.stage],
+      });
+      const fragmentRemoved = data.fragmentRemoved;
+      console.log("fragmentRemoved", fragmentRemoved);
+      showDialog(
+        "恭喜過關",
+        `恭喜你通過了這個關卡！${
+          fragmentRemoved
+            ? `但你失去了一個 ${
+                blocksConfig[fragmentRemoved as keyof typeof blocksConfig].name
+              } ...`
+            : ""
+        }`,
+      );
+    },
+    onSettled: () => {
+      setIsLoading(false);
+    },
+  });
 
   const startRow = gameGrid.findIndex((row) => row.includes("start")) ?? 0;
   const startCol =
@@ -277,14 +342,28 @@ export default function GamePage() {
 
   function placeBlock(row: number, col: number, block: string): boolean {
     const newGrid = gameGrid.map((r) => [...r]);
+    if (newGrid[row][col] !== "empty") {
+      showDialog("無法放置", "這裡已經有被放置板塊了！");
+      return false;
+    }
     newGrid[row][col] = block;
 
-    const visited = gameGrid.map((row) => row.map(() => false));
+    let visited = gameGrid.map((row) => row.map(() => false));
     visited[startRow][startCol] = true;
     const isPathAvailable = dfs(newGrid, startRow, startCol, visited, true);
     if (!isPathAvailable) {
-      alert("你不能把路徑堵死！");
+      showDialog("無法放置", "你不能把路堵死！！");
       return false;
+    }
+
+    // check for stage clear
+    visited = gameGrid.map((row) => row.map(() => false));
+    visited[startRow][startCol] = true;
+    const isStageClear = dfs(newGrid, startRow, startCol, visited, false);
+    console.log("isStageClear", isStageClear);
+    if (isStageClear) {
+      console.log("level clear");
+      stageClearMutation.mutate();
     }
 
     setGameGrid(newGrid);
@@ -483,7 +562,7 @@ export default function GamePage() {
     error: playerDataError,
   } = usePlayerData();
 
-  const { data: fragments } = useQuery({
+  const { data: fragments, isLoading: isFragmentsLoading } = useQuery({
     queryKey: ["fragments", playerData?.token],
     queryFn: async () => {
       const response = await fetch("/api/fragment?token=" + playerData?.token);
@@ -500,7 +579,7 @@ export default function GamePage() {
 
   const {
     data: stageData,
-    isLoading,
+    isLoading: isStageLoading,
     isError,
     error,
   } = useQuery({
@@ -517,6 +596,12 @@ export default function GamePage() {
       return data;
     },
   });
+
+  function showDialog(title: string, content: string) {
+    setDialogTitle(title);
+    setDialogContent(content);
+    setIsDialogOpen(true);
+  }
 
   const emptyMap = Array(5).fill(Array(5).fill("empty"));
   const stageMap = stageData?.map ?? emptyMap;
@@ -745,11 +830,11 @@ export default function GamePage() {
             <div className="text-2xl">
               <div className="flex">
                 <p>關卡：</p>
-                <p>{Level}</p>
+                <p>{playerData?.stage ?? 1}</p>
               </div>
               <div className="flex">
                 <p>積分：</p>
-                <p>{Score}</p>
+                <p>{playerData?.score ?? 0}</p>
               </div>
             </div>
 
@@ -778,7 +863,12 @@ export default function GamePage() {
           <div className="flex h-full w-full flex-col items-center justify-center overflow-hidden">
             {/* grid part */}
             <div
-              className={`flex flex-col justify-center overflow-auto border border-gray-200`}
+              className={cn(
+                `flex flex-col justify-center overflow-auto border border-gray-200 transition-opacity`,
+                {
+                  "opacity-50": isLoading,
+                },
+              )}
               style={{
                 width: IsZoomedIn
                   ? `${GAME_MAP_SIZE + 2}px`
@@ -793,13 +883,7 @@ export default function GamePage() {
             >
               <div className="w-full overflow-scroll">
                 {gameGrid.map((row, rowIndex) => (
-                  <div
-                    key={rowIndex}
-                    className={cn(
-                      "flex",
-                      rowCount < colCount ? "justify-start" : "justify-center",
-                    )}
-                  >
+                  <div key={rowIndex} className={cn("flex", "justify-start")}>
                     {row.map((cell, colIndex) => {
                       const cellContent =
                         blockAndPropsElements[
@@ -858,6 +942,36 @@ export default function GamePage() {
           </div>
         </div>
       </DndContext>
+      <AnimatePresence>
+        {isDialogOpen && (
+          <motion.div
+            className="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-70"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: isDialogOpen ? 1 : 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.div
+              className="flex w-2/3 flex-col items-center gap-2 rounded-lg bg-white p-4"
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.5, opacity: 0 }}
+              transition={{ duration: 0.3, type: "spring" }}
+            >
+              <div className="text-2xl font-bold">{dialogTitle}</div>
+              <div className="text-lg">
+                <p>{dialogContent}</p>
+              </div>
+              <button
+                className="mt-4 rounded-lg bg-blue-500 px-4 py-2 text-white"
+                onClick={() => setIsDialogOpen(false)}
+              >
+                完成
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
@@ -890,11 +1004,10 @@ function GameMapGridCell({
   return (
     <div
       ref={setNodeRef}
-      className={`border transition ease-in-out ${isOver && !isDropped ? "animate-pulse border-[4px] border-orange-300 ease-in-out" : ""}`}
+      className={`border ease-in-out ${isOver && !isDropped ? "animate-pulse border-[4px] border-orange-300 ease-in-out" : ""}`}
       style={{
         height: IsZoomedIn ? "64px" : `${GAME_MAP_SIZE / maxSideCount}px`,
         width: IsZoomedIn ? "64px" : `${GAME_MAP_SIZE / maxSideCount}px`,
-        transitionProperty: "height, width",
       }}
       onClick={() => {
         if (PlaceableGrid[rowIndex][colIndex]) {

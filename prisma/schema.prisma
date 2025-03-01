@@ -29,6 +29,7 @@ model Player {
   sharedFragments Fragment[]          @relation("SharedPlayerFragment")
   achievements AchievementStatus[]
   scores       PlayerScoreboard?
+  points       Int                 @default(0) // points
   boothStatus  BoothStatus[]
 
   @@id([token])

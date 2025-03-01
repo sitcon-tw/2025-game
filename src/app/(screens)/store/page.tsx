@@ -11,18 +11,21 @@ import {
   Ticket,
 } from "lucide-react";
 import { useState } from "react";
+import usePlayerData from "@/hooks/usePlayerData";
 
 export default function StorePage() {
   const points = 12345678; // TODO: 積分獲取
   const [lotteryAmount, setLotteryAmount] = useState(0);
   const [lotteryChooserOpen, setLotteryChooserOpen] = useState(false);
 
+  const { playerData } = usePlayerData();
+
   return (
     <>
       <section id="points_overview" className="flex w-full">
         <div className="ml-5 w-full py-3 pl-3">
           <p className="text-lg text-gray-400">積分</p>
-          <p className="text-3xl">{points}</p>
+          <p className="text-3xl">{playerData?.points ?? 0}</p>
         </div>
       </section>
       <div className="overflow-y-scroll">

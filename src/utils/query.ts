@@ -3,6 +3,7 @@ import { PlayerData, StageData } from "@/types";
 import { dfs } from "@/utils/dfs";
 import { badRequest, conflict, internalServerError } from "@/utils/response";
 import { Prisma } from "@prisma/client";
+import { NextResponse } from "next/server";
 
 function getRandomInt(max: number) {
   return Math.floor(Math.random() * max);
@@ -10,7 +11,7 @@ function getRandomInt(max: number) {
 
 function generateStage(
   size: number,
-  obstaclesPercentage: number = 0.3,
+  obstaclesPercentage: number = 0.5,
   retries = 10,
 ) {
   const grid = Array.from({ length: size }, () =>
@@ -112,16 +113,17 @@ const query = {
     }
   },
   getBlock: async (playerId: string) => {},
-
   removeRandomNotSharedFragment: async (playerId: string) => {
     const fragments = await prisma.fragment.findMany({
-      where: { token: playerId, shared: false },
+      where: { token: playerId, shared: false, amount: { gt: 0 } },
     });
     if (fragments.length === 0) return;
     const fragment = fragments[getRandomInt(fragments.length)];
-    await prisma.fragment.delete({
+    await prisma.fragment.update({
       where: { fragment_id: fragment.fragment_id },
+      data: { amount: fragment.amount - 1 },
     });
+    return fragment.type;
   },
   getItem: async () => {},
   getPlayer: async (playerId: string) => {
@@ -157,7 +159,17 @@ const query = {
     }
     return rank;
   },
-  getStage: async (stageId: number) => {
+  getStage: async (
+    stageId: number,
+  ): Promise<
+    | {
+        level: number;
+        floor: number;
+        map: string[][];
+        size: number;
+      }
+    | undefined
+  > => {
     const stage = await prisma.stage.findUnique({
       where: { stage_id: stageId },
     });
@@ -187,7 +199,7 @@ const query = {
     try {
       const stageMap = JSON.parse(stageMapText);
       if (!stageMap || !Array.isArray(stageMap) || !Array.isArray(stageMap[0]))
-        return internalServerError();
+        throw new Error("Invalid stage map.");
       return {
         level: stage.stage_id,
         floor: 1,
@@ -195,7 +207,7 @@ const query = {
         size: stageMap.length,
       };
     } catch (error) {
-      return internalServerError();
+      return undefined;
     }
   },
   getTeam: async (teamId: string) => {
@@ -203,22 +215,38 @@ const query = {
     return team;
   },
   setPlayer: async () => {},
-  setScore: async (playerId: string, teamId: string, score: number) => {
+  setScore: async (playerId: string, score: number, teamId?: string) => {
     let playerScore = await prisma.playerScoreboard.findUnique({
       where: { token: playerId },
     });
+    const player = await getPlayer(playerId);
+    const points = player?.points ?? 0;
 
     if (!playerScore) {
       playerScore = await prisma.playerScoreboard.create({
         data: { token: playerId, score: score },
       });
+      await prisma.player.update({
+        where: { token: playerId },
+        data: { points: score },
+      });
     } else {
+      console.log(playerScore.score, points, score);
       const newScore = playerScore.score + score;
+      const newPoints = points + score;
+      console.log(newScore, newPoints);
       playerScore = await prisma.playerScoreboard.update({
         where: { token: playerId },
         data: { score: newScore },
       });
+      await prisma.player.update({
+        where: { token: playerId },
+        data: { points: newPoints },
+      });
     }
+
+    // 沒有 teamId 就不用更新 teamScore
+    if (!teamId) return { updatedPlayerScore: playerScore };
 
     let teamScore = await prisma.teamScoreboard.findUnique({
       where: { team_id: teamId },
@@ -245,10 +273,20 @@ const query = {
     });
     return coupon;
   },
+  playerStageClear: async (playerId: string, stageNumber: number) => {
+    await prisma.player.update({
+      where: { token: playerId },
+      data: { stage: { increment: 1 } },
+    });
+    // add score
+    await query.setScore(playerId, stageNumber * 50);
+  },
 };
 export const {
   createPlayer,
   getPlayer,
   getStage,
   removeRandomNotSharedFragment,
+  playerStageClear,
+  getScore,
 } = query;
