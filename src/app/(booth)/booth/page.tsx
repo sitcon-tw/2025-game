@@ -70,7 +70,7 @@ export default function Page() {
   return (
     <div>
       <motion.div
-        className="mx-auto w-full max-w-[512px] px-2 py-10 text-gray-950"
+        className="mx-auto w-full max-w-[512px] px-2 py-10 text-foreground"
         initial={{ opacity: 0, y: 100 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 100 }}
@@ -91,7 +91,7 @@ export default function Page() {
             />
           </div>
         </div>
-        <div className="text-center text-xl text-gray-600">
+        <div className="text-center text-xl text-gray-200">
           請掃描會眾 OPass 中的 QR code
         </div>
       </motion.div>

@@ -1,8 +1,12 @@
 "use client";
 import { QRCodeSVG } from "qrcode.react";
-import { X } from "lucide-react";
+import { Store, Waypoints, X } from "lucide-react";
 import { useState } from "react";
 import Block from "@/components/Block";
+import { useQuery } from "@tanstack/react-query";
+import { API_URL } from "@/lib/const";
+import { sha1 } from "js-sha1";
+import useToken from "@/hooks/useToken";
 
 type Stamp = {
   type: string;
@@ -29,7 +33,7 @@ const stamps: Stamp[] = [
   { type: "8", isfinished: false, prizeBlockType: "8" },
 ];
 
-const achievements: Achievement[] = [
+const defaultAchievements: Achievement[] = [
   {
     progress: 1,
     target: 5,
@@ -87,6 +91,39 @@ export default function AchievementsPage() {
   );
   const [stamp, setStamp] = useState<Stamp | null>(null);
   const [achievement, setAchievement] = useState<Achievement | null>(null);
+  const token = useToken() ?? "";
+  const { data: boothList } = useQuery({
+    queryKey: ["boothList"],
+    queryFn: async () => {
+      const response = await fetch(`${API_URL}/event/puzzle/deliverers`);
+      const data = response.json();
+      return data;
+    },
+  });
+  const { data: boothStamps } = useQuery({
+    queryKey: ["boothStamps"],
+    queryFn: async () => {
+      const response = await fetch(
+        `${API_URL}/event/puzzle?token=${sha1(token)}`,
+      );
+      const data = await response.json();
+      return data.deliverers.map(
+        (deliverer: { deliverer: string }) => deliverer.deliverer,
+      );
+    },
+  });
+
+  const achievements: Achievement[] = [
+    ...(boothList?.map((booth: string) => ({
+      progress:
+        boothStamps?.filter((stamp: string) => stamp === booth).length ?? 0,
+      target: 1,
+      name: `與攤位 ${booth} 互動`,
+      description: "lorem",
+      prize: "1",
+    })) ?? []),
+    ...defaultAchievements,
+  ];
 
   const handleStampClick = (stamp: Stamp) => {
     setStamp(stamp);
@@ -100,32 +137,17 @@ export default function AchievementsPage() {
 
   return (
     <>
-      <div className="relative px-6 pb-6 pt-16">
-        <div className="mb-6 grid grid-cols-4 gap-4">
-          {stamps.map((stamp) => (
-            <img
-              key={stamp.type}
-              src={`https://picsum.photos/id/${stamp.type}/50/50`}
-              alt={`${stamp.type}_stamp`}
-              className={`${stamp.isfinished ? "opacity-100" : "opacity-50"}`} // TODO: 替換成icon
-              onClick={() => handleStampClick(stamp)}
-            />
-          ))}
-        </div>
-
+      <div className="relative p-6 pt-8">
         <div className="flex flex-col gap-8 pr-4">
           {achievements.map((achievement, index) => (
             <div key={achievement.name} className="flex items-center gap-4">
-              <img
-                key={achievement.name}
-                src={`https://picsum.photos/id/${index}/50/50`}
-                alt={`${index}_achievement`}
-                onClick={() => handleAchievementClick(achievement)}
-              />
-              <div className="flex w-full flex-col gap-1">
-                <div className="flex flex-row justify-between">
-                  <p>{achievement.name}</p>
-                  <p>
+              <Store className="h-[50px] w-[50px]" />
+              <div className="flex w-full flex-col gap-1 overflow-hidden">
+                <div className="flex flex-row flex-nowrap justify-between gap-3 overflow-hidden">
+                  <p className="overflow-hidden text-ellipsis text-nowrap">
+                    {achievement.name}
+                  </p>
+                  <p className="text-ellipsis text-nowrap">
                     {achievement.progress} / {achievement.target}
                   </p>
                 </div>

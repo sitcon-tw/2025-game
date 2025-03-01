@@ -32,6 +32,16 @@ export const POST = async (request: NextRequest) => {
     },
   ).then((res) => res.json());
 
+  const deliverer = await fetch(
+    `${API_URL}/event/puzzle/deliverer?token=${boothToken}`,
+  ).then((res) => res.json());
+
+  console.log(deliverer);
+
+  if (!deliverer || !deliverer.slug) return badRequest("無效的攤位 Token");
+
+  const boothName = deliverer.slug;
+
   if (!response.message) {
     // 隨機給予玩家拼圖碎片
     const fragment = await generateRandomFragments(playerToken, [
@@ -48,7 +58,7 @@ export const POST = async (request: NextRequest) => {
     sendNotification(
       playerToken,
       "拼圖碎片獲得",
-      "恭喜你獲得了拼圖碎片：" + fragmentName,
+      `您已獲得了攤位 ${boothName} 的獎勵板塊：${fragmentName}！`,
     );
     return success({ message: puzzleSuccess });
   } else if (response.message === puzzleTaken) return badRequest(puzzleTaken);

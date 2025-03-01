@@ -2,8 +2,9 @@
 
 import FrequencyProvider from "@/hooks/useFrequency";
 import useToken from "@/hooks/useToken";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface Notification {
@@ -23,6 +24,8 @@ export default function Layout({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const token = useToken();
+
+  const pathname = usePathname();
 
   const { data: notifications } = useQuery({
     queryKey: ["notifications"],
@@ -62,6 +65,16 @@ export default function Layout({
     }
   }, [notification]);
 
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (pathname === "/") {
+      queryClient.invalidateQueries({
+        queryKey: ["notifications"],
+      });
+    }
+  }, [pathname]);
+
   return (
     <>
       <FrequencyProvider>
@@ -76,7 +89,7 @@ export default function Layout({
               transition={{ duration: 0.3 }}
             >
               <motion.div
-                className="flex w-2/3 flex-col items-center gap-2 rounded-lg bg-white p-4"
+                className="flex w-2/3 flex-col items-center gap-2 rounded-lg bg-primary p-4 text-foreground"
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.5, opacity: 0 }}
@@ -87,7 +100,7 @@ export default function Layout({
                   <p>{dialogContent}</p>
                 </div>
                 <button
-                  className="mt-4 rounded-lg bg-blue-500 px-4 py-2 text-white"
+                  className="mt-4 rounded-lg bg-secondary px-4 py-2 text-foreground"
                   onClick={() => {
                     setIsDialogOpen(false);
                     popQueue();
