@@ -927,7 +927,7 @@ export default function GamePage() {
             {/* inventory */}
             <div
               className={cn(
-                "flex w-screen items-start gap-4 overflow-x-scroll bg-green-200 px-6 py-9 transition",
+                "flex w-screen items-start gap-4 overflow-x-scroll bg-transparent px-6 py-9 text-foreground transition",
                 isDragging ? "opacity-50" : "opacity-100",
               )}
             >
@@ -1132,9 +1132,9 @@ function BlockInInventory({
         className={
           data.unlocked
             ? data.amount > 0
-              ? "text-black"
+              ? "text-foreground"
               : "text-red-400"
-            : "text-zinc-400"
+            : "text-foreground"
         }
       >
         x{data.amount}
