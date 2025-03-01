@@ -143,6 +143,24 @@ const query = {
       score = prisma.teamScoreboard.findUnique({ where: { team_id: id } });
     return score;
   },
+  sendNotification: async (
+    playerToken: string,
+    title: string,
+    content: string,
+  ) => {
+    const player = await prisma.player.findUnique({
+      where: { token: playerToken },
+    });
+    if (!player) return;
+    const notification = await prisma.notification.create({
+      data: {
+        title,
+        content,
+        token: playerToken,
+      },
+    });
+    return notification;
+  },
   getRank: async (id: string, type: string) => {
     let rank;
     if (type === "player") {
@@ -289,4 +307,5 @@ export const {
   removeRandomNotSharedFragment,
   playerStageClear,
   getScore,
+  sendNotification,
 } = query;

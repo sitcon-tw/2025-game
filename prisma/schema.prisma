@@ -24,13 +24,14 @@ model Player {
   team_id      String? @db.Uuid // team_id
   compass      Boolean @default(false) // compass status
 
-  team         Team?               @relation(fields: [team_id], references: [team_id])
-  fragments    Fragment[]          @relation("PlayerFragment")
+  team            Team?               @relation(fields: [team_id], references: [team_id])
+  fragments       Fragment[]          @relation("PlayerFragment")
   sharedFragments Fragment[]          @relation("SharedPlayerFragment")
-  achievements AchievementStatus[]
-  scores       PlayerScoreboard?
-  points       Int                 @default(0) // points
-  boothStatus  BoothStatus[]
+  achievements    AchievementStatus[]
+  scores          PlayerScoreboard?
+  points          Int                 @default(0) // points
+  boothStatus     BoothStatus[]
+  notifications   Notification[]
 
   @@id([token])
 }
@@ -39,10 +40,10 @@ model Player {
 model Team {
   team_id    String          @default(uuid()) @db.Uuid // team_id
   name       String // team name
-  player1_id String?          @unique // token
-  player2_id String?          @unique // token
-  player3_id String?          @unique // token
-  player4_id String?          @unique // token
+  player1_id String?         @unique // token
+  player2_id String?         @unique // token
+  player3_id String?         @unique // token
+  player4_id String?         @unique // token
   players    Player[]
   scores     TeamScoreboard?
 
@@ -51,14 +52,14 @@ model Team {
 
 // 碎片資料
 model Fragment {
-  fragment_id   Int    @default(autoincrement()) // fragment_id
+  fragment_id   Int     @default(autoincrement()) // fragment_id
   token         String // 誰的板塊
-  shared_token  String?  // 分享者
+  shared_token  String? // 分享者
   type          String // a,b,c
   amount        Int // count
   shared        Boolean @default(false) // 是否為分享板塊
-  player        Player @relation("PlayerFragment",fields: [token], references: [token]) // 被誰shared
-  shared_player Player? @relation("SharedPlayerFragment",fields: [shared_token], references: [token]) // 分享者
+  player        Player  @relation("PlayerFragment", fields: [token], references: [token]) // 被誰shared
+  shared_player Player? @relation("SharedPlayerFragment", fields: [shared_token], references: [token]) // 分享者
 
   @@id([fragment_id])
 }
@@ -70,6 +71,17 @@ model PlayerScoreboard {
   player Player @relation(fields: [token], references: [token])
 
   @@id([token])
+}
+
+model Notification {
+  notification_id String   @default(cuid()) @db.Text // notification_id
+  token           String   @db.Text
+  player          Player   @relation(fields: [token], references: [token])
+  title           String
+  content         String
+  created_at      DateTime @default(now())
+
+  @@id([notification_id])
 }
 
 model TeamScoreboard {
