@@ -1,7 +1,5 @@
+import { redirect } from "next/navigation";
 export default function Home() {
-  return (
-    <>
-      <p>Default Page</p>
-    </>
-  );
+  redirect("/game");
+  return <></>;
 }
