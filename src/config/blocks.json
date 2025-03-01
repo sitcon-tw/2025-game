@@ -1,51 +1,51 @@
 {
   "a": {
-    "name": "A 型板塊",
+    "name": "橫向板塊",
     "up": false,
     "down": false,
     "left": true,
     "right": true
   },
   "b": {
-    "name": "B 型板塊",
+    "name": "縱向板塊",
     "up": true,
     "down": true,
     "left": false,
     "right": false
   },
-  "c": {
-    "name": "C 型板塊",
-    "up": true,
+  "g": {
+    "name": "左下板塊",
+    "up": false,
     "down": true,
-    "left": true,
-    "right": true
-  },
-  "d": {
-    "name": "D 型板塊",
-    "up": true,
-    "down": false,
-    "left": false,
-    "right": true
-  },
-  "e": {
-    "name": "E 型板塊",
-    "up": true,
-    "down": false,
     "left": true,
     "right": false
   },
   "f": {
-    "name": "F 型板塊",
+    "name": "右下板塊",
     "up": false,
     "down": true,
     "left": false,
     "right": true
   },
-  "g": {
-    "name": "G 型板塊",
-    "up": false,
-    "down": true,
+  "e": {
+    "name": "左上板塊",
+    "up": true,
+    "down": false,
     "left": true,
     "right": false
+  },
+  "d": {
+    "name": "右上板塊",
+    "up": true,
+    "down": false,
+    "left": false,
+    "right": true
+  },
+  "c": {
+    "name": "十字板塊",
+    "up": true,
+    "down": true,
+    "left": true,
+    "right": true
   }
 }
