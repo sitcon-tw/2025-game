@@ -20,7 +20,7 @@
   },
   "poster_exhibition": {
     "target": 1,
-    "name": "海報展",
+    "name": "參觀海報展",
     "scanner_name": "場務組員",
     "scanners": [
       "0946bbb66895195a6421e0f4a2f25b4cf038092c52dc16a8b9e82ca8672a47f4"
@@ -28,7 +28,7 @@
   },
   "meet_the_speaker": {
     "target": 1,
-    "name": "與講者有約（議程組員掃描）",
+    "name": "參加與講者有約",
     "scanner_name": "議程組員",
     "scanners": [
       "c3564adb51471cb8f59d3bf8f37d49114ade51ee98a70893f7017e05d914716c"
