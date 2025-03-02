@@ -4,6 +4,7 @@ import { dfs } from "@/utils/dfs";
 import { badRequest, conflict, internalServerError } from "@/utils/response";
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
+import achievementsConfig from "@/config/achievements.json";
 
 function getRandomInt(max: number) {
   return Math.floor(Math.random() * max);
@@ -102,6 +103,59 @@ const query = {
       where: { token: playerToken },
     });
     return coupons;
+  },
+  addAchievementProgress: async (
+    playerToken: string,
+    achievementId: string,
+  ) => {
+    const player = await prisma.player.findUnique({
+      where: { token: playerToken },
+    });
+    if (!player) return false;
+    const achievement = await prisma.achievementStatus.findUnique({
+      where: {
+        achievement_id_token: {
+          achievement_id: achievementId,
+          token: playerToken,
+        },
+      },
+    });
+    const achievementConfig =
+      achievementsConfig[achievementId as keyof typeof achievementsConfig];
+
+    if ((achievement?.current ?? 0) >= achievementConfig.target) return false;
+    if (!achievement) {
+      await prisma.achievementStatus.create({
+        data: {
+          token: playerToken,
+          achievement_id: achievementId,
+          current: 1,
+        },
+      });
+      return true;
+    } else {
+      await prisma.achievementStatus.update({
+        where: {
+          achievement_id_token: {
+            achievement_id: achievementId,
+            token: playerToken,
+          },
+        },
+        data: { current: achievement.current + 1 },
+      });
+      return true;
+    }
+    return false;
+  },
+  getAllAchievementStatus: async (playerToken: string) => {
+    const achievements = await prisma.achievementStatus.findMany({
+      where: { token: playerToken },
+    });
+    const response = achievements.map((achievement) => ({
+      id: achievement.achievement_id,
+      current: achievement.current,
+    }));
+    return response;
   },
   createPlayer: async (playerData: PlayerData) => {
     try {
@@ -341,4 +395,6 @@ export const {
   removePoints,
   giveCoupon,
   getAllCoupons,
+  getAllAchievementStatus,
+  addAchievementProgress,
 } = query;

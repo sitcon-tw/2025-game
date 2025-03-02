@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { API_URL } from "@/lib/const";
 import { sha1 } from "js-sha1";
 import useToken from "@/hooks/useToken";
+import achievementsConfig from "@/config/achievements.json";
 
 type Stamp = {
   type: string;
@@ -33,57 +34,15 @@ const stamps: Stamp[] = [
   { type: "8", isfinished: false, prizeBlockType: "8" },
 ];
 
-const defaultAchievements: Achievement[] = [
-  {
-    progress: 1,
-    target: 5,
-    name: "成就1",
-    description: "lorem",
-    prizeBlockType: "1",
-  },
-  {
-    progress: 2,
-    target: 5,
-    name: "成就2",
-    description: "lorem",
-    prizeBlockType: "2",
-  },
-  {
-    progress: 1,
-    target: 1,
-    name: "成就3",
-    description: "lorem",
-    prizeBlockType: "3",
-  },
-  {
-    progress: 0,
-    target: 1,
-    name: "成就4",
-    prizeBlockType: "4",
-    description: "lorem",
-  },
-  {
-    progress: 3,
-    target: 5,
-    name: "成就5",
-    prizeBlockType: "5",
-    description: "lorem",
-  },
-  {
-    progress: 0,
-    target: 1,
-    name: "成就6",
-    prizeBlockType: "6",
-    description: "lorem",
-  },
-  {
-    progress: 4,
-    target: 5,
-    name: "成就7",
-    prizeBlockType: "7",
-    description: "lorem",
-  },
-];
+const defaultAchievements: Achievement[] = Object.entries(
+  achievementsConfig,
+).map(([key, value]) => ({
+  progress: 0,
+  target: value.target,
+  name: value.name,
+  description: "",
+  prizeBlockType: "",
+}));
 
 export default function AchievementsPage() {
   const [popupType, setPopupType] = useState<"stamp" | "achievement" | null>(
@@ -112,6 +71,16 @@ export default function AchievementsPage() {
       );
     },
   });
+
+  const { data: achievementStatus } = useQuery({
+    queryKey: ["achievements", token],
+    queryFn: async () => {
+      const response = await fetch(`${API_URL}/achievement?token=${token}`);
+      return response.json();
+    },
+  });
+
+  console.log(achievementStatus);
 
   const achievements: Achievement[] = [
     ...(boothList?.map((booth: string) => ({

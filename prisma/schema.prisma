@@ -93,23 +93,12 @@ model TeamScoreboard {
   @@id([team_id])
 }
 
-// 成就
-model Achievement {
-  achievement_id String              @default(uuid()) @db.Uuid // achievement_id
-  name           String // achievement name
-  description    String // achievement description
-  prize          Int                 @default(0) // count?
-  statuses       AchievementStatus[]
-
-  @@id([achievement_id])
-}
-
 // 成就狀態
 // use object
 model AchievementStatus {
-  achievement_id String      @db.Uuid
+  achievement_id String      @db.Text
+  current        Int         @default(0)
   token          String      @db.Text
-  achievement    Achievement @relation(fields: [achievement_id], references: [achievement_id])
   player         Player      @relation(fields: [token], references: [token])
 
   @@id([achievement_id, token])

@@ -1,0 +1,37 @@
+{
+  "tour_participation": {
+    "target": 1,
+    "name": "參加導遊團",
+    "scanner_name": "導遊",
+    "scanners": [
+      "b30b362afa418f78701d0bb44e4ab559eb8a3c2d8b927b9d57e1dde598cbbd45",
+      "a66f26eb8e4ebf5798daf11fe663843d3d00d779b0977b9b1013a37b0ce6405c",
+      "938d01dfb7b3ac4db031910887c9137af86d5629ebcadd1dbccf15a0d45b7a9d",
+      "324a8e264c792ee8a05428fef9a9027bfa1cd3d3ad19ac580fd817eb0bee2227"
+    ]
+  },
+  "compass_plan_check_in": {
+    "target": 1,
+    "name": "指南針計畫打卡",
+    "scanner_name": "議程組員",
+    "scanners": [
+      "486951fa4cf00edc70fd8e597f62ffc2572b69ef0d598031690311d8a50e1ca0"
+    ]
+  },
+  "poster_exhibition": {
+    "target": 1,
+    "name": "海報展",
+    "scanner_name": "場務組員",
+    "scanners": [
+      "0946bbb66895195a6421e0f4a2f25b4cf038092c52dc16a8b9e82ca8672a47f4"
+    ]
+  },
+  "meet_the_speaker": {
+    "target": 1,
+    "name": "與講者有約（議程組員掃描）",
+    "scanner_name": "議程組員",
+    "scanners": [
+      "c3564adb51471cb8f59d3bf8f37d49114ade51ee98a70893f7017e05d914716c"
+    ]
+  }
+}
