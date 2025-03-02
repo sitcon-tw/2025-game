@@ -1,0 +1,17 @@
+[
+  {
+    "id": "A",
+    "name": "Item A",
+    "maxDrawn": 3
+  },
+  {
+    "id": "B",
+    "name": "Item B",
+    "maxDrawn": 2
+  },
+  {
+    "id": "C",
+    "name": "Item C",
+    "maxDrawn": 1
+  }
+]
