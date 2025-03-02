@@ -5,11 +5,12 @@ import Block from "@/components/Block";
 import Fragment from "@/components/Fragment";
 import { useEffect, useState, useCallback } from "react";
 import usePlayerData from "@/hooks/usePlayerData";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, QueryClient } from "@tanstack/react-query";
 import { QRCodeSVG } from "qrcode.react";
 import useToken from "@/hooks/useToken";
 
 import { SharedFragmentData } from "@/types/index";
+import { set } from "date-fns";
 
 type BlockType =
   | "a"
@@ -112,9 +113,15 @@ const myBlocks: Array<Block> = [
 export default function LinkPage() {
   const [popupType, setPopupType] = useState<"qrcode" | "edit" | null>(null);
   const [sharingBlocks, setSharingBlocks] = useState<Block[]>([]);
+  const [hasScanned, setHasScanned] = useState(false);
+  const [sharedFragments, setSharedFragments] = useState<SharedFragmentData>(
+    [],
+  );
   const token = useToken();
 
-  const { data: sharedFragments } = useQuery({
+  const queryClient = new QueryClient();
+
+  useQuery({
     queryKey: ["fragments", token],
     queryFn: async () => {
       const response = await fetch("/api/fragment/share?token=" + token);
@@ -125,29 +132,55 @@ export default function LinkPage() {
       }
 
       const data: SharedFragmentData = await response.json();
+      setSharedFragments(data);
       return data;
     },
   });
 
   console.log(sharedFragments);
 
+  const mutation = useMutation({
+    mutationFn: async (qrCodeData: string) => {
+      const data = JSON.parse(qrCodeData);
+      console.log("fetch");
+      console.log(
+        JSON.stringify({
+          token: token,
+          friendToken: data.sharedToken,
+          fragments: data.fragments,
+        }),
+      );
+
+      const response = await fetch("/api/fragment/share", {
+        method: "POST",
+        body: JSON.stringify({
+          token: token,
+          friendToken: data.sharedToken,
+          fragments: data.fragments,
+        }),
+      });
+
+      if (!response.ok) throw new Error("API Error");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["fragments", token] });
+
+      setHasScanned(false);
+      console.log("success");
+    },
+    onError: () => {
+      setHasScanned(false);
+      console.log("error");
+    },
+  });
+
   const onScanSuccess = useCallback((decodedText: string) => {
-    // 拿到QRcode掃描結果應該要包含
-    // {
-    //   "sharedToken": "1234567890",
-    //   "blocks":{ } 分享的板塊內容
-    // }
-    // TODO::
-    // 拿到後去打API更新分享的板塊資料
-    // 後端要驗證對方是否有足夠的對應板塊可以分享 && 不可大於3塊
-    // post request body:{
-    //  token: string,
-    //  friendToken: string,
-    //  fragments:[]
-    // }
-    // 還可以增加掃到了之後的UI提示
-    // 要注意這裡會一直偵測所以要小心不要一直打API
-    console.log(decodedText);
+    if (hasScanned) return;
+
+    setHasScanned(true);
+
+    mutation.mutate(decodedText);
   }, []);
 
   // TODO:: 使用useEffect去fetch sharedBlocks資料 getSharedBlocks from API
@@ -360,7 +393,7 @@ const Popup = ({
                 <Fragment
                   type={block.type}
                   amount={block.amount}
-                  withType={false}
+                  showAmount={false}
                 />
                 <div className="flex flex-col items-center justify-between">
                   <ChevronUp

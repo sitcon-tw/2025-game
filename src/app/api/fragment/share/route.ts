@@ -31,8 +31,8 @@ export const POST = async (request: NextRequest) => {
   const { token, friendToken, fragments }: PostReq = await request.json();
 
   // 先確認是否存在使用者
-  const result = await fetch(`https://sitcon.opass.app/status?token=${token}`);
-  if (result.status === 400) return forbidden("並非本次與會者");
+  // const result = await fetch(`https://sitcon.opass.app/status?token=${token}`);
+  // if (result.status === 400) return forbidden("並非本次與會者");
 
   const response = await setSharedFragments(token, friendToken, fragments);
 
