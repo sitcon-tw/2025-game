@@ -14,7 +14,9 @@ export const GET = async (request: NextRequest) => {
   const lotteryItem = searchParams.get("item");
   if (!lotteryItem) return badRequest("item is required.");
 
-  const lotteryData = await prisma.lottery.count({ where: { type: lotteryItem } });
+  const lotteryData = await prisma.lottery.count({
+    where: { type: lotteryItem },
+  });
   if (!lotteryData) return badRequest("No lottery data found.");
 
   const response = success({ type: lotteryItem, count: lotteryData });
