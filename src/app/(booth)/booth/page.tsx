@@ -52,7 +52,7 @@ export default function Page() {
     const result = await sendPuzzle2Player(playerToken, boothToken);
     const playerInfo = await getPlayerPuzzle(playerToken);
     // setPlayerToken(null);
-    if (result === puzzleSuccess) {
+    if (typeof result === "object") {
       toast(`已為 ${playerInfo.user_id} 增加拼圖`, { type: "success" });
     } else if (result === puzzleTaken) {
       toast(`${playerInfo.user_id} 已存在這張拼圖`, { type: "warning" });
