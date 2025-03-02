@@ -1,14 +1,20 @@
+"use client";
+
 import { AnimatePresence, motion } from "framer-motion";
 import { TicketPercent, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useQRCode } from "next-qrcode";
 
 export default function CouponCodeDialog({
   isOpen,
   setIsOpen,
+  couponId,
 }: {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
+  couponId: string;
 }) {
+  const { Canvas } = useQRCode();
   return (
     <AnimatePresence>
       {isOpen && (
@@ -29,10 +35,10 @@ export default function CouponCodeDialog({
             exit={{ scale: 0.8, opacity: 0, y: 10, filter: "blur(0.3em)" }}
             transition={{ duration: 0.25 }}
             onClick={(e) => e.stopPropagation()}
-            className="flex h-[50%] w-[90%] flex-col items-center rounded-lg bg-background p-8 md:static md:max-w-[70%] md:justify-start lg:max-w-[60%]"
+            className="flex h-[55%] w-[90%] flex-col items-center rounded-lg bg-background p-8 md:static md:max-w-[70%] md:justify-start lg:max-w-[60%]"
           >
-            <div className="mb-5 flex w-full flex-row items-center text-start text-3xl font-bold text-primary">
-              <TicketPercent size={48} className="mr-2 text-primary" />
+            <div className="mb-5 flex w-full flex-row items-center text-start text-3xl font-bold text-foreground">
+              <TicketPercent size={48} className="mr-2 text-foreground" />
               <span>折價卷</span>
               <Button
                 variant="ghost"
@@ -42,7 +48,19 @@ export default function CouponCodeDialog({
                 <X size={32} />
               </Button>
             </div>
-            TODO: 接 API 之後弄w
+            <Canvas
+              text={couponId}
+              options={{
+                errorCorrectionLevel: "M",
+                margin: 3,
+                scale: 4,
+                width: 200,
+                color: {
+                  dark: "#4B5563FF",
+                  light: "#E5E7EBFF",
+                },
+              }}
+            />
           </motion.div>
         </motion.div>
       )}

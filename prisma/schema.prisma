@@ -32,6 +32,7 @@ model Player {
   points          Int                 @default(0) // points
   boothStatus     BoothStatus[]
   notifications   Notification[]
+  coupons         Coupon[]
 
   @@id([token])
 }
@@ -145,6 +146,8 @@ model Coupon {
   coupon_id String  @default(uuid()) @db.Uuid // coupon_id
   type      Int     @default(0) // type
   used      Boolean @default(false) // used
+  token     String  @db.Text // token
+  player    Player  @relation(fields: [token], references: [token])
 
   @@id(coupon_id)
 }

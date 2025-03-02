@@ -4,6 +4,14 @@ import { Button } from "@/components/ui/button";
 import { TicketPercent, Ticket } from "lucide-react";
 import { useState } from "react";
 import CouponCodeDialog from "@/components/CouponCodeDialog";
+import { useQuery } from "@tanstack/react-query";
+import useToken from "@/hooks/useToken";
+
+interface Coupon {
+  type: number;
+  used: boolean;
+  id: string;
+}
 
 export default function MyTicketsPage() {
   const exampleLottery = [
@@ -49,35 +57,52 @@ export default function MyTicketsPage() {
 
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const [couponDialogOpen, setCouponDialogOpen] = useState(false);
+  const [couponId, setCouponId] = useState<string>("");
+
+  const token = useToken();
+
+  const { data: coupons } = useQuery<Coupon[]>({
+    queryKey: ["coupons", token],
+    queryFn: async () => {
+      const response = await fetch(`/api/coupon?token=${token}`);
+      return response.json();
+    },
+  });
+
+  console.log(coupons);
 
   const toggleExpand = (index: number) => {
     setExpanded((prev) => ({ ...prev, [index]: !prev[index] }));
   };
   return (
     <>
-      <section id="coupons" className="w-full px-5 pt-14">
+      <section id="coupons" className="w-full px-5 pt-6">
         <p className="py-2 text-lg">紀念品折價卷</p>
         <div className="flex flex-row items-center gap-3">
           <div className="self-start">
-            <TicketPercent className="text-[#4b5c6bff]" size={50} />
+            <TicketPercent className="text-foreground" size={50} />
           </div>
           <div className="flex flex-grow flex-col gap-2 pt-2">
-            {[{ amount: "5" }, { amount: "20" }, { amount: "50" }].map(
-              (coupon) => (
-                <div
-                  key={coupon.amount}
-                  className="flex items-center justify-between"
-                >
-                  <Button
-                    variant="default"
-                    className="flex-grow bg-[#6358ec] px-4 py-2 transition active:scale-95"
-                    onClick={() => setCouponDialogOpen(true)}
-                  >
-                    <span>{coupon.amount} 元折價卷</span>
-                  </Button>
-                </div>
-              ),
+            {coupons?.length === 0 && (
+              <p className="text-center opacity-60">（你目前沒有折價卷）</p>
             )}
+            {coupons?.map((coupon: Coupon) => (
+              <div
+                key={coupon.id}
+                className="flex items-center justify-between"
+              >
+                <Button
+                  variant="default"
+                  className="flex-grow bg-[#6358ec] px-4 py-2 transition active:scale-95"
+                  onClick={() => {
+                    setCouponDialogOpen(true);
+                    setCouponId(coupon.id);
+                  }}
+                >
+                  <span>{coupon.type} 元折價卷</span>
+                </Button>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -85,7 +110,7 @@ export default function MyTicketsPage() {
         <p className="py-2 text-lg">抽獎卷</p>
         <div className="flex flex-row items-center gap-3">
           <div className="self-start">
-            <Ticket className="text-[#4b5c6bff]" size={50} />
+            <Ticket className="text-foreground" size={50} />
           </div>
           <div className="flex flex-grow flex-col gap-2 pt-2">
             {exampleLottery.map((lottery, index) => {
@@ -104,7 +129,7 @@ export default function MyTicketsPage() {
                     className="relative w-full cursor-default border-[#6358ec] px-4 py-2 text-[#6358ec] hover:border-[#6358ec] hover:bg-white hover:text-[#6358ec]"
                   >
                     <span>{lottery.name}</span>
-                    <span className="absolute bottom-0 right-0 pr-1 text-black">
+                    <span className="absolute bottom-0 right-0 pr-1 text-foreground">
                       抽 {lottery.amount} 名
                     </span>
                   </Button>
@@ -114,7 +139,7 @@ export default function MyTicketsPage() {
                         {displayedList.map((lotteryId) => (
                           <span
                             key={lotteryId}
-                            className="whitespace-normal pl-2 text-black"
+                            className="whitespace-normal pl-2 text-foreground"
                           >
                             {lotteryId}
                           </span>
@@ -122,7 +147,7 @@ export default function MyTicketsPage() {
                         {lottery.lottery_list.length > 20 && (
                           <Button
                             variant="ghost"
-                            className="absolute -bottom-8 right-0 h-fit w-fit text-black active:scale-90"
+                            className="absolute -bottom-8 right-0 h-fit w-fit text-foreground active:scale-90"
                             onClick={() => toggleExpand(index)}
                           >
                             {isExpanded ? "收起" : "顯示更多"}
@@ -138,6 +163,7 @@ export default function MyTicketsPage() {
         </div>
       </section>
       <CouponCodeDialog
+        couponId={couponId}
         isOpen={couponDialogOpen}
         setIsOpen={setCouponDialogOpen}
       />

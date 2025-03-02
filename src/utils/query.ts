@@ -87,6 +87,22 @@ function getStageSize(level: number) {
 
 const query = {
   createCoupon: async () => {},
+  giveCoupon: async (type: number, playerToken: string) => {
+    const coupon = await prisma.coupon.create({
+      data: {
+        token: playerToken,
+        type,
+        used: false,
+      },
+    });
+    return coupon;
+  },
+  getAllCoupons: async (playerToken: string) => {
+    const coupons = await prisma.coupon.findMany({
+      where: { token: playerToken },
+    });
+    return coupons;
+  },
   createPlayer: async (playerData: PlayerData) => {
     try {
       const player = await prisma.player.create({
@@ -284,6 +300,20 @@ const query = {
 
     return { updatedPlayerScore: playerScore, updatedTeamScore: teamScore };
   },
+  removePoints: async (playerId: string, points: number) => {
+    const player = await prisma.player.findUnique({
+      where: { token: playerId },
+    });
+    if (!player) return;
+    const newPoints = player.points - points;
+    if (newPoints >= 0) {
+      await prisma.player.update({
+        where: { token: playerId },
+        data: { points: newPoints },
+      });
+    }
+    return newPoints;
+  },
   useCoupon: async (couponId: string) => {
     const coupon = await prisma.coupon.update({
       where: { coupon_id: couponId },
@@ -308,4 +338,7 @@ export const {
   playerStageClear,
   getScore,
   sendNotification,
+  removePoints,
+  giveCoupon,
+  getAllCoupons,
 } = query;
