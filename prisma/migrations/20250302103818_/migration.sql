@@ -65,18 +65,9 @@ CREATE TABLE "TeamScoreboard" (
 );
 
 -- CreateTable
-CREATE TABLE "Achievement" (
-    "achievement_id" UUID NOT NULL,
-    "name" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
-    "prize" INTEGER NOT NULL DEFAULT 0,
-
-    CONSTRAINT "Achievement_pkey" PRIMARY KEY ("achievement_id")
-);
-
--- CreateTable
 CREATE TABLE "AchievementStatus" (
-    "achievement_id" UUID NOT NULL,
+    "achievement_id" TEXT NOT NULL,
+    "current" INTEGER NOT NULL DEFAULT 0,
     "token" TEXT NOT NULL,
 
     CONSTRAINT "AchievementStatus_pkey" PRIMARY KEY ("achievement_id","token")
@@ -121,8 +112,10 @@ CREATE TABLE "Lottery" (
     "token" TEXT NOT NULL,
     "lottery_id" TEXT NOT NULL,
     "type" TEXT NOT NULL,
+    "full_lottery_id" TEXT NOT NULL,
+    "is_selected" BOOLEAN NOT NULL DEFAULT false,
 
-    CONSTRAINT "Lottery_pkey" PRIMARY KEY ("token","lottery_id")
+    CONSTRAINT "Lottery_pkey" PRIMARY KEY ("full_lottery_id")
 );
 
 -- CreateIndex
@@ -154,9 +147,6 @@ ALTER TABLE "Notification" ADD CONSTRAINT "Notification_token_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "TeamScoreboard" ADD CONSTRAINT "TeamScoreboard_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "Team"("team_id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "AchievementStatus" ADD CONSTRAINT "AchievementStatus_achievement_id_fkey" FOREIGN KEY ("achievement_id") REFERENCES "Achievement"("achievement_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "AchievementStatus" ADD CONSTRAINT "AchievementStatus_token_fkey" FOREIGN KEY ("token") REFERENCES "Player"("token") ON DELETE RESTRICT ON UPDATE CASCADE;

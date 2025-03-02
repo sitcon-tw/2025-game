@@ -96,10 +96,10 @@ model TeamScoreboard {
 // 成就狀態
 // use object
 model AchievementStatus {
-  achievement_id String      @db.Text
-  current        Int         @default(0)
-  token          String      @db.Text
-  player         Player      @relation(fields: [token], references: [token])
+  achievement_id String @db.Text
+  current        Int    @default(0)
+  token          String @db.Text
+  player         Player @relation(fields: [token], references: [token])
 
   @@id([achievement_id, token])
 }
@@ -143,9 +143,11 @@ model Coupon {
 
 // 抽獎券
 model Lottery {
-  token      String @db.Text // token
-  lottery_id String @db.Text // lottery_id
-  type       String // type
+  token           String  @db.Text // token
+  lottery_id      String  @db.Text // lottery_id
+  type            String // type
+  full_lottery_id String  @db.Text // full_lottery_id
+  is_selected     Boolean @default(false) // 抽到的 tag
 
-  @@id([token, lottery_id])
+  @@id([full_lottery_id])
 }
