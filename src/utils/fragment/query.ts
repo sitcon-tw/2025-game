@@ -82,7 +82,7 @@ export const getSharedFragments = async (token: string) => {
       },
     });
 
-    let formatedSharedFragments = groupBy(
+    const formatedSharedFragments = groupBy(
       sharedFragments,
       (f) => f.shared_player?.name || "none",
     );

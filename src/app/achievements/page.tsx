@@ -38,6 +38,8 @@ export default function Page() {
 
   const achievementMutation = useMutation({
     mutationFn: async (playerToken: string) => {
+      if (typeof playerToken !== "string") return;
+
       return await fetch(`/api/achievement`, {
         method: "POST",
         body: JSON.stringify({
@@ -47,14 +49,15 @@ export default function Page() {
         }),
       });
     },
-    onSuccess: () => {
-      toast("已為會眾增加成就", { type: "success" });
-      queryClient.invalidateQueries({
-        queryKey: ["achievements", token],
-      });
-    },
-    onError: () => {
-      toast("增加成就失敗", { type: "error" });
+    onSuccess: (response) => {
+      if (response?.status === 200) {
+        toast("已為會眾增加成就", { type: "success" });
+        queryClient.invalidateQueries({
+          queryKey: ["achievements", token],
+        });
+      } else {
+        toast("增加成就失敗", { type: "error" });
+      }
     },
   });
 

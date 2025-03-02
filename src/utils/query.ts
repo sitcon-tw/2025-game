@@ -108,10 +108,6 @@ const query = {
     playerToken: string,
     achievementId: string,
   ) => {
-    const player = await prisma.player.findUnique({
-      where: { token: playerToken },
-    });
-    if (!player) return false;
     const achievement = await prisma.achievementStatus.findUnique({
       where: {
         achievement_id_token: {

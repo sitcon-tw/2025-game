@@ -16,6 +16,7 @@ type Stamp = {
 };
 
 type Achievement = {
+  id: string;
   progress: number;
   target: number;
   name: string;
@@ -42,6 +43,7 @@ const defaultAchievements: Achievement[] = Object.entries(
   name: value.name,
   description: "",
   prizeBlockType: "",
+  id: key,
 }));
 
 export default function AchievementsPage() {
@@ -75,12 +77,12 @@ export default function AchievementsPage() {
   const { data: achievementStatus } = useQuery({
     queryKey: ["achievements", token],
     queryFn: async () => {
-      const response = await fetch(`${API_URL}/achievement?token=${token}`);
+      const response = await fetch(`/api/achievement?token=${token}`);
       return response.json();
     },
   });
 
-  console.log(achievementStatus);
+  console.log("achievementStatus", achievementStatus);
 
   const achievements: Achievement[] = [
     ...(boothList?.map((booth: string) => ({
@@ -91,7 +93,13 @@ export default function AchievementsPage() {
       description: "lorem",
       prize: "1",
     })) ?? []),
-    ...defaultAchievements,
+    ...defaultAchievements.map((achievement, index) => ({
+      ...achievement,
+      progress:
+        achievementStatus?.find(
+          (status: { id: string }) => status.id === achievement.id,
+        )?.current ?? 0,
+    })),
   ];
 
   const handleStampClick = (stamp: Stamp) => {
