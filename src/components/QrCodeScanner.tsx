@@ -54,8 +54,13 @@ const QrCodeScanner = ({
         successCallback,
         () => {},
       );
+
+      return () => {
+        console.log("stop");
+        qrScanner.stop();
+      };
     }
-  }, [cameraId, qrCodeSuccessCallback]);
+  }, [cameraId]);
 
   return (
     <>
