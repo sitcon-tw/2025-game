@@ -2,135 +2,188 @@
 import QrCodeScanner from "@/components/QrCodeScanner";
 import { ChevronUp, ChevronDown, FilePenLine, X } from "lucide-react";
 import Block from "@/components/Block";
+import Fragment from "@/components/Fragment";
 import { useEffect, useState, useCallback } from "react";
+import usePlayerData from "@/hooks/usePlayerData";
+import { useQuery, useMutation, QueryClient } from "@tanstack/react-query";
 import { QRCodeSVG } from "qrcode.react";
+import useToken from "@/hooks/useToken";
 
-type DisplayBlock = {
-  type: string;
-  blockImg: string;
-  quantity: number;
+import { SharedFragmentData } from "@/types/index";
+import { set } from "date-fns";
+
+type BlockType =
+  | "a"
+  | "b"
+  | "c"
+  | "d"
+  | "e"
+  | "f"
+  | "g"
+  | "obstacle"
+  | "start"
+  | "end"
+  | "unknown"
+  | "empty";
+
+type Block = {
+  type: BlockType;
+  amount: number;
 };
 
-type SharingBlock = {
-  type: string;
-  quantity: number;
-};
-const initialDisplayBlocks = [
+// TODO:: 把DisplayBlockType 拿掉，直接用BlockType 並且點擊+ - 應該要先更新 displayBlocks 之後再更新 sharingBlocks
+// 或者兩個都抓一樣的state 把sharingBlock刪掉
+const initialDisplayBlocks: Array<Block> = [
   {
-    type: "0",
-    quantity: 0,
-    blockImg: "https://picsum.photos/id/1/50/50",
+    type: "a",
+    amount: 0,
   },
   {
-    type: "1",
-    quantity: 0,
-    blockImg: "https://picsum.photos/id/1/50/50",
+    type: "b",
+    amount: 0,
   },
   {
-    type: "2",
-    quantity: 0,
-    blockImg: "https://picsum.photos/id/1/50/50",
+    type: "c",
+    amount: 0,
   },
   {
-    type: "3",
-    quantity: 0,
-    blockImg: "https://picsum.photos/id/1/50/50",
+    type: "d",
+    amount: 0,
   },
   {
-    type: "4",
-    quantity: 0,
-    blockImg: "https://picsum.photos/id/1/50/50",
+    type: "e",
+    amount: 0,
   },
   {
-    type: "5",
-    quantity: 0,
-    blockImg: "https://picsum.photos/id/1/50/50",
+    type: "f",
+    amount: 0,
   },
   {
-    type: "6",
-    quantity: 0,
-    blockImg: "https://picsum.photos/id/1/50/50",
-  },
-  {
-    type: "7",
-    quantity: 0,
-    blockImg: "https://picsum.photos/id/1/50/50",
+    type: "g",
+    amount: 0,
   },
 ];
 
-const testBlocks = [
+const testBlocks: Array<Block> = [
   {
-    type: "0",
-    quantity: 2,
+    type: "a",
+    amount: 2,
   },
   {
-    type: "4",
-    quantity: 96,
+    type: "b",
+    amount: 96,
   },
   {
-    type: "7",
-    quantity: 12,
+    type: "c",
+    amount: 12,
   },
 ];
 // TODO:: get blocks from API
-const myBlocks = [
+const myBlocks: Array<Block> = [
   {
-    type: "0",
-    quantity: 1,
+    type: "a",
+    amount: 1,
   },
   {
-    type: "1",
-    quantity: 2,
+    type: "b",
+    amount: 2,
   },
   {
-    type: "2",
-    quantity: 3,
+    type: "c",
+    amount: 3,
   },
   {
-    type: "3",
-    quantity: 4,
+    type: "d",
+    amount: 4,
   },
   {
-    type: "4",
-    quantity: 1,
+    type: "e",
+    amount: 1,
   },
   {
-    type: "5",
-    quantity: 1,
+    type: "f",
+    amount: 1,
   },
   {
-    type: "6",
-    quantity: 1,
-  },
-  {
-    type: "7",
-    quantity: 1,
+    type: "g",
+    amount: 1,
   },
 ];
 
 export default function LinkPage() {
   const [popupType, setPopupType] = useState<"qrcode" | "edit" | null>(null);
+  const [sharingBlocks, setSharingBlocks] = useState<Block[]>([]);
+  const [hasScanned, setHasScanned] = useState(false);
+  const [sharedFragments, setSharedFragments] = useState<SharedFragmentData>(
+    [],
+  );
+  const token = useToken();
+
+  const queryClient = new QueryClient();
+
+  useQuery({
+    queryKey: ["fragments", token],
+    queryFn: async () => {
+      const response = await fetch("/api/fragment/share?token=" + token);
+
+      if (!response.ok) {
+        const errorMessage = `Error: ${response.status} ${response.statusText}`;
+        throw new Error(errorMessage);
+      }
+
+      const data: SharedFragmentData = await response.json();
+      setSharedFragments(data);
+      return data;
+    },
+  });
+
+  console.log(sharedFragments);
+
+  const mutation = useMutation({
+    mutationFn: async (qrCodeData: string) => {
+      const data = JSON.parse(qrCodeData);
+      console.log("fetch");
+      console.log(
+        JSON.stringify({
+          token: token,
+          friendToken: data.sharedToken,
+          fragments: data.fragments,
+        }),
+      );
+
+      const response = await fetch("/api/fragment/share", {
+        method: "POST",
+        body: JSON.stringify({
+          token: token,
+          friendToken: data.sharedToken,
+          fragments: data.fragments,
+        }),
+      });
+
+      if (!response.ok) throw new Error("API Error");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["fragments", token] });
+
+      setHasScanned(false);
+      console.log("success");
+    },
+    onError: () => {
+      setHasScanned(false);
+      console.log("error");
+    },
+  });
+
   const onScanSuccess = useCallback((decodedText: string) => {
-    // 拿到QRcode掃描結果應該要包含
-    // {
-    //   "playerId": "1234567890",
-    //   "blocks":{ } 分享的板塊內容
-    // }
-    // TODO::
-    // 拿到後去打API更新分享的板塊資料
-    // 後端要驗證對方是否有足夠的對應板塊可以分享 && 不可大於3塊
-    // 還可以增加掃到了之後的UI提示
-    // 要注意這裡會一直偵測所以要小心不要一直打API
-    console.log(decodedText);
+    if (hasScanned) return;
+
+    setHasScanned(true);
+
+    mutation.mutate(decodedText);
   }, []);
 
   // TODO:: 使用useEffect去fetch sharedBlocks資料 getSharedBlocks from API
-  const sharedBlocks = [
-    { playerAvatar: "https://picsum.photos/id/1/50/50", blocks: testBlocks },
-    { playerAvatar: "https://picsum.photos/id/2/50/50", blocks: testBlocks },
-    { playerAvatar: "https://picsum.photos/id/3/50/50", blocks: testBlocks },
-    { playerAvatar: "https://picsum.photos/id/4/50/50", blocks: testBlocks },
-  ];
 
   return (
     <>
@@ -143,13 +196,18 @@ export default function LinkPage() {
           <div className="flex flex-col justify-between">
             <h3>我的玩家連結板塊</h3>
             <div className="flex gap-8">
-              {testBlocks.map((block, index) => (
-                <Block
-                  key={index}
-                  type={block.type}
-                  quantity={block.quantity}
-                />
-              ))}
+              {sharingBlocks.length ? (
+                sharingBlocks.map((block, index) => (
+                  <Fragment
+                    key={index}
+                    type={block.type}
+                    amount={block.amount}
+                    showAmount={true}
+                  />
+                ))
+              ) : (
+                <p>點擊edit設定分享板塊</p>
+              )}
             </div>
           </div>
           <div className="flex w-[30%] flex-col gap-1 font-bold">
@@ -172,28 +230,39 @@ export default function LinkPage() {
         <section className="flex flex-col justify-between gap-4 px-4 py-4">
           <h3>獲得的板塊</h3>
           <div className="flex flex-col gap-4">
-            {sharedBlocks.map((sharedBlock) => (
-              <div key={sharedBlock.playerAvatar} className="flex gap-8">
-                <img
-                  src={sharedBlock.playerAvatar}
-                  alt="Player avatar"
-                  className="rounded-full"
-                />
-                <div className="flex gap-10">
-                  {sharedBlock.blocks.map((block, index) => (
-                    <Block
-                      key={index}
-                      type={block.type}
-                      quantity={block.quantity}
+            {sharedFragments &&
+              sharedFragments.map((fragment) => (
+                <div key={fragment.name} className="flex gap-8">
+                  {fragment.avatar ? (
+                    <img
+                      src={fragment.avatar}
+                      alt="Player avatar"
+                      className="rounded-full"
                     />
-                  ))}
+                  ) : (
+                    <p className="flex items-center">{fragment.name}</p>
+                  )}
+                  <div className="flex gap-10">
+                    {fragment.fragments.map((block, index) => (
+                      <Fragment
+                        key={index}
+                        type={block.type}
+                        amount={block.amount}
+                        showAmount={true}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         </section>
       </div>
-      <Popup popupType={popupType} setPopupType={setPopupType} />
+      <Popup
+        popupType={popupType}
+        setPopupType={setPopupType}
+        sharingBlocks={sharingBlocks}
+        setSharingBlocks={setSharingBlocks}
+      />
     </>
   );
 }
@@ -201,65 +270,54 @@ export default function LinkPage() {
 const Popup = ({
   popupType,
   setPopupType,
+  sharingBlocks,
+  setSharingBlocks,
 }: {
   popupType: "edit" | "qrcode" | null;
   setPopupType: React.Dispatch<React.SetStateAction<"edit" | "qrcode" | null>>;
+  sharingBlocks: Block[];
+  setSharingBlocks: React.Dispatch<React.SetStateAction<Block[]>>;
 }) => {
+  const token = useToken();
   const [qrcodePayload, setQrcodePayload] = useState<string>("");
-  const [sharingBlocks, setSharingBlocks] = useState<SharingBlock[]>([]);
   const [displayBlocks, setDisplayBlocks] =
-    useState<DisplayBlock[]>(initialDisplayBlocks);
+    useState<Block[]>(initialDisplayBlocks);
 
   useEffect(() => {
     // 將sharingBlocks 轉換成字串存到qrcodePayload
     const payload = {
-      playerId: "1234567890",
-      blocks: sharingBlocks,
+      sharedToken: token,
+      fragments: sharingBlocks,
     };
     setQrcodePayload(JSON.stringify(payload));
 
     // 根據sharingBlocks 的每一項的type 去更新 displayBlocks對應type的數量
-
-    setDisplayBlocks((prevBlocks) => {
-      return prevBlocks.map((block) => {
-        // 判斷是否有對應的type
-        const shBlock = sharingBlocks.find(
-          (shBlock) => shBlock.type === block.type,
-        );
-
-        if (shBlock) {
-          return { ...block, quantity: shBlock.quantity };
-        } else {
-          return { ...block, quantity: 0 };
-        }
-      });
-    });
   }, [sharingBlocks]);
 
   const getIsAddable = (type: string) => {
     const myBlock = myBlocks.find((block) => block.type === type);
-    const myBlockQuantity = myBlock ? myBlock.quantity : 0;
+    const myBlockAmount = myBlock ? myBlock.amount : 0;
 
     const sharedBlock = sharingBlocks.find((block) => block.type === type);
-    const sharedQuantity = sharedBlock ? sharedBlock.quantity : 0;
+    const sharedAmount = sharedBlock ? sharedBlock.amount : 0;
 
-    const totalQuantity = sharingBlocks.reduce(
-      (acc, curr) => acc + curr.quantity,
+    const totalAmount = sharingBlocks.reduce(
+      (acc, curr) => acc + curr.amount,
       0,
     );
 
-    if (totalQuantity >= 3) return false;
+    if (totalAmount >= 3) return false;
 
-    if (sharedQuantity >= myBlockQuantity) return false;
+    if (sharedAmount >= myBlockAmount) return false;
 
     return true;
   };
 
   const getIsSubtractable = (type: string) => {
     const sharedBlock = sharingBlocks.find((block) => block.type === type);
-    const sharedQuantity = sharedBlock ? sharedBlock.quantity : 0;
+    const sharedAmount = sharedBlock ? sharedBlock.amount : 0;
 
-    if (sharedQuantity <= 0) return false;
+    if (sharedAmount <= 0) return false;
     return true;
   };
 
@@ -268,15 +326,19 @@ const Popup = ({
 
     setSharingBlocks((prevBlocks) => {
       if (!prevBlocks.find((block) => block.type === type)) {
-        return [...prevBlocks, { type, quantity: 1 }];
+        return [...prevBlocks, { type: type as BlockType, amount: 1 }];
       } else {
         return prevBlocks.map((block) =>
-          block.type === type
-            ? { ...block, quantity: block.quantity + 1 }
-            : block,
+          block.type === type ? { ...block, amount: block.amount + 1 } : block,
         );
       }
     });
+
+    setDisplayBlocks((prevBlocks) =>
+      prevBlocks.map((block) =>
+        block.type === type ? { ...block, amount: block.amount + 1 } : block,
+      ),
+    );
   };
 
   const handleSubtractBlock = (type: string) => {
@@ -286,17 +348,22 @@ const Popup = ({
     setSharingBlocks((prevBlocks) => {
       const block = prevBlocks.find((block) => block.type === type);
       if (!block) return prevBlocks;
-      if (block.quantity - 1 === 0) {
+      if (block.amount - 1 === 0) {
         return prevBlocks.filter((block) => block.type !== type);
       } else {
         return prevBlocks.map((block) => {
-          return {
-            ...block,
-            quantity: block.quantity - 1,
-          };
+          return block.type === type
+            ? { ...block, amount: block.amount - 1 }
+            : block;
         });
       }
     });
+
+    setDisplayBlocks((prevBlocks) =>
+      prevBlocks.map((block) =>
+        block.type === type ? { ...block, amount: block.amount - 1 } : block,
+      ),
+    );
   };
   return (
     <>
@@ -323,10 +390,10 @@ const Popup = ({
                 className={`flex items-center gap-1 ${index % 2 ? "justify-end" : "justify-start"}`}
                 key={block.type}
               >
-                <img
-                  src={block.blockImg}
-                  className="aspect-square h-[60%]"
-                  alt="Player avatar"
+                <Fragment
+                  type={block.type}
+                  amount={block.amount}
+                  showAmount={false}
                 />
                 <div className="flex flex-col items-center justify-between">
                   <ChevronUp
@@ -335,7 +402,7 @@ const Popup = ({
                     }
                     onClick={() => handleAddBlock(block.type)}
                   />
-                  <p>{block.quantity}</p>
+                  <p>{block.amount}</p>
                   <ChevronDown
                     className={
                       getIsSubtractable(block.type)

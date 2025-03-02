@@ -6,6 +6,20 @@
 ? import { typename, playerData } from '@/types';
  */
 
+export type BlockType =
+  | "a"
+  | "b"
+  | "c"
+  | "d"
+  | "e"
+  | "f"
+  | "g"
+  | "obstacle"
+  | "start"
+  | "end"
+  | "unknown"
+  | "empty";
+
 export type PlayerData = {
   token: string; //
   name: string; // data.user_id
@@ -18,19 +32,15 @@ export type PlayerData = {
 
 // for self fragment & all fragment api
 export type FragmentData = Array<{
-  type: string; // 板塊類別含障礙物、板塊、傳送門
+  type: BlockType; // 板塊類別含障礙物、板塊、傳送門
   amount: number; // 數量
 }>;
 // for shared fragment & compass api
-export type SharedFragmentData = {
-  players: Array<{
-    name: string;
-    fragments: Array<{
-      id: number;
-      quantity: number;
-    }>;
-  }>;
-};
+export type SharedFragmentData = Array<{
+  name: string;
+  fragments: FragmentData;
+  avatar: string | null;
+}>;
 
 export type CouponData = {
   couponId?: string; // generate by server
