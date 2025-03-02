@@ -7,7 +7,6 @@ import {
   internalServerError,
   success,
 } from "@/utils/response";
-import { log } from "node:console";
 
 export const setSharedFragments = async (
   token: string,
@@ -79,7 +78,7 @@ export const getSharedFragments = async (token: string) => {
       select: {
         type: true,
         amount: true,
-        shared_player: { select: { name: true } },
+        shared_player: { select: { name: true, avatar: true } },
       },
     });
 
@@ -88,7 +87,15 @@ export const getSharedFragments = async (token: string) => {
       (f) => f.shared_player?.name || "none",
     );
 
-    return success(formatedSharedFragments);
+    return success(
+      Object.entries(formatedSharedFragments).map(([key, value]) => {
+        return {
+          name: key,
+          avatar: value[0].shared_player?.avatar || null,
+          fragments: value,
+        };
+      }),
+    );
   } catch (error: unknown) {
     console.warn(`error fetching shared fragments token:${token}`);
     return internalServerError();

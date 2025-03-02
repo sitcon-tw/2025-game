@@ -103,11 +103,23 @@ const blocks = {
   ),
 };
 
-export const Fragment = ({ type, amount }: block) => {
+export const Fragment = ({
+  type,
+  amount,
+  showAmount,
+}: {
+  type: BlockType;
+  amount: number;
+  showAmount?: boolean;
+}) => {
   return (
     <div className="relative flex max-h-[50px] max-w-[50px] items-end">
       {blocks[type]}
-      <p className="absolute bottom-0 right-0 translate-x-[100%]">*{amount}</p>
+      {showAmount && (
+        <p className="absolute -right-2 bottom-0 translate-x-[100%]">
+          * {amount}
+        </p>
+      )}
     </div>
   );
 };
