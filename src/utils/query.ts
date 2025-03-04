@@ -364,13 +364,6 @@ const query = {
     }
     return newPoints;
   },
-  useCoupon: async (couponId: string) => {
-    const coupon = await prisma.coupon.update({
-      where: { coupon_id: couponId },
-      data: { used: true },
-    });
-    return coupon;
-  },
   playerStageClear: async (playerId: string, stageNumber: number) => {
     await prisma.player.update({
       where: { token: playerId },
