@@ -47,9 +47,6 @@ export const GET = async (request: NextRequest) => {
   );
 
   const formattedLotteryData = Object.values(lotteryData);
-
-  if (!formattedLotteryData.length) return badRequest("No lottery data found.");
-
   const response = success(formattedLotteryData);
 
   return response;

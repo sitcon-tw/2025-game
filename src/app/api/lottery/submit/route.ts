@@ -58,7 +58,9 @@ export const POST = async (request: NextRequest) => {
       const targetLotterySubmitNum =
         (await prisma.lottery.count({
           where: { type: item.id },
-        })) + 1;
+        })) +
+        i +
+        1;
 
       const submitNumLength = String(targetLotterySubmitNum).length;
       const submitNum =
