@@ -28,6 +28,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FragmentData, PlayerData, StageData } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 const BLOCK_SIZE = 56;
 const GAME_MAP_SIZE = 320;
@@ -157,9 +158,9 @@ function getBlockElement(block: string) {
       alt="板塊"
       width="300"
       height="300"
-      // style={{
-      //   transform: `rotate(${randomRotation}deg)`,
-      // }}
+    // style={{
+    //   transform: `rotate(${randomRotation}deg)`,
+    // }}
     />
   );
   return blockAndPropsElements[block as keyof typeof blockAndPropsElements];
@@ -208,6 +209,7 @@ export default function GamePage() {
   const colCount = gameGrid.length > 0 ? gameGrid[0].length : 0;
 
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const stageClearMutation = useMutation({
     mutationFn: async () => {
@@ -251,12 +253,10 @@ export default function GamePage() {
       console.log("fragmentRemoved", fragmentRemoved);
       showDialog(
         "恭喜過關",
-        `恭喜你通過了這個關卡！${
-          fragmentRemoved
-            ? `但你失去了一個 ${
-                blocksConfig[fragmentRemoved as keyof typeof blocksConfig].name
-              } ...`
-            : ""
+        `恭喜你通過了這個關卡！${fragmentRemoved
+          ? `但你失去了一個 ${blocksConfig[fragmentRemoved as keyof typeof blocksConfig].name
+          } ...`
+          : ""
         }`,
       );
     },
@@ -867,7 +867,8 @@ export default function GamePage() {
               )}
               <div>
                 <Info
-                  onClick={() => console.log("info")} // TODO: 顯示遊戲說明
+                  className="hover:cursor-pointer"
+                  onClick={() => { router.push("/tutorial") }}
                   size={32}
                 />
               </div>
@@ -1087,10 +1088,10 @@ function BlockInInventory({
     });
   const style = transform
     ? {
-        // transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-        width: BLOCK_SIZE,
-        height: BLOCK_SIZE,
-      }
+      // transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+      width: BLOCK_SIZE,
+      height: BLOCK_SIZE,
+    }
     : undefined;
 
   const scaleStyle = {
