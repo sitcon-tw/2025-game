@@ -1,111 +1,53 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { TicketPercent, Ticket } from "lucide-react";
-import { useState } from "react";
-import CouponCodeDialog from "@/components/CouponCodeDialog";
+import { Ticket, Award } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import useToken from "@/hooks/useToken";
-
-interface Coupon {
-  type: number;
-  used: boolean;
-  id: string;
-}
+import { Lottery, LotteryItem } from "@/lib/interface";
 
 export default function MyTicketsPage() {
-  const exampleLottery = [
-    {
-      name: "SITCON 2025 鍵帽",
-      amount: 2,
-      lottery_list: ["A00094"],
-    },
-    {
-      name: "獎品名稱 B",
-      amount: 10,
-      lottery_list: [],
-    },
-    {
-      name: "獎品名稱 C",
-      amount: 1,
-      lottery_list: [
-        "C00194",
-        "C00195",
-        "C00196",
-        "C00197",
-        "C00198",
-        "C00199",
-        "C00278",
-        "C00279",
-        "C00280",
-        "C00281",
-        "C00282",
-        "C00283",
-        "C00284",
-        "C00285",
-        "C00286",
-        "C00287",
-        "C00288",
-        "C00289",
-        "C00290",
-        "C00291",
-        "C00292",
-        "C00293",
-      ],
-    },
-  ];
-
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
-  const [couponDialogOpen, setCouponDialogOpen] = useState(false);
-  const [couponId, setCouponId] = useState<string>("");
 
+  const [loading, setLoading] = useState(true);
   const token = useToken();
 
-  const { data: coupons } = useQuery<Coupon[]>({
-    queryKey: ["coupons", token],
+  const { data: lotteryItems } = useQuery<LotteryItem[]>({
+    queryKey: ["lottery_items", token],
     queryFn: async () => {
-      const response = await fetch(`/api/coupon?token=${token}`);
+      const response = await fetch(`/api/lottery/items?token=${token}`);
       return response.json();
     },
   });
 
-  console.log(coupons);
+  const { data: lotteryList } = useQuery<Lottery[]>({
+    queryKey: ["lottery", token],
+    queryFn: async () => {
+      const response = await fetch(`/api/lottery?token=${token}`);
+      return response.json();
+    },
+  });
+
+  useEffect(() => {
+    if (token && lotteryItems && lotteryList) {
+      setLoading(false);
+    }
+  }, [lotteryItems, lotteryList, token]);
 
   const toggleExpand = (index: number) => {
     setExpanded((prev) => ({ ...prev, [index]: !prev[index] }));
   };
+
+  if (loading) {
+    return (
+      <div className="spinner-container">
+        <div className="spinner"></div>
+      </div>
+    );
+  }
   return (
     <>
-      <section id="coupons" className="w-full px-5 pt-6">
-        <p className="py-2 text-lg">紀念品折價卷</p>
-        <div className="flex flex-row items-center gap-3">
-          <div className="self-start">
-            <TicketPercent className="text-foreground" size={50} />
-          </div>
-          <div className="flex flex-grow flex-col gap-2 pt-2">
-            {coupons?.length === 0 && (
-              <p className="text-center opacity-60">（你目前沒有折價卷）</p>
-            )}
-            {coupons?.map((coupon: Coupon) => (
-              <div
-                key={coupon.id}
-                className="flex items-center justify-between"
-              >
-                <Button
-                  variant="default"
-                  className="flex-grow bg-[#6358ec] px-4 py-2 transition active:scale-95"
-                  onClick={() => {
-                    setCouponDialogOpen(true);
-                    setCouponId(coupon.id);
-                  }}
-                >
-                  <span>{coupon.type} 元折價卷</span>
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
       <section id="lottery" className="w-full px-5 pt-2">
         <p className="py-2 text-lg">抽獎卷</p>
         <div className="flex flex-row items-center gap-3">
@@ -113,38 +55,65 @@ export default function MyTicketsPage() {
             <Ticket className="text-foreground" size={50} />
           </div>
           <div className="flex flex-grow flex-col gap-2 pt-2">
-            {exampleLottery.map((lottery, index) => {
+            {lotteryItems?.map((lottery, index) => {
+              const targetList = lotteryList?.find(
+                (value) => value.type === lottery.id,
+              ) ?? { lottery_list: [] };
               const isExpanded = expanded[index];
+              const isSelectedList = targetList?.lottery_list.filter(
+                (value) => value.is_selected,
+              );
+              const restList = targetList?.lottery_list.filter(
+                (value) => !value.is_selected,
+              );
               const displayedList = isExpanded
-                ? lottery.lottery_list
-                : lottery.lottery_list.slice(0, 20);
+                ? restList
+                : restList.slice(0, 20);
 
               return (
                 <div
                   key={index}
-                  className="flex flex-col items-start justify-between"
+                  className="mb-6 flex flex-col items-start justify-between"
                 >
                   <Button
                     variant="outline"
-                    className="relative w-full cursor-default border-[#6358ec] px-4 py-2 text-[#6358ec] hover:border-[#6358ec] hover:bg-white hover:text-[#6358ec]"
+                    className="relative w-full cursor-default border-blue-300 px-4 py-2 text-blue-200 hover:border-blue-300 hover:bg-blue-200 hover:text-blue-200"
                   >
-                    <span>{lottery.name}</span>
+                    <span className="text-base">{lottery.name}</span>
                     <span className="absolute bottom-0 right-0 pr-1 text-foreground">
-                      抽 {lottery.amount} 名
+                      抽 {lottery.maxDrawn} 名
                     </span>
                   </Button>
-                  {lottery.lottery_list.length > 0 && (
+                  {targetList.lottery_list.length > 0 ? (
                     <>
-                      <div className="relative grid w-full grid-cols-[repeat(auto-fill,minmax(65px,1fr))]">
+                      {isSelectedList.length > 0 && (
+                        <div className="mt-3 w-full border-b-2 border-b-gray-500 pb-2">
+                          <div className="mb-1 flex items-center font-medium text-blue-300">
+                            <Award size="24" />
+                            抽中的獎券
+                          </div>
+                          <div className="relative grid w-full grid-cols-[repeat(auto-fill,minmax(65px,1fr))]">
+                            {isSelectedList.map((lotteryId) => (
+                              <span
+                                key={lotteryId.lottery_id}
+                                className={`whitespace-normal pl-2 text-foreground ${lotteryId.is_selected && "font-bold text-red-400 underline"}`}
+                              >
+                                {lotteryId.lottery_id}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      <div className="relative mt-2 grid w-full grid-cols-[repeat(auto-fill,minmax(65px,1fr))]">
                         {displayedList.map((lotteryId) => (
                           <span
-                            key={lotteryId}
-                            className="whitespace-normal pl-2 text-foreground"
+                            key={lotteryId.lottery_id}
+                            className={`whitespace-normal pl-2 text-foreground ${lotteryId.is_selected && "font-bold text-red-400 underline"}`}
                           >
-                            {lotteryId}
+                            {lotteryId.lottery_id}
                           </span>
                         ))}
-                        {lottery.lottery_list.length > 20 && (
+                        {targetList.lottery_list.length > 20 && (
                           <Button
                             variant="ghost"
                             className="absolute -bottom-8 right-0 h-fit w-fit text-foreground active:scale-90"
@@ -155,6 +124,10 @@ export default function MyTicketsPage() {
                         )}
                       </div>
                     </>
+                  ) : (
+                    <span className="mx-auto mt-4 text-gray-500">
+                      您尚未購買抽獎卷
+                    </span>
                   )}
                 </div>
               );
@@ -162,11 +135,6 @@ export default function MyTicketsPage() {
           </div>
         </div>
       </section>
-      <CouponCodeDialog
-        couponId={couponId}
-        isOpen={couponDialogOpen}
-        setIsOpen={setCouponDialogOpen}
-      />
     </>
   );
 }
