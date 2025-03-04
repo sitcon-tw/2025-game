@@ -1,7 +1,8 @@
 import { badRequest, forbidden, success } from "@/utils/response";
 import { NextRequest } from "next/server";
 import { API_URL } from "@/lib/const";
-import lottery_items from "@/data/lottery_items.json";
+import { prisma } from "@/utils/prisma";
+import lottery_items from "@/config/lottery/lottery_items.json";
 
 export const GET = async (request: NextRequest) => {
   const searchParams = request.nextUrl.searchParams;
@@ -11,5 +12,13 @@ export const GET = async (request: NextRequest) => {
   const result = await fetch(`${API_URL}/status?token=${token}`);
   if (result.status === 400) return forbidden("並非本次與會者");
 
-  return success(lottery_items);
+  const lotteryItemsList = [];
+  for (const lottery_item of lottery_items) {
+    const lotteryCount = await prisma.lottery.count({
+      where: { type: lottery_item.id },
+    });
+    lotteryItemsList.push({ total: lotteryCount, ...lottery_item });
+  }
+
+  return success(lotteryItemsList);
 };
