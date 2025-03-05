@@ -852,7 +852,7 @@ export default function GamePage() {
                 <p>{playerData?.stage ?? 1}</p>
               </div>
               <div className="flex">
-                <p>積分：</p>
+                <p>點數：</p>
                 <p>{playerData?.score ?? 0}</p>
               </div>
             </div>
