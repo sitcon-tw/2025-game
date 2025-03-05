@@ -9,7 +9,7 @@ const response = {
    * @return {NextResponse}
    */
   badRequest: (message: string): NextResponse => {
-    return new NextResponse(message, { status: 400 });
+    return new NextResponse(JSON.stringify({ message: message ? message : "Bad Request" }), { status: 400 });
   },
 
   /**
@@ -35,7 +35,7 @@ const response = {
 
   /**
    * @description
-   * @author 星月なるこ
+   * @author 星月なるこ, yc油成
    * @date 2025-01-22 22:50:00
    * @param {string} message
    * @return {NextResponse}

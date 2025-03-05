@@ -1,6 +1,6 @@
 "use client";
 import QrCodeScanner from "@/components/QrCodeScanner";
-import { ChevronUp, ChevronDown, FilePenLine, X } from "lucide-react";
+import { ChevronUp, ChevronDown, FilePenLine, X, Plus, Minus } from "lucide-react";
 import Block from "@/components/Block";
 import Fragment from "@/components/Fragment";
 import { useEffect, useState, useCallback } from "react";
@@ -8,6 +8,7 @@ import usePlayerData from "@/hooks/usePlayerData";
 import { useQuery, useMutation, QueryClient } from "@tanstack/react-query";
 import { QRCodeSVG } from "qrcode.react";
 import useToken from "@/hooks/useToken";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { SharedFragmentData } from "@/types/index";
 import { set } from "date-fns";
@@ -121,7 +122,7 @@ export default function LinkPage() {
 
   const queryClient = new QueryClient();
 
-  useQuery({
+  const { isLoading, isError } = useQuery({
     queryKey: ["fragments", token],
     queryFn: async () => {
       const response = await fetch("/api/fragment/share?token=" + token);
@@ -186,16 +187,45 @@ export default function LinkPage() {
   // TODO:: 使用useEffect去fetch sharedBlocks資料 getSharedBlocks from API
 
   return (
-    <>
-      <div className="relative pb-6">
-        <section className="aspect-square w-full">
+    <div className="min-h-screen">
+      <div className="relative mx-auto max-w-2xl pb-6">
+        <section className="relative aspect-square w-full overflow-hidden rounded-b-2xl bg-black">
           <QrCodeScanner qrCodeSuccessCallback={onScanSuccess} />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="h-64 w-64 rounded-lg border-4 border-white/50" />
+          </div>
+          {hasScanned && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/70">
+              <div className="rounded-lg bg-white p-4 text-center">
+                <p className="text-lg font-medium">掃描成功！</p>
+                <p className="text-sm text-gray-500">正在處理...</p>
+              </div>
+            </div>
+          )}
         </section>
-        <hr className="h-1 bg-gray-500" />
-        <section className="flex justify-between px-4 py-4">
-          <div className="flex flex-col justify-between">
-            <h3>我的玩家連結板塊</h3>
-            <div className="flex gap-8">
+
+        <div className="space-y-4 mt-4">
+          <section className="rounded-xl bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">我的連結板塊</h3>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPopupType("edit")}
+                  className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+                >
+                  <FilePenLine size={16} />
+                  編輯
+                </button>
+                <button
+                  onClick={() => setPopupType("qrcode")}
+                  className="flex items-center gap-2 rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-900"
+                >
+                  分享 QR Code
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-4">
               {sharingBlocks.length ? (
                 sharingBlocks.map((block, index) => (
                   <Fragment
@@ -206,56 +236,58 @@ export default function LinkPage() {
                   />
                 ))
               ) : (
-                <p>點擊edit設定分享板塊</p>
+                <p className="text-gray-500">點擊編輯按鈕來設定分享板塊</p>
               )}
             </div>
-          </div>
-          <div className="flex w-[30%] flex-col gap-1 font-bold">
-            <button
-              onClick={() => setPopupType("edit")}
-              className="flex w-full items-center justify-start gap-2 rounded-md bg-[#4b5c6b] px-4 py-2 text-white"
-            >
-              <FilePenLine size={18} />
-              <p>edit</p>
-            </button>
-            <button
-              onClick={() => setPopupType("qrcode")}
-              className="flex w-full justify-start rounded-md bg-[#4b5c6b] p-2 px-4 text-white"
-            >
-              Qr-code
-            </button>
-          </div>
-        </section>
-        <hr className="h-1 bg-gray-500" />
-        <section className="flex flex-col justify-between gap-4 px-4 py-4">
-          <h3>獲得的板塊</h3>
-          <div className="flex flex-col gap-4">
-            {sharedFragments &&
-              sharedFragments.map((fragment) => (
-                <div key={fragment.name} className="flex gap-8">
-                  {fragment.avatar ? (
-                    <img
-                      src={fragment.avatar}
-                      alt="Player avatar"
-                      className="rounded-full"
-                    />
-                  ) : (
-                    <p className="flex items-center">{fragment.name}</p>
-                  )}
-                  <div className="flex gap-10">
-                    {fragment.fragments.map((block, index) => (
-                      <Fragment
-                        key={index}
-                        type={block.type}
-                        amount={block.amount}
-                        showAmount={true}
+          </section>
+
+          <section className="rounded-xl bg-white p-6 shadow-sm">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900">獲得的板塊</h3>
+            {isLoading ? (
+              <p className="text-gray-500">載入中...</p>
+            ) : isError ? (
+              <p className="text-red-500">發生錯誤，請稍後再試</p>
+            ) : sharedFragments.length === 0 ? (
+              <p className="text-gray-500">還沒有獲得任何板塊</p>
+            ) : (
+              <div className="space-y-4">
+                {sharedFragments.map((fragment) => (
+                  <div
+                    key={fragment.name}
+                    className="flex items-center gap-4 rounded-lg border p-4"
+                  >
+                    {fragment.avatar ? (
+                      <img
+                        src={fragment.avatar}
+                        alt="Player avatar"
+                        className="h-12 w-12 rounded-full"
                       />
-                    ))}
+                    ) : (
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
+                        <p className="text-lg font-medium text-gray-700">
+                          {fragment.name[0]}
+                        </p>
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-medium text-gray-900">{fragment.name}</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {fragment.fragments.map((block, index) => (
+                          <Fragment
+                            key={index}
+                            type={block.type}
+                            amount={block.amount}
+                            showAmount={true}
+                          />
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
-          </div>
-        </section>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
       </div>
       <Popup
         popupType={popupType}
@@ -263,7 +295,7 @@ export default function LinkPage() {
         sharingBlocks={sharingBlocks}
         setSharingBlocks={setSharingBlocks}
       />
-    </>
+    </div>
   );
 }
 
@@ -366,57 +398,109 @@ const Popup = ({
     );
   };
   return (
-    <>
-      {/* TODO:framer motion 加彈出和消失動畫 */}
-      {/* 彈出提示框 */}
-      {popupType === "qrcode" && (
-        <div className="absolute left-1/2 top-1/2 z-50 flex h-[70%] w-[80%] -translate-x-1/2 -translate-y-1/2 transform items-center justify-center rounded-lg border-2 border-[#6558f5] bg-white p-4 shadow-lg">
-          <X
-            onClick={() => setPopupType(null)}
-            className="absolute right-2 top-2"
-          />
-          <QRCodeSVG width={200} height={200} value={qrcodePayload} />
-        </div>
-      )}
-      {popupType === "edit" && (
-        <div className="absolute left-1/2 top-1/2 z-50 h-[70%] w-[80%] -translate-x-1/2 -translate-y-1/2 transform rounded-lg border-2 border-[#6558f5] bg-white p-8 shadow-lg">
-          <X
-            onClick={() => setPopupType(null)}
-            className="absolute right-2 top-2"
-          />
-          <div className="grid h-full w-full grid-cols-2 gap-y-2">
-            {displayBlocks.map((block, index) => (
-              <div
-                className={`flex items-center gap-1 ${index % 2 ? "justify-end" : "justify-start"}`}
-                key={block.type}
+    <AnimatePresence>
+      {popupType && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+        >
+          {popupType === "qrcode" && (
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", duration: 0.5 }}
+              className="relative w-full max-w-lg rounded-2xl bg-gray-900 border border-white/20 p-8 shadow-xl backdrop-blur-xl"
+            >
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setPopupType(null)}
+                className="absolute right-4 top-4 rounded-full p-1 text-white/70 hover:bg-white/10 hover:text-white"
               >
-                <Fragment
-                  type={block.type}
-                  amount={block.amount}
-                  showAmount={false}
-                />
-                <div className="flex flex-col items-center justify-between">
-                  <ChevronUp
-                    className={
-                      getIsAddable(block.type) ? "text-black" : "text-gray-400"
-                    }
-                    onClick={() => handleAddBlock(block.type)}
-                  />
-                  <p>{block.amount}</p>
-                  <ChevronDown
-                    className={
-                      getIsSubtractable(block.type)
-                        ? "text-black"
-                        : "text-gray-400"
-                    }
-                    onClick={() => handleSubtractBlock(block.type)}
-                  />
-                </div>
+                <X size={20} />
+              </motion.button>
+              <div className="flex flex-col items-center">
+                <h3 className="mb-6 text-lg font-semibold text-white">分享您的板塊</h3>
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="rounded-2xl bg-white p-4 shadow-inner"
+                >
+                  <QRCodeSVG width={200} height={200} value={qrcodePayload} />
+                </motion.div>
+                <p className="mt-4 text-sm text-gray-400">請其他玩家掃描此 QR Code</p>
               </div>
-            ))}
-          </div>
-        </div>
+            </motion.div>
+          )}
+
+          {popupType === "edit" && (
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", duration: 0.5 }}
+              className="relative w-full max-w-lg rounded-2xl bg-gray-900 border border-white/20 p-8 shadow-xl backdrop-blur-xl"
+            >
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setPopupType(null)}
+                className="absolute right-4 top-4 rounded-full p-1 text-white/70 hover:bg-white/10 hover:text-white"
+              >
+                <X size={20} />
+              </motion.button>
+              <h3 className="mb-6 text-lg font-semibold text-white">編輯分享板塊</h3>
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="grid grid-cols-2 gap-4"
+              >
+                {displayBlocks.map((block, index) => (
+                  <motion.div
+                    key={block.type}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-3"
+                  >
+                    <Fragment
+                      type={block.type}
+                      amount={block.amount}
+                      showAmount={false}
+                    />
+                    <div className="flex items-center gap-2">
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => handleSubtractBlock(block.type)}
+                        disabled={!getIsSubtractable(block.type)}
+                        className="rounded p-1 text-white/70 hover:bg-white/10 hover:text-white disabled:opacity-50"
+                      >
+                        <Minus size={20} />
+                      </motion.button>
+                      <span className="w-8 text-center font-medium text-white">{block.amount}</span>
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => handleAddBlock(block.type)}
+                        disabled={!getIsAddable(block.type)}
+                        className="rounded p-1 text-white/70 hover:bg-white/10 hover:text-white disabled:opacity-50"
+                      >
+                        <Plus size={20} />
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </motion.div>
+          )}
+        </motion.div>
       )}
-    </>
+    </AnimatePresence>
   );
 };
