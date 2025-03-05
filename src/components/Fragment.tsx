@@ -1,5 +1,7 @@
 import React from "react";
+import { motion } from "framer-motion";
 import Image from "next/image";
+
 type BlockType =
   | "a"
   | "b"
@@ -21,85 +23,90 @@ type block = {
 
 const blocks = {
   a: (
-    <svg viewBox="0 0 40 40" className="h-full w-full">
-      <rect width="40" height="40" fill="#0EA5E9" />
-      <line x1="0" y1="20" x2="40" y2="20" stroke="white" strokeWidth="4" />
-    </svg>
+    <Image
+      src="/images/fragments/a.png"
+      alt="板塊 A"
+      width={40}
+      height={40}
+      className="h-full w-full"
+    />
   ),
   b: (
-    <svg viewBox="0 0 40 40" className="h-full w-full">
-      <rect width="40" height="40" fill="#0EA5E9" />
-      <line x1="20" y1="0" x2="20" y2="40" stroke="white" strokeWidth="4" />
-    </svg>
+    <Image
+      src="/images/fragments/b.png"
+      alt="板塊 B"
+      width={40}
+      height={40}
+      className="h-full w-full"
+    />
   ),
   c: (
-    <svg viewBox="0 0 40 40" className="h-full w-full">
-      <rect width="40" height="40" fill="#0EA5E9" />
-      <line x1="0" y1="20" x2="40" y2="20" stroke="white" strokeWidth="4" />
-      <line x1="20" y1="0" x2="20" y2="40" stroke="white" strokeWidth="4" />
-    </svg>
+    <Image
+      src="/images/fragments/c.png"
+      alt="板塊 C"
+      width={40}
+      height={40}
+      className="h-full w-full"
+    />
   ),
   d: (
-    <svg viewBox="0 0 40 40" className="h-full w-full">
-      <rect width="40" height="40" fill="#0EA5E9" />
-      <path
-        d="M20,0 L20,20 L40,20"
-        fill="none"
-        stroke="white"
-        strokeWidth="4"
-      />
-    </svg>
+    <Image
+      src="/images/fragments/d.png"
+      alt="板塊 D"
+      width={40}
+      height={40}
+      className="h-full w-full"
+    />
   ),
   e: (
-    <svg viewBox="0 0 40 40" className="h-full w-full">
-      <rect width="40" height="40" fill="#0EA5E9" />
-      <path d="M20,0 L20,20 L0,20" fill="none" stroke="white" strokeWidth="4" />
-    </svg>
+    <Image
+      src="/images/fragments/e.png"
+      alt="板塊 E"
+      width={40}
+      height={40}
+      className="h-full w-full"
+    />
   ),
   f: (
-    <svg viewBox="0 0 40 40" className="h-full w-full">
-      <rect width="40" height="40" fill="#0EA5E9" />
-      <path
-        d="M20,40 L20,20 L40,20"
-        fill="none"
-        stroke="white"
-        strokeWidth="4"
-      />
-    </svg>
+    <Image
+      src="/images/fragments/f.png"
+      alt="板塊 F"
+      width={40}
+      height={40}
+      className="h-full w-full"
+    />
   ),
   g: (
-    <svg viewBox="0 0 40 40" className="h-full w-full">
-      <rect width="40" height="40" fill="#0EA5E9" />
-      <path
-        d="M20,40 L20,20 L0,20"
-        fill="none"
-        stroke="white"
-        strokeWidth="4"
-      />
-    </svg>
+    <Image
+      src="/images/fragments/g.png"
+      alt="板塊 G"
+      width={40}
+      height={40}
+      className="h-full w-full"
+    />
   ),
   obstacle: (
-    <svg viewBox="0 0 40 40" className="h-full w-full">
-      <rect x="0" y="0" width="40" height="40" fill="#333333" />
-    </svg>
+    <div className="flex h-full w-full items-center justify-center bg-gray-800 rounded-lg">
+      <div className="h-full w-full bg-gray-700 rounded-lg opacity-50" />
+    </div>
   ),
   start: (
-    <div className="flex h-full w-full items-center justify-center border-2 border-purple-300 bg-purple-200 font-bold text-zinc-500">
+    <div className="flex h-full w-full items-center justify-center rounded-lg border-2 border-purple-500/30 bg-purple-500/20 font-bold text-purple-200">
       Start
     </div>
   ),
   end: (
-    <div className="flex h-full w-full items-center justify-center border-2 border-green-300 bg-green-200 font-bold text-zinc-500">
+    <div className="flex h-full w-full items-center justify-center rounded-lg border-2 border-green-500/30 bg-green-500/20 font-bold text-green-200">
       End
     </div>
   ),
   unknown: (
-    <div className="flex h-full w-full items-center justify-center border-2 border-zinc-400 bg-zinc-500 text-3xl font-bold text-zinc-100">
+    <div className="flex h-full w-full items-center justify-center rounded-lg bg-gray-700/50 text-3xl font-bold text-gray-300">
       ?
     </div>
   ),
   empty: (
-    <div className="flex h-full w-full items-center justify-center bg-zinc-50"></div>
+    <div className="flex h-full w-full items-center justify-center rounded-lg bg-gray-800/20" />
   ),
 };
 
@@ -113,14 +120,27 @@ export const Fragment = ({
   showAmount?: boolean;
 }) => {
   return (
-    <div className="relative flex max-h-[50px] max-w-[50px] items-end">
-      {blocks[type]}
-      {showAmount && (
-        <p className="absolute -right-2 bottom-0 translate-x-[100%]">
-          * {amount}
-        </p>
-      )}
-    </div>
+    <motion.div
+      className="relative flex items-end"
+      style={{ width: '50px', height: '50px' }}
+      whileHover={{ scale: 1.05 }}
+      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+    >
+      <div className="relative w-full h-full transition-transform">
+        <div className="rounded-lg overflow-hidden">
+          {blocks[type]}
+        </div>
+        {showAmount && (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white shadow-lg"
+          >
+            {amount}
+          </motion.div>
+        )}
+      </div>
+    </motion.div>
   );
 };
 
