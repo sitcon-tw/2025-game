@@ -49,7 +49,7 @@ export default function MyTicketsPage() {
   return (
     <>
       <section id="lottery" className="w-full px-5 pt-2">
-        <p className="py-2 text-lg">抽獎卷</p>
+        <p className="py-2 text-lg">抽獎券</p>
         <div className="flex flex-row items-center gap-3">
           <div className="self-start">
             <Ticket className="text-foreground" size={50} />
@@ -126,7 +126,7 @@ export default function MyTicketsPage() {
                     </>
                   ) : (
                     <span className="mx-auto mt-4 text-gray-500">
-                      您尚未購買抽獎卷
+                      您尚未購買抽獎券
                     </span>
                   )}
                 </div>
