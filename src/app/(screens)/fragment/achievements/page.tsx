@@ -1,7 +1,7 @@
 "use client";
 import { QRCodeSVG } from "qrcode.react";
-import { Store, Waypoints, X } from "lucide-react";
-import { useState } from "react";
+import { Trophy, Medal, Store, Waypoints, X, Check, Lock, QrCode, ArrowRight } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import Block from "@/components/Block";
 import { useQuery } from "@tanstack/react-query";
 import { API_URL } from "@/lib/const";
@@ -112,112 +112,199 @@ export default function AchievementsPage() {
     setPopupType("achievement");
   };
 
+  const closePopup = () => {
+    setPopupType(null);
+    setStamp(null);
+    setAchievement(null);
+  };
+
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        closePopup();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
-    <>
-      <div className="relative p-6 pt-8">
-        <div className="flex flex-col gap-8 pr-4">
-          {achievements.map((achievement, index) => (
-            <div key={achievement.name} className="flex items-center gap-4">
-              <Store className="h-[50px] w-[50px]" />
-              <div className="flex w-full flex-col gap-1 overflow-hidden">
-                <div className="flex flex-row flex-nowrap justify-between gap-3 overflow-hidden">
-                  <p className="overflow-hidden text-ellipsis text-nowrap">
-                    {achievement.name}
-                  </p>
-                  <p className="text-ellipsis text-nowrap">
-                    {achievement.progress} / {achievement.target}
-                  </p>
-                </div>
-                <div className="h-4 w-full rounded-full bg-gray-300">
+    <div className="min-h-screen bg-gray-900">
+      <div className="sticky top-0 z-10 bg-gray-900/80 p-4 backdrop-blur">
+        <h1 className="mb-2 text-2xl font-bold text-white">成就系統</h1>
+        <div className="flex gap-2">
+          <span className="rounded-full bg-blue-900 px-3 py-1 text-sm text-blue-300">
+            <Trophy className="mr-1 inline h-4 w-4" />
+            活動成就
+          </span>
+          <span className="rounded-full bg-green-900 px-3 py-1 text-sm text-green-300">
+            <Store className="mr-1 inline h-4 w-4" />
+            攤位收集
+          </span>
+        </div>
+      </div>
+
+      <div className="p-4">
+        <div className="flex flex-col gap-4">
+          {achievements.map((achievement) => {
+            const isCompleted = achievement.progress >= achievement.target;
+            return (
+              <div
+                key={achievement.name}
+                onClick={() => handleAchievementClick(achievement)}
+                className={`transform cursor-pointer rounded-xl border bg-gray-800 p-4 transition hover:scale-[1.02] hover:shadow-md ${isCompleted
+                  ? "border-green-700 bg-green-900/20"
+                  : "border-gray-700"
+                  }`}
+              >
+                <div className="flex items-center gap-4">
                   <div
-                    className="h-full rounded-full bg-green-500"
+                    className={`rounded-lg p-3 ${isCompleted
+                      ? "bg-green-900 text-green-300"
+                      : "bg-gray-700 text-gray-300"
+                      }`}
+                  >
+                    {isCompleted ? (
+                      <Check className="h-6 w-6" />
+                    ) : (
+                      <Lock className="h-6 w-6" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="mb-2 flex items-center justify-between">
+                      <h3 className="font-medium text-white">{achievement.name}</h3>
+                      <span
+                        className={`text-sm ${isCompleted ? "text-green-300" : "text-gray-300"
+                          }`}
+                      >
+                        {achievement.progress} / {achievement.target}
+                      </span>
+                    </div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-700">
+                      <div
+                        className={`h-full rounded-full transition-all ${isCompleted ? "bg-green-400" : "bg-blue-400"
+                          }`}
+                        style={{
+                          width: `${Math.min((achievement.progress / achievement.target) * 100, 100)}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Popup Overlays */}
+      {(popupType === "stamp" || popupType === "achievement") && (
+        <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" />
+      )}
+
+      {popupType === "stamp" && stamp && (
+        <div
+          ref={modalRef}
+          className="fixed left-1/2 top-1/2 z-50 w-[90%] max-w-md -translate-x-1/2 -translate-y-1/2 transform rounded-xl border-2 border-[#6558f5] bg-gray-800 p-6 shadow-xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={closePopup}
+            className="absolute right-4 top-4 rounded-full p-1 hover:bg-gray-700"
+          >
+            <X className="h-5 w-5 text-gray-300" />
+          </button>
+          {!stamp.isfinished ? (
+            <div className="flex flex-col items-center gap-6 py-4">
+              <h3 className="text-center text-lg font-semibold text-white">
+                掃描 QR Code 以獲得獎勵方塊！
+              </h3>
+              <div className="rounded-xl bg-gray-700 p-4 shadow-md">
+                <QRCodeSVG width={200} height={200} value={token} />
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-6">
+              <Medal className="h-12 w-12 text-yellow-500" />
+              <h3 className="text-xl font-semibold text-white">恭喜獲得獎勵方塊！</h3>
+              <Block type={stamp.prizeBlockType} quantity={1} />
+            </div>
+          )}
+        </div>
+      )}
+
+      {popupType === "achievement" && achievement && (
+        <div
+          ref={modalRef}
+          className="fixed left-1/2 top-1/2 z-50 w-[90%] max-w-md -translate-x-1/2 -translate-y-1/2 transform rounded-xl border-2 border-[#6558f5] bg-gray-800 p-6 shadow-xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={closePopup}
+            className="absolute right-4 top-4 rounded-full p-1 hover:bg-gray-700"
+          >
+            <X className="h-5 w-5 text-gray-300" />
+          </button>
+          {achievement.name.includes("與攤位") ? (
+            // 攤位互動成就的特殊設計
+            <div className="flex flex-col items-center gap-6 py-4">
+              <Store className="h-16 w-16 text-purple-400" />
+              <div className="text-center">
+                <h3 className="text-xl font-bold text-white mb-2">
+                  {achievement.name}
+                </h3>
+                <div className="flex items-center justify-center gap-2 text-purple-300 mb-4">
+                  <QrCode className="h-4 w-4" />
+                  <span className="text-sm">掃描 QR Code 完成互動</span>
+                </div>
+              </div>
+
+              <div className="w-full rounded-lg bg-gray-700/50 p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-300">完成進度</span>
+                  <span className="font-mono text-purple-300">
+                    {achievement.progress} / {achievement.target}
+                  </span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-gray-700">
+                  <div
+                    className="h-full rounded-full bg-purple-500 transition-all duration-500"
                     style={{
                       width: `${(achievement.progress / achievement.target) * 100}%`,
                     }}
                   />
                 </div>
               </div>
+
+              {achievement.progress === 0 && (
+                <div className="flex items-center gap-2 text-sm text-gray-400">
+                  <ArrowRight className="h-4 w-4" />
+                  <span>找到攤位工作人員完成互動</span>
+                </div>
+              )}
             </div>
-          ))}
+          ) : (
+            // 其他成就的原有設計
+            <div className="flex flex-col items-center gap-4 py-4">
+              <Trophy className="h-12 w-12 text-blue-400" />
+              <h3 className="text-center text-lg font-semibold text-white">
+                {achievement.name}
+              </h3>
+              <p className="text-center text-gray-300">
+                進度：{achievement.progress} / {achievement.target}
+              </p>
+              <p className="text-center text-sm text-gray-400">
+                {achievement.description}
+              </p>
+            </div>
+          )}
         </div>
-        {popupType === "stamp" && stamp && (
-          <StampPopup
-            stamp={stamp}
-            closePopup={() => setPopupType(null)}
-            playerId="123" //TODO: 需要找到時機fetch本地玩家id
-          />
-        )}
-        {popupType === "achievement" && achievement && (
-          <AchievementPopup
-            achievement={achievement}
-            closePopup={() => setPopupType(null)}
-          />
-        )}
-      </div>
-    </>
+      )}
+    </div>
   );
 }
-
-const StampPopup = ({
-  stamp,
-  closePopup,
-  playerId,
-}: {
-  stamp: Stamp;
-  closePopup: () => void;
-  playerId: string;
-}) => {
-  return (
-    <>
-      {stamp && (
-        <div className="absolute left-1/2 top-1/2 z-50 flex h-[70%] w-[80%] -translate-x-1/2 -translate-y-1/2 transform items-center justify-center rounded-lg border-2 border-[#6558f5] bg-white p-4 shadow-lg">
-          <X onClick={closePopup} className="absolute right-2 top-2" />
-          {!stamp.isfinished && (
-            <div className="flex h-full w-full flex-col items-center gap-4 py-4">
-              <h3>將QRcode給攤位工作人員即可獲得獎勵方塊!</h3>
-              <QRCodeSVG width={200} height={200} value={playerId} />
-            </div>
-          )}
-          {stamp.isfinished && (
-            <div className="flex flex-col gap-4">
-              <h3>這是你的獎勵方塊</h3>
-              <Block type={stamp.prizeBlockType} quantity={1} />
-            </div>
-          )}
-        </div>
-      )}
-    </>
-  );
-};
-
-const AchievementPopup = ({
-  achievement,
-  closePopup,
-}: {
-  achievement: Achievement;
-  closePopup: () => void;
-}) => {
-  return (
-    <>
-      {achievement && (
-        <div className="absolute left-1/2 top-1/2 z-50 h-[70%] w-[80%] -translate-x-1/2 -translate-y-1/2 transform rounded-lg border-2 border-[#6558f5] bg-white p-8 shadow-lg">
-          <X onClick={closePopup} className="absolute right-2 top-2" />
-          {achievement.progress !== achievement.target && (
-            <div className="flex h-full w-full flex-col items-center gap-4 py-4">
-              <h3>
-                {achievement.name} {achievement.progress} / {achievement.target}
-              </h3>
-              <p>{achievement.description}</p>
-            </div>
-          )}
-          {achievement.progress === achievement.target && (
-            <div className="flex flex-col gap-4">
-              <h3>這是你的獎勵方塊</h3>
-              <Block type={achievement.prizeBlockType} quantity={1} />
-            </div>
-          )}
-        </div>
-      )}
-    </>
-  );
-};
