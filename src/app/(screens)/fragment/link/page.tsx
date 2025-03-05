@@ -370,12 +370,18 @@ const Popup = ({
       {/* TODO:framer motion 加彈出和消失動畫 */}
       {/* 彈出提示框 */}
       {popupType === "qrcode" && (
-        <div className="absolute left-1/2 top-1/2 z-50 flex h-[70%] w-[80%] -translate-x-1/2 -translate-y-1/2 transform items-center justify-center rounded-lg border-2 border-[#6558f5] bg-white p-4 shadow-lg">
+        <div className="absolute left-1/2 top-1/2 z-50 flex h-[70%] w-[80%] -translate-x-1/2 -translate-y-1/2 transform items-center justify-center rounded-lg border-2 border-[#6558f5] bg-gray-800 p-4 shadow-lg">
           <X
             onClick={() => setPopupType(null)}
             className="absolute right-2 top-2"
           />
-          <QRCodeSVG width={200} height={200} value={qrcodePayload} />
+          <QRCodeSVG
+            width={200}
+            height={200}
+            value={qrcodePayload}
+            bgColor="#1F2937"
+            fgColor="#FFFFFF"
+          />
         </div>
       )}
       {popupType === "edit" && (
