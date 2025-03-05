@@ -70,21 +70,26 @@ export default function PersonalPage() {
           <Badge variant="outline" className="mb-4 bg-primary/10 text-primary border-0">
             掃描 QR Code 與其他玩家交換板塊
           </Badge>
-
           <div className="rounded-xl bg-white p-4 shadow-inner mb-6">
-            <Canvas
-              text={playerData?.token ?? "null"}
-              options={{
-                errorCorrectionLevel: "M",
-                margin: 3,
-                scale: 4,
-                width: 180,
-                color: {
-                  dark: "#7c3aed",
-                  light: "#FFFFFF",
-                },
-              }}
-            />
+            {playerData?.token ? (
+              <Canvas
+                text={playerData.token}
+                options={{
+                  errorCorrectionLevel: "M",
+                  margin: 3,
+                  scale: 4,
+                  width: 180,
+                  color: {
+                    dark: "#7c3aed",
+                    light: "#FFFFFF",
+                  },
+                }}
+              />
+            ) : (
+              <div className="h-[180px] w-[180px] flex items-center justify-center">
+                <Skeleton className="h-full w-full bg-gray-300" />
+              </div>
+            )}
           </div>
 
           <div className="bg-muted/30 rounded-lg p-5 text-sm">
