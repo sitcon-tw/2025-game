@@ -14,7 +14,7 @@ export default function Layout({
       <div className="w-full flex-1 overflow-y-scroll">{children}</div>
       <section className="flex w-full gap-[2px]">
         <InnerBarItem href="/store" name="點數兌換" />
-        <InnerBarItem href="/store/my-tickets" name="我的票卷" />
+        <InnerBarItem href="/store/my-tickets" name="我的票券" />
       </section>
     </div>
   );
