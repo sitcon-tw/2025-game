@@ -156,8 +156,8 @@ function getBlockElement(block: string) {
     <Image
       src={`/images/fragments/${block}.png`}
       alt="板塊"
-      width="300"
-      height="300"
+      width="100"
+      height="100"
       // style={{
       //   transform: `rotate(${randomRotation}deg)`,
       // }}
