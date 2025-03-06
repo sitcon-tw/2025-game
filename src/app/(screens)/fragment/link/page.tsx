@@ -404,7 +404,9 @@ const Popup = ({
                 <div className="flex flex-col items-center justify-between">
                   <ChevronUp
                     className={
-                      getIsAddable(block.type) ? "text-gray-300" : "text-gray-900"
+                      getIsAddable(block.type)
+                        ? "text-gray-300"
+                        : "text-gray-900"
                     }
                     onClick={() => handleAddBlock(block.type)}
                   />
