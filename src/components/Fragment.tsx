@@ -104,7 +104,6 @@ const blocks = {
 };
 
 function getBlockElement(block: string) {
-
   if (block === "obstacle")
     return <div className="brightness-[40%]">{getBlockElement("empty")}</div>;
 

@@ -385,7 +385,7 @@ const Popup = ({
         </div>
       )}
       {popupType === "edit" && (
-        <div className="absolute left-1/2 top-1/2 z-50 h-[70%] w-[80%] -translate-x-1/2 -translate-y-1/2 transform rounded-lg border-2 border-[#6558f5] bg-white p-8 shadow-lg">
+        <div className="absolute left-1/2 top-1/2 z-50 h-[70%] w-[80%] -translate-x-1/2 -translate-y-1/2 transform rounded-lg border-2 border-[#6558f5] bg-gray-800 p-8 shadow-lg">
           <X
             onClick={() => setPopupType(null)}
             className="absolute right-2 top-2"
@@ -404,7 +404,7 @@ const Popup = ({
                 <div className="flex flex-col items-center justify-between">
                   <ChevronUp
                     className={
-                      getIsAddable(block.type) ? "text-black" : "text-gray-400"
+                      getIsAddable(block.type) ? "text-gray-300" : "text-gray-900"
                     }
                     onClick={() => handleAddBlock(block.type)}
                   />
@@ -412,8 +412,8 @@ const Popup = ({
                   <ChevronDown
                     className={
                       getIsSubtractable(block.type)
-                        ? "text-black"
-                        : "text-gray-400"
+                        ? "text-gray-300"
+                        : "text-gray-900"
                     }
                     onClick={() => handleSubtractBlock(block.type)}
                   />
