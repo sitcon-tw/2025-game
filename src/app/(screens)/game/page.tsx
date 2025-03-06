@@ -900,7 +900,7 @@ export default function GamePage() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white"
+      className="min-h-[calc(100vh_-_73px)] overflow-y-hidden bg-gradient-to-b from-gray-900 to-gray-800 text-white"
     >
       <DndContext
         onDragOver={handleDragOver}
@@ -1012,7 +1012,7 @@ export default function GamePage() {
                   : `${GAME_MAP_SIZE + 2}px`,
               }}
             >
-              <div className="w-full overflow-scroll">
+              <div className="w-full overflow-hidden">
                 {gameGrid.map((row, rowIndex) => (
                   <div key={rowIndex} className={cn("flex", "justify-start")}>
                     {row.map((cell, colIndex) => {
