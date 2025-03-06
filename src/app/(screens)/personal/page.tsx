@@ -13,7 +13,7 @@ export default function PersonalPage() {
   const { playerData, isError, isLoading } = usePlayerData();
 
   const stage = playerData?.stage ?? 1;
-  const level = Math.max(1, Math.floor(stage / 10) + 1);
+  const level = Math.max(1, Math.sqrt(stage) | 0);
 
   return (
     <div className="mx-auto space-y-6">
