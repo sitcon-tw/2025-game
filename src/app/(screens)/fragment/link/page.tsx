@@ -445,7 +445,7 @@ const Popup = ({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: "spring", duration: 0.5 }}
-              className="relative w-full max-w-lg rounded-2xl border border-white/20 bg-gray-900 p-8 shadow-xl backdrop-blur-xl"
+              className="max-h-hidden relative max-h-96 w-full max-w-lg overflow-y-scroll rounded-2xl border border-white/20 bg-gray-900 p-8 shadow-xl backdrop-blur-xl"
             >
               <motion.button
                 whileHover={{ scale: 1.1 }}
@@ -462,7 +462,7 @@ const Popup = ({
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.2 }}
-                className="grid grid-cols-2 gap-4"
+                className="flex flex-col gap-4 overflow-y-scroll"
               >
                 {displayBlocks.map((block, index) => (
                   <motion.div
