@@ -16,13 +16,21 @@ const queryClient = new QueryClient();
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const pathname = usePathname();
+  const enableScroll = pathname !== "/game";
+
   return (
     <html lang="zh-Hant-TW">
       <body className="flex h-screen flex-col overflow-hidden">
         <Suspense>
           <TokenProvider>
             <QueryClientProvider client={queryClient}>
-              <div className="relative h-full w-full overflow-y-hidden pb-16">
+              <div
+                className={cn(
+                  "relative h-full w-full pb-16",
+                  enableScroll ? "overflow-y-scroll" : "overflow-hidden",
+                )}
+              >
                 {children}
               </div>
               <div className="fixed bottom-0 w-full">
