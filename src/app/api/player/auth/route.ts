@@ -3,7 +3,7 @@ import { addFragment } from "@/utils/fragment/query";
 import { forbidden, success } from "@/utils/response";
 import { NextRequest } from "next/server";
 import { API_URL } from "@/lib/const";
-const crypto = require("crypto");
+import crypto from "crypto";
 
 export const POST = async (request: NextRequest) => {
   const data = await request.json();
