@@ -64,20 +64,6 @@ const initialDisplayBlocks: Array<Block> = [
   },
 ];
 
-const testBlocks: Array<Block> = [
-  {
-    type: "a",
-    amount: 2,
-  },
-  {
-    type: "b",
-    amount: 96,
-  },
-  {
-    type: "c",
-    amount: 12,
-  },
-];
 // TODO:: get blocks from API
 const myBlocks: Array<Block> = [
   {
@@ -278,15 +264,16 @@ const Popup = ({
   sharingBlocks: Block[];
   setSharingBlocks: React.Dispatch<React.SetStateAction<Block[]>>;
 }) => {
-  const token = useToken();
+  const { playerData } = usePlayerData();
   const [qrcodePayload, setQrcodePayload] = useState<string>("");
   const [displayBlocks, setDisplayBlocks] =
     useState<Block[]>(initialDisplayBlocks);
 
   useEffect(() => {
+    if (!playerData) return;
     // 將sharingBlocks 轉換成字串存到qrcodePayload
     const payload = {
-      sharedToken: token,
+      sharedToken: playerData.share_token,
       fragments: sharingBlocks,
     };
     setQrcodePayload(JSON.stringify(payload));

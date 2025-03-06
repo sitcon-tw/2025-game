@@ -158,6 +158,7 @@ const query = {
       const player = await prisma.player.create({
         data: {
           token: playerData.token,
+          share_token: playerData.share_token,
           name: playerData.name,
           avatar: playerData.avatar ?? "",
           linktree: playerData.linktree ?? "",

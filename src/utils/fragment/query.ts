@@ -10,7 +10,7 @@ import {
 
 export const setSharedFragments = async (
   token: string,
-  friendToken: string,
+  friendToken: string, // share_token
   fragments: Array<{
     type: string;
     amount: number;
@@ -28,12 +28,19 @@ export const setSharedFragments = async (
     // TODO::檢查type是否不是其他方塊
 
     // 檢查分享者是否擁有足夠的板塊
-    const friendFragments = await prisma.fragment.findMany({
-      where: { token: friendToken, shared: false },
+
+    const friend = await prisma.player.findUnique({
+      where: { share_token: friendToken },
+      select: {
+        token: true,
+        fragments: { select: { type: true, amount: true, shared: false } },
+      },
     });
 
+    if (!friend) return conflict("friend not found");
+
     const isEnoughFragments = fragments.every((fragment) => {
-      const friendFragment = friendFragments.find(
+      const friendFragment = friend.fragments.find(
         (f) => f.type === fragment.type,
       );
       if (!friendFragment) return false;
@@ -46,7 +53,7 @@ export const setSharedFragments = async (
     await prisma.fragment.deleteMany({
       where: {
         token: token,
-        shared_token: friendToken,
+        shared_token: friend.token,
         shared: true,
       },
     });
@@ -55,7 +62,7 @@ export const setSharedFragments = async (
     await prisma.fragment.createMany({
       data: fragments.map((fragment) => ({
         token: token,
-        shared_token: friendToken,
+        shared_token: friend.token,
         type: fragment.type,
         amount: fragment.amount,
         shared: true,
@@ -134,7 +141,7 @@ export const getTeamFragments = async (token: string) => {
     if (!player) return conflict("player not found");
 
     if (!player?.team || !player.compass) {
-      return success({ name: player.name, fragments: player.fragments });
+      return success([{ name: player.name, fragments: player.fragments }]);
     }
 
     // 找出所有玩家的fragment
