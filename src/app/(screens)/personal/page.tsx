@@ -13,7 +13,7 @@ export default function PersonalPage() {
   const { playerData, isError, isLoading } = usePlayerData();
 
   return (
-    <div className="container mx-auto max-w-md space-y-6">
+    <div className="mx-auto space-y-6">
       {/* Profile Card */}
       <Card className="overflow-hidden border-0 shadow-md">
         <div className="bg-gradient-to-br from-gray-800 to-purple-950 p-6 text-white">
