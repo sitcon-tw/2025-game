@@ -42,7 +42,7 @@ function InnerBarItem({
     switch (name) {
       case "玩家連結":
         return <Link2 className="mr-2 h-5 w-5" />;
-      case "計畫分享":
+      case "計畫共享":
         return <Share2 className="mr-2 h-5 w-5" />;
       case "成就解鎖":
         return <Trophy className="mr-2 h-5 w-5" />;

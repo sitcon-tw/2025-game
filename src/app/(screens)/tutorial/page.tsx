@@ -4,11 +4,11 @@ import Link from "next/link";
 
 export default function TutorialPage() {
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100">
+    <div className="min-h-screen bg-gray-900 pt-16 text-gray-100">
       {/* Back button */}
       <Link
         href="/game"
-        className="fixed left-4 top-4 rounded-full bg-gray-800 p-3 text-white transition-colors hover:bg-gray-700"
+        className="fixed left-4 top-4 rounded-full bg-gray-800 p-3 text-white shadow-md transition-colors hover:bg-gray-700"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

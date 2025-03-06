@@ -182,7 +182,7 @@ export default function LinkPage() {
   return (
     <div className="min-h-screen">
       <div className="relative mx-auto max-w-2xl pb-6">
-        <section className="relative aspect-square w-full overflow-hidden rounded-b-2xl bg-black">
+        <section className="relative aspect-square w-full overflow-hidden bg-black">
           <QrCodeScanner qrCodeSuccessCallback={onScanSuccess} />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="h-64 w-64 rounded-lg border-4 border-white/50" />
@@ -198,12 +198,10 @@ export default function LinkPage() {
         </section>
 
         <div className="mt-4 space-y-4">
-          <section className="rounded-xl bg-white p-6 shadow-sm">
+          <section className="bg-white/5 p-6 shadow-sm backdrop-blur-sm">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">
-                我的連結板塊
-              </h3>
-              <div className="flex gap-2">
+              <h3 className="text-lg font-semibold text-white">我的連結板塊</h3>
+              <div className="flex gap-3">
                 <button
                   onClick={() => setPopupType("edit")}
                   className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
@@ -213,7 +211,7 @@ export default function LinkPage() {
                 </button>
                 <button
                   onClick={() => setPopupType("qrcode")}
-                  className="flex items-center gap-2 rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-900"
+                  className="flex items-center gap-2 rounded-lg bg-gray-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-600"
                 >
                   分享 QR Code
                 </button>
@@ -231,13 +229,13 @@ export default function LinkPage() {
                   />
                 ))
               ) : (
-                <p className="text-gray-500">點擊編輯按鈕來設定分享板塊</p>
+                <p className="text-gray-400">點擊編輯按鈕來設定分享板塊</p>
               )}
             </div>
           </section>
 
-          <section className="rounded-xl bg-white p-6 shadow-sm">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900">
+          <section className="bg-white/5 p-6 shadow-sm">
+            <h3 className="mb-4 text-lg font-semibold text-white">
               獲得的板塊
             </h3>
             {isLoading ? (
@@ -245,7 +243,7 @@ export default function LinkPage() {
             ) : isError ? (
               <p className="text-red-500">發生錯誤，請稍後再試</p>
             ) : sharedFragments.length === 0 ? (
-              <p className="text-gray-500">還沒有獲得任何板塊</p>
+              <p className="text-gray-400">還沒有獲得任何板塊</p>
             ) : (
               <div className="space-y-4">
                 {sharedFragments.map((fragment) => (
