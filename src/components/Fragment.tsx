@@ -103,6 +103,23 @@ const blocks = {
   ),
 };
 
+function getBlockElement(block: string) {
+  if (block === "obstacle")
+    return <div className="brightness-[40%]">{getBlockElement("empty")}</div>;
+
+  return (
+    <Image
+      src={`/images/fragments/${block}.png`}
+      alt="板塊"
+      width="100"
+      height="100"
+      // style={{
+      //   transform: `rotate(${randomRotation}deg)`,
+      // }}
+    />
+  );
+}
+
 export const Fragment = ({
   type,
   amount,
@@ -114,7 +131,7 @@ export const Fragment = ({
 }) => {
   return (
     <div className="relative flex max-h-[50px] max-w-[50px] items-end">
-      {blocks[type]}
+      {getBlockElement(type)}
       {showAmount && (
         <p className="absolute -right-2 bottom-0 translate-x-[100%]">
           * {amount}
