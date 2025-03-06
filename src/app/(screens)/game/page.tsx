@@ -364,6 +364,8 @@ export default function GamePage() {
   }
 
   function placeBlock(row: number, col: number, block: string): boolean {
+    const cache: Record<string, boolean> = {};
+
     const newGrid = gameGrid.map((r) => [...r]);
     if (newGrid[row][col] !== "empty") {
       showDialog("無法放置", "這裡已經有被放置板塊了！");
@@ -373,7 +375,14 @@ export default function GamePage() {
 
     let visited = gameGrid.map((row) => row.map(() => false));
     visited[startRow][startCol] = true;
-    const isPathAvailable = dfs(newGrid, startRow, startCol, visited, true);
+    const isPathAvailable = dfs(
+      cache,
+      newGrid,
+      startRow,
+      startCol,
+      visited,
+      true,
+    );
     if (!isPathAvailable) {
       showDialog("無法放置", "你不能把路堵死！！");
       return false;
@@ -382,7 +391,14 @@ export default function GamePage() {
     // check for stage clear
     visited = gameGrid.map((row) => row.map(() => false));
     visited[startRow][startCol] = true;
-    const isStageClear = dfs(newGrid, startRow, startCol, visited, false);
+    const isStageClear = dfs(
+      cache,
+      newGrid,
+      startRow,
+      startCol,
+      visited,
+      false,
+    );
     console.log("isStageClear", isStageClear);
     if (isStageClear) {
       console.log("level clear");

@@ -60,6 +60,7 @@ export const POST = async (request: NextRequest) => {
     }
 
     const stageNumber = player.stage;
+    const cache: Record<string, boolean> = {};
 
     // 檢查關卡是否被修改
 
@@ -110,7 +111,7 @@ export const POST = async (request: NextRequest) => {
       return badRequest("Start cell not found.");
     }
 
-    const isSolved = dfs(map, startRow, startCol, visited, false);
+    const isSolved = dfs(cache, map, startRow, startCol, visited, false);
 
     if (!isSolved) {
       return badRequest("Stage not solved.");

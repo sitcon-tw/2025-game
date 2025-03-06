@@ -1,6 +1,7 @@
 import blocksConfig from "@/config/blocks.json";
 
 export function dfs(
+  cache: Record<string, boolean> = {},
   grid: string[][],
   i: number,
   j: number,
@@ -8,6 +9,9 @@ export function dfs(
   canWalkOnEmpty: boolean = true,
   findEnd = false,
 ): boolean {
+  const key = `${i},${j},${canWalkOnEmpty},${findEnd}`;
+  if (cache[key] !== undefined) return cache[key];
+
   const type = grid[i][j];
   if (type === "obstacle") return false;
   if (findEnd || type === "end") return true;
@@ -50,8 +54,9 @@ export function dfs(
       blocksConfig[nextBlock as keyof typeof blocksConfig]?.[reverse];
     if (!canGoTo || !canGoFrom) continue;
     visited[newI][newJ] = true;
-    result ||= dfs(grid, newI, newJ, visited, canWalkOnEmpty, findEnd);
+    result ||= dfs(cache, grid, newI, newJ, visited, canWalkOnEmpty, findEnd);
   }
 
+  cache[key] = result;
   return result;
 }
