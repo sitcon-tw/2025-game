@@ -954,7 +954,7 @@ export default function GamePage() {
                 className="flex items-center gap-2"
                 whileHover={{ scale: 1.05 }}
               >
-                <p className="text-gray-400">點數</p>
+                <p className="text-gray-400">積分</p>
                 <p className="text-3xl font-bold text-green-400">
                   {playerData?.score ?? 0}
                 </p>
@@ -984,7 +984,7 @@ export default function GamePage() {
           </motion.div>
 
           {/* Game Area */}
-          <div className="py-6" />
+          <div className="py-4" />
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
