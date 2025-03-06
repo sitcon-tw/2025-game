@@ -9,7 +9,10 @@ const response = {
    * @return {NextResponse}
    */
   badRequest: (message: string): NextResponse => {
-    return new NextResponse(JSON.stringify({ message: message ? message : "Bad Request" }), { status: 400 });
+    return new NextResponse(
+      JSON.stringify({ message: message ? message : "Bad Request" }),
+      { status: 400 },
+    );
   },
 
   /**

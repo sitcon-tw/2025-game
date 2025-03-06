@@ -8,7 +8,12 @@ import usePlayerData from "@/hooks/usePlayerData";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import useToken from "@/hooks/useToken";
-import { Lottery, LotteryItem, LotteryPriceList, ErrorItem } from "@/lib/interface";
+import {
+  Lottery,
+  LotteryItem,
+  LotteryPriceList,
+  ErrorItem,
+} from "@/lib/interface";
 import ErrorCard from "@/components/ui/error-card";
 
 export default function StorePage() {
@@ -30,7 +35,9 @@ export default function StorePage() {
       const response = await fetch(`/api/lottery/items?token=${token}`);
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`HTTP error! status: ${response.status}, ${errorData.message}`);
+        throw new Error(
+          `HTTP error! status: ${response.status}, ${errorData.message}`,
+        );
       }
       return response.json();
     },
@@ -48,7 +55,9 @@ export default function StorePage() {
       const response = await fetch(`/api/lottery/price?token=${token}`);
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`HTTP error! status: ${response.status}, ${errorData.message}`);
+        throw new Error(
+          `HTTP error! status: ${response.status}, ${errorData.message}`,
+        );
       }
       return response.json();
     },
@@ -66,7 +75,9 @@ export default function StorePage() {
       const response = await fetch(`/api/lottery?token=${token}`);
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`HTTP error! status: ${response.status}, ${errorData.message}`);
+        throw new Error(
+          `HTTP error! status: ${response.status}, ${errorData.message}`,
+        );
       }
       return response.json();
     },
@@ -85,19 +96,27 @@ export default function StorePage() {
   if (isErrorItems || isErrorPrice || isErrorLottery) {
     const errorItemsFromAPI: ErrorItem[] = [];
     if (isErrorItems) {
-      errorItemsFromAPI.push({ icon: '🎟️', label: 'Lottery Items Error', message: errorItems?.message ?? 'Unknown error' })
-    };
+      errorItemsFromAPI.push({
+        icon: "🎟️",
+        label: "Lottery Items Error",
+        message: errorItems?.message ?? "Unknown error",
+      });
+    }
     if (isErrorPrice) {
-      errorItemsFromAPI.push({ icon: '💰', label: 'Price List Error', message: errorPrice?.message ?? 'Unknown error' })
+      errorItemsFromAPI.push({
+        icon: "💰",
+        label: "Price List Error",
+        message: errorPrice?.message ?? "Unknown error",
+      });
     }
     if (isErrorLottery) {
-      errorItemsFromAPI.push({ icon: '🎫', label: 'Lottery List Error', message: errorLottery?.message ?? 'Unknown error' })
+      errorItemsFromAPI.push({
+        icon: "🎫",
+        label: "Lottery List Error",
+        message: errorLottery?.message ?? "Unknown error",
+      });
     }
-    return (
-      <ErrorCard
-        errorItems={errorItemsFromAPI}
-      />
-    );
+    return <ErrorCard errorItems={errorItemsFromAPI} />;
   }
 
   return (

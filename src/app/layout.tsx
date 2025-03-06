@@ -26,8 +26,8 @@ export default function RootLayout({
                 {children}
               </div>
               <div className="fixed bottom-0 w-full">
-                <footer className="backdrop-blur-md border-t border-gray-700/30 bg-primary/95 px-2 py-1 shadow-lg">
-                  <nav className="flex max-w-md mx-auto justify-between items-center">
+                <footer className="border-t border-gray-700/30 bg-primary/95 px-2 py-1 shadow-lg backdrop-blur-md">
+                  <nav className="mx-auto flex max-w-md items-center justify-between">
                     <NavbarItem href="/game" name="遊戲" Icon={Gamepad} />
                     <NavbarItem href="/fragment" name="板塊" Icon={Blocks} />
                     <NavbarItem href="/store" name="商店" Icon={Store} />
@@ -59,10 +59,10 @@ function NavbarItem({
     <Link href={href} className="flex-1">
       <div
         className={cn(
-          "flex flex-col items-center justify-center gap-1 py-2 px-4 transition-all duration-200 ease-in-out rounded-lg mx-1",
+          "mx-1 flex flex-col items-center justify-center gap-1 rounded-lg px-4 py-2 transition-all duration-200 ease-in-out",
           isActive
-            ? "bg-primary-foreground/15 text-blue-200 scale-105 shadow-md"
-            : "text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/5"
+            ? "scale-105 bg-primary-foreground/15 text-blue-200 shadow-md"
+            : "text-primary-foreground/80 hover:bg-primary-foreground/5 hover:text-primary-foreground",
         )}
       >
         <Icon
@@ -70,13 +70,12 @@ function NavbarItem({
           size={28}
           className={cn(
             "transition-all",
-            isActive && "drop-shadow-[0_0_3px_rgba(186,230,253,0.5)]"
+            isActive && "drop-shadow-[0_0_3px_rgba(186,230,253,0.5)]",
           )}
         />
-        <span className={cn(
-          "text-xs font-medium",
-          isActive && "font-semibold"
-        )}>
+        <span
+          className={cn("text-xs font-medium", isActive && "font-semibold")}
+        >
           {name}
         </span>
       </div>

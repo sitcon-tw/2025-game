@@ -1,6 +1,16 @@
 "use client";
 import { QRCodeSVG } from "qrcode.react";
-import { Trophy, Medal, Store, Waypoints, X, Check, Lock, QrCode, ArrowRight } from "lucide-react";
+import {
+  Trophy,
+  Medal,
+  Store,
+  Waypoints,
+  X,
+  Check,
+  Lock,
+  QrCode,
+  ArrowRight,
+} from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import Block from "@/components/Block";
 import { useQuery } from "@tanstack/react-query";
@@ -122,7 +132,10 @@ export default function AchievementsPage() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node)
+      ) {
         closePopup();
       }
     };
@@ -157,17 +170,19 @@ export default function AchievementsPage() {
               <div
                 key={achievement.name}
                 onClick={() => handleAchievementClick(achievement)}
-                className={`transform cursor-pointer rounded-xl border bg-gray-800 p-4 transition hover:scale-[1.02] hover:shadow-md ${isCompleted
-                  ? "border-green-700 bg-green-900/20"
-                  : "border-gray-700"
-                  }`}
+                className={`transform cursor-pointer rounded-xl border bg-gray-800 p-4 transition hover:scale-[1.02] hover:shadow-md ${
+                  isCompleted
+                    ? "border-green-700 bg-green-900/20"
+                    : "border-gray-700"
+                }`}
               >
                 <div className="flex items-center gap-4">
                   <div
-                    className={`rounded-lg p-3 ${isCompleted
-                      ? "bg-green-900 text-green-300"
-                      : "bg-gray-700 text-gray-300"
-                      }`}
+                    className={`rounded-lg p-3 ${
+                      isCompleted
+                        ? "bg-green-900 text-green-300"
+                        : "bg-gray-700 text-gray-300"
+                    }`}
                   >
                     {isCompleted ? (
                       <Check className="h-6 w-6" />
@@ -177,18 +192,22 @@ export default function AchievementsPage() {
                   </div>
                   <div className="flex-1">
                     <div className="mb-2 flex items-center justify-between">
-                      <h3 className="font-medium text-white">{achievement.name}</h3>
+                      <h3 className="font-medium text-white">
+                        {achievement.name}
+                      </h3>
                       <span
-                        className={`text-sm ${isCompleted ? "text-green-300" : "text-gray-300"
-                          }`}
+                        className={`text-sm ${
+                          isCompleted ? "text-green-300" : "text-gray-300"
+                        }`}
                       >
                         {achievement.progress} / {achievement.target}
                       </span>
                     </div>
                     <div className="h-2 w-full overflow-hidden rounded-full bg-gray-700">
                       <div
-                        className={`h-full rounded-full transition-all ${isCompleted ? "bg-green-400" : "bg-blue-400"
-                          }`}
+                        className={`h-full rounded-full transition-all ${
+                          isCompleted ? "bg-green-400" : "bg-blue-400"
+                        }`}
                         style={{
                           width: `${Math.min((achievement.progress / achievement.target) * 100, 100)}%`,
                         }}
@@ -231,7 +250,9 @@ export default function AchievementsPage() {
           ) : (
             <div className="flex flex-col items-center gap-6">
               <Medal className="h-12 w-12 text-yellow-500" />
-              <h3 className="text-xl font-semibold text-white">恭喜獲得獎勵方塊！</h3>
+              <h3 className="text-xl font-semibold text-white">
+                恭喜獲得獎勵方塊！
+              </h3>
               <Block type={stamp.prizeBlockType} quantity={1} />
             </div>
           )}
@@ -255,17 +276,17 @@ export default function AchievementsPage() {
             <div className="flex flex-col items-center gap-6 py-4">
               <Store className="h-16 w-16 text-purple-400" />
               <div className="text-center">
-                <h3 className="text-xl font-bold text-white mb-2">
+                <h3 className="mb-2 text-xl font-bold text-white">
                   {achievement.name}
                 </h3>
-                <div className="flex items-center justify-center gap-2 text-purple-300 mb-4">
+                <div className="mb-4 flex items-center justify-center gap-2 text-purple-300">
                   <QrCode className="h-4 w-4" />
                   <span className="text-sm">掃描 QR Code 完成互動</span>
                 </div>
               </div>
 
               <div className="w-full rounded-lg bg-gray-700/50 p-4">
-                <div className="flex items-center justify-between mb-2">
+                <div className="mb-2 flex items-center justify-between">
                   <span className="text-gray-300">完成進度</span>
                   <span className="font-mono text-purple-300">
                     {achievement.progress} / {achievement.target}
