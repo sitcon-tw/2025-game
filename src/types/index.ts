@@ -23,6 +23,7 @@ export type BlockType =
 export type PlayerData = {
   token: string; //
   name: string; // data.user_id
+  share_token: string; // data._id.oid
   avatar?: string; //
   linktree?: string; //
   score: number; //

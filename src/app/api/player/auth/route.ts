@@ -3,6 +3,7 @@ import { addFragment } from "@/utils/fragment/query";
 import { forbidden, success } from "@/utils/response";
 import { NextRequest } from "next/server";
 import { API_URL } from "@/lib/const";
+const crypto = require("crypto");
 
 export const POST = async (request: NextRequest) => {
   const data = await request.json();
@@ -11,10 +12,13 @@ export const POST = async (request: NextRequest) => {
   if (result.status === 400) return forbidden("並非本次與會者");
   // NOTE: 目前 OPass API 怪怪的，所以要先處理一下，等 API 修好後可以拿掉
   const resultJson = await result.json();
+  const share_token = crypto.createHash("sha256").update(token).digest("hex");
+
   const player = await getPlayer(token);
   if (!player) {
     await createPlayer({
       token: data.token,
+      share_token: share_token,
       name: resultJson.user_id,
       score: 0,
       stage: 1,
@@ -26,6 +30,7 @@ export const POST = async (request: NextRequest) => {
     addFragment(data.token, "c", 5);
     return success({
       token: data.token,
+      share_token: resultJson._id.oid,
       name: resultJson.user_id,
       score: 0,
       stage: 1,

@@ -16,6 +16,7 @@ datasource db {
 // 玩家資料
 model Player {
   token        String // kktix_token
+  share_token String @unique// share_token
   name         String // opass user_id
   avatar       String? // jpg, png with token
   linktree     String? // linktree url

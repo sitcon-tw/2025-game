@@ -8,16 +8,16 @@ import { BlockType } from "@/types/index";
 
 type TeamFragments = Array<{
   name: string;
-  fragments: [
-    {
-      type: BlockType;
-      amount: number;
-    },
-  ];
+  fragments: Array<{
+    type: BlockType;
+    amount: number;
+  }>;
 }>;
 
 export default function SharePage() {
   const token = useToken();
+  const playerData = usePlayerData();
+  console.log(playerData);
 
   const { data: teamFragments } = useQuery({
     queryKey: ["fragments", token],
@@ -33,6 +33,8 @@ export default function SharePage() {
       return data;
     },
   });
+
+  console.log(teamFragments);
 
   return (
     <>
