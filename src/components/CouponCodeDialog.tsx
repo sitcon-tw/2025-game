@@ -39,7 +39,7 @@ export default function CouponCodeDialog({
           >
             <div className="mb-5 flex w-full flex-row items-center text-start text-3xl font-bold text-foreground">
               <TicketPercent size={48} className="mr-2 text-foreground" />
-              <span>折價卷</span>
+              <span>折價券</span>
               <Button
                 variant="ghost"
                 className="ml-auto w-10 [&_svg]:size-10"

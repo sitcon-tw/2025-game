@@ -53,9 +53,9 @@ export default function Page() {
     const playerInfo = await getPlayerPuzzle(playerToken);
     // setPlayerToken(null);
     if (typeof result === "object") {
-      toast(`已為 ${playerInfo.user_id} 增加拼圖`, { type: "success" });
+      toast(`已為 ${playerInfo.user_id} 增加板塊`, { type: "success" });
     } else if (result === puzzleTaken) {
-      toast(`${playerInfo.user_id} 已存在這張拼圖`, { type: "warning" });
+      toast(`${playerInfo.user_id} 已存在這張板塊`, { type: "warning" });
     } else if (result === invalidToken) {
       toast(`${playerInfo.user_id} 尚未報到`, {
         type: "error",

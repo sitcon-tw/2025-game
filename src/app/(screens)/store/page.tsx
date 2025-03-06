@@ -66,7 +66,7 @@ export default function StorePage() {
       </section>
       <div className="overflow-y-scroll">
         <section id="lottery" className="w-full px-5 pt-2">
-          <p className="py-2 text-lg">抽獎卷</p>
+          <p className="py-2 text-lg">抽獎券</p>
           <div className="flex flex-row items-center gap-3">
             <div className="self-start">
               <Ticket className="text-foreground" size={50} />
