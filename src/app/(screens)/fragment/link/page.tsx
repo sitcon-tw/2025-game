@@ -1,6 +1,13 @@
 "use client";
 import QrCodeScanner from "@/components/QrCodeScanner";
-import { ChevronUp, ChevronDown, FilePenLine, X, Plus, Minus } from "lucide-react";
+import {
+  ChevronUp,
+  ChevronDown,
+  FilePenLine,
+  X,
+  Plus,
+  Minus,
+} from "lucide-react";
 import Block from "@/components/Block";
 import Fragment from "@/components/Fragment";
 import { useEffect, useState, useCallback } from "react";
@@ -65,20 +72,6 @@ const initialDisplayBlocks: Array<Block> = [
   },
 ];
 
-const testBlocks: Array<Block> = [
-  {
-    type: "a",
-    amount: 2,
-  },
-  {
-    type: "b",
-    amount: 96,
-  },
-  {
-    type: "c",
-    amount: 12,
-  },
-];
 // TODO:: get blocks from API
 const myBlocks: Array<Block> = [
   {
@@ -204,10 +197,12 @@ export default function LinkPage() {
           )}
         </section>
 
-        <div className="space-y-4 mt-4">
+        <div className="mt-4 space-y-4">
           <section className="rounded-xl bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">我的連結板塊</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                我的連結板塊
+              </h3>
               <div className="flex gap-2">
                 <button
                   onClick={() => setPopupType("edit")}
@@ -242,7 +237,9 @@ export default function LinkPage() {
           </section>
 
           <section className="rounded-xl bg-white p-6 shadow-sm">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900">獲得的板塊</h3>
+            <h3 className="mb-4 text-lg font-semibold text-gray-900">
+              獲得的板塊
+            </h3>
             {isLoading ? (
               <p className="text-gray-500">載入中...</p>
             ) : isError ? (
@@ -270,7 +267,9 @@ export default function LinkPage() {
                       </div>
                     )}
                     <div>
-                      <p className="font-medium text-gray-900">{fragment.name}</p>
+                      <p className="font-medium text-gray-900">
+                        {fragment.name}
+                      </p>
                       <div className="mt-2 flex flex-wrap gap-2">
                         {fragment.fragments.map((block, index) => (
                           <Fragment
@@ -310,15 +309,16 @@ const Popup = ({
   sharingBlocks: Block[];
   setSharingBlocks: React.Dispatch<React.SetStateAction<Block[]>>;
 }) => {
-  const token = useToken();
+  const { playerData } = usePlayerData();
   const [qrcodePayload, setQrcodePayload] = useState<string>("");
   const [displayBlocks, setDisplayBlocks] =
     useState<Block[]>(initialDisplayBlocks);
 
   useEffect(() => {
+    if (!playerData) return;
     // 將sharingBlocks 轉換成字串存到qrcodePayload
     const payload = {
-      sharedToken: token,
+      sharedToken: playerData.share_token,
       fragments: sharingBlocks,
     };
     setQrcodePayload(JSON.stringify(payload));
@@ -412,7 +412,7 @@ const Popup = ({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: "spring", duration: 0.5 }}
-              className="relative w-full max-w-lg rounded-2xl bg-gray-900 border border-white/20 p-8 shadow-xl backdrop-blur-xl"
+              className="relative w-full max-w-lg rounded-2xl border border-white/20 bg-gray-900 p-8 shadow-xl backdrop-blur-xl"
             >
               <motion.button
                 whileHover={{ scale: 1.1 }}
@@ -423,7 +423,9 @@ const Popup = ({
                 <X size={20} />
               </motion.button>
               <div className="flex flex-col items-center">
-                <h3 className="mb-6 text-lg font-semibold text-white">分享您的板塊</h3>
+                <h3 className="mb-6 text-lg font-semibold text-white">
+                  分享您的板塊
+                </h3>
                 <motion.div
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
@@ -432,7 +434,9 @@ const Popup = ({
                 >
                   <QRCodeSVG width={200} height={200} value={qrcodePayload} />
                 </motion.div>
-                <p className="mt-4 text-sm text-gray-400">請其他玩家掃描此 QR Code</p>
+                <p className="mt-4 text-sm text-gray-400">
+                  請其他玩家掃描此 QR Code
+                </p>
               </div>
             </motion.div>
           )}
@@ -443,7 +447,7 @@ const Popup = ({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: "spring", duration: 0.5 }}
-              className="relative w-full max-w-lg rounded-2xl bg-gray-900 border border-white/20 p-8 shadow-xl backdrop-blur-xl"
+              className="relative w-full max-w-lg rounded-2xl border border-white/20 bg-gray-900 p-8 shadow-xl backdrop-blur-xl"
             >
               <motion.button
                 whileHover={{ scale: 1.1 }}
@@ -453,7 +457,9 @@ const Popup = ({
               >
                 <X size={20} />
               </motion.button>
-              <h3 className="mb-6 text-lg font-semibold text-white">編輯分享板塊</h3>
+              <h3 className="mb-6 text-lg font-semibold text-white">
+                編輯分享板塊
+              </h3>
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -483,7 +489,9 @@ const Popup = ({
                       >
                         <Minus size={20} />
                       </motion.button>
-                      <span className="w-8 text-center font-medium text-white">{block.amount}</span>
+                      <span className="w-8 text-center font-medium text-white">
+                        {block.amount}
+                      </span>
                       <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}

@@ -10,7 +10,7 @@ import {
 
 export const setSharedFragments = async (
   token: string,
-  friendToken: string,
+  friendToken: string, // share_token
   fragments: Array<{
     type: string;
     amount: number;
@@ -28,12 +28,19 @@ export const setSharedFragments = async (
     // TODO::檢查type是否不是其他方塊
 
     // 檢查分享者是否擁有足夠的板塊
-    const friendFragments = await prisma.fragment.findMany({
-      where: { token: friendToken, shared: false },
+
+    const friend = await prisma.player.findUnique({
+      where: { share_token: friendToken },
+      select: {
+        token: true,
+        fragments: { select: { type: true, amount: true, shared: false } },
+      },
     });
 
+    if (!friend) return conflict("friend not found");
+
     const isEnoughFragments = fragments.every((fragment) => {
-      const friendFragment = friendFragments.find(
+      const friendFragment = friend.fragments.find(
         (f) => f.type === fragment.type,
       );
       if (!friendFragment) return false;
@@ -46,7 +53,7 @@ export const setSharedFragments = async (
     await prisma.fragment.deleteMany({
       where: {
         token: token,
-        shared_token: friendToken,
+        shared_token: friend.token,
         shared: true,
       },
     });
@@ -55,7 +62,7 @@ export const setSharedFragments = async (
     await prisma.fragment.createMany({
       data: fragments.map((fragment) => ({
         token: token,
-        shared_token: friendToken,
+        shared_token: friend.token,
         type: fragment.type,
         amount: fragment.amount,
         shared: true,
@@ -134,7 +141,7 @@ export const getTeamFragments = async (token: string) => {
     if (!player) return conflict("player not found");
 
     if (!player?.team || !player.compass) {
-      return success({ name: player.name, fragments: player.fragments });
+      return success([{ name: player.name, fragments: player.fragments }]);
     }
 
     // 找出所有玩家的fragment
@@ -216,65 +223,51 @@ export const getAllFragments = async (token: string) => {
       include: { team: true },
     });
 
-    if (!player?.team) {
-      const ownedFragments = await prisma.fragment.findMany({
-        where: { token },
-      });
-
-      const groupedFragments = Object.values(
-        ownedFragments.reduce<Record<string, { type: string; amount: number }>>(
-          (acc, f) => {
-            acc[f.type] = acc[f.type] || { type: f.type, amount: 0 };
-            acc[f.type].amount += f.amount;
-            return acc;
-          },
-          {},
-        ),
-      );
-
-      // 按 `type` 排序
-      groupedFragments.sort((a, b) => a.type.localeCompare(b.type));
-
-      return success(groupedFragments);
+    if (!player) {
+      return internalServerError();
     }
 
-    // 如果有隊伍
-    const teamPlayers = await prisma.player.findMany({
-      where: { team_id: player.team.team_id, compass: true },
-      select: {
-        token: true,
-        fragments: {
-          select: { type: true, amount: true, shared: true },
-        },
+    const teamId = player.team?.team_id;
+
+    const fragments = await prisma.fragment.findMany({
+      where: {
+        OR: [
+          { token },
+          { token: { in: teamId ? await getTeamPlayerTokens(teamId) : [] } },
+        ],
       },
+      select: { type: true, amount: true, shared: true, token: true },
     });
 
-    const groupedFragments = Object.values(
-      teamPlayers.reduce<Record<string, { type: string; amount: number }>>(
-        (acc, p) => {
-          const fragments =
-            p.token === token
-              ? p.fragments // 自己的所有碎片
-              : p.fragments.filter((f) => !f.shared); // 隊友的非分享碎片
+    const groupedFragments = fragments.reduce<
+      Record<string, { type: string; amount: number }>
+    >((acc, fragment) => {
+      if (fragment.token !== token && fragment.shared) return acc;
+      acc[fragment.type] = acc[fragment.type] || {
+        type: fragment.type,
+        amount: 0,
+      };
+      acc[fragment.type].amount += fragment.amount;
+      return acc;
+    }, {});
 
-          for (const f of fragments) {
-            acc[f.type] = acc[f.type] || { type: f.type, amount: 0 };
-            acc[f.type].amount += f.amount;
-          }
-          return acc;
-        },
-        {},
-      ),
+    const sortedFragments = Object.values(groupedFragments).sort((a, b) =>
+      a.type.localeCompare(b.type),
     );
 
-    // 按 `type` 排序
-    groupedFragments.sort((a, b) => a.type.localeCompare(b.type));
-
-    return success(groupedFragments);
+    return success(sortedFragments);
   } catch (error: unknown) {
-    console.error(`ERROR fetching all fragments - token:${token}`);
+    console.error(`ERROR fetching all fragments - token:${token}`, error);
     return internalServerError();
   }
+};
+
+const getTeamPlayerTokens = async (teamId: string) => {
+  const players = await prisma.player.findMany({
+    where: { team_id: teamId, compass: true },
+    select: { token: true },
+  });
+  return players.map((player) => player.token);
 };
 
 function groupBy<T>(array: T[], key: (item: T) => string): Record<string, T[]> {

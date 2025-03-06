@@ -158,7 +158,7 @@ export default function LotteryChooser({
               className={`flex w-full pl-1 ${amounts == 0 ? "text-red-400" : ""}`}
             >
               <p className="pr-2 text-left text-2xl font-bold">{amounts}</p>
-              <p className="self-end text-left"> / {amount} 張抽獎卷可用</p>
+              <p className="self-end text-left"> / {amount} 張抽獎券可用</p>
             </div>
             <hr className="my-6 h-0.5 w-full border-t-0 bg-gray-400" />
             <div className="flex w-full flex-col gap-4">
@@ -183,7 +183,7 @@ export default function LotteryChooser({
               {amounts != 0 && (
                 <span className="mt-2 flex flex-row items-center justify-center gap-2 text-red-400">
                   <OctagonAlert size={24} />
-                  您還有抽獎卷沒使用！
+                  您還有抽獎券沒使用！
                 </span>
               )}
               <motion.button

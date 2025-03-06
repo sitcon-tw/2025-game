@@ -86,8 +86,8 @@ const blocks = {
     />
   ),
   obstacle: (
-    <div className="flex h-full w-full items-center justify-center bg-gray-800 rounded-lg">
-      <div className="h-full w-full bg-gray-700 rounded-lg opacity-50" />
+    <div className="flex h-full w-full items-center justify-center rounded-lg bg-gray-800">
+      <div className="h-full w-full rounded-lg bg-gray-700 opacity-50" />
     </div>
   ),
   start: (
@@ -110,6 +110,23 @@ const blocks = {
   ),
 };
 
+function getBlockElement(block: string) {
+  if (block === "obstacle")
+    return <div className="brightness-[40%]">{getBlockElement("empty")}</div>;
+
+  return (
+    <Image
+      src={`/images/fragments/${block}.png`}
+      alt="板塊"
+      width="100"
+      height="100"
+      // style={{
+      //   transform: `rotate(${randomRotation}deg)`,
+      // }}
+    />
+  );
+}
+
 export const Fragment = ({
   type,
   amount,
@@ -122,14 +139,12 @@ export const Fragment = ({
   return (
     <motion.div
       className="relative flex items-end"
-      style={{ width: '50px', height: '50px' }}
+      style={{ width: "50px", height: "50px" }}
       whileHover={{ scale: 1.05 }}
       transition={{ type: "spring", stiffness: 400, damping: 10 }}
     >
-      <div className="relative w-full h-full transition-transform">
-        <div className="rounded-lg overflow-hidden">
-          {blocks[type]}
-        </div>
+      <div className="relative h-full w-full transition-transform">
+        <div className="overflow-hidden rounded-lg">{blocks[type]}</div>
         {showAmount && (
           <motion.div
             initial={{ scale: 0 }}

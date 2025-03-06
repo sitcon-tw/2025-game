@@ -43,7 +43,7 @@ export const POST = async (request: NextRequest) => {
   const boothName = deliverer.slug;
 
   if (!response.message) {
-    // 隨機給予玩家拼圖碎片
+    // 隨機給予玩家板塊碎片
     const fragment = await generateRandomFragments(playerToken, [
       { type: "a", weight: 10 },
       { type: "b", weight: 10 },
@@ -54,10 +54,10 @@ export const POST = async (request: NextRequest) => {
       { type: "c", weight: 20 },
     ]);
     const fragmentName = blockConfig[fragment as keyof typeof blockConfig].name;
-    // 通知玩家拼圖碎片獲得
+    // 通知玩家板塊碎片獲得
     sendNotification(
       playerToken,
-      "拼圖碎片獲得",
+      "板塊碎片獲得",
       `您已獲得了攤位 ${boothName} 的獎勵板塊：${fragmentName}！`,
     );
     return success({ message: puzzleSuccess });

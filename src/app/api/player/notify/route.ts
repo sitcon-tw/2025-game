@@ -27,13 +27,21 @@ export const POST = async (request: NextRequest) => {
     where: {
       token: token,
     },
-  });
-
-  await prisma.notification.deleteMany({
-    where: {
-      token: token,
+    select: {
+      title: true,
+      content: true,
+      created_at: true,
+      notification_id: true,
     },
   });
+
+  if (notifications.length != 0) {
+    await prisma.notification.deleteMany({
+      where: {
+        token: token,
+      },
+    });
+  }
 
   return success(
     notifications.map((notification) => ({

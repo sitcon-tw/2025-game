@@ -156,11 +156,11 @@ function getBlockElement(block: string) {
     <Image
       src={`/images/fragments/${block}.png`}
       alt="板塊"
-      width="300"
-      height="300"
-    // style={{
-    //   transform: `rotate(${randomRotation}deg)`,
-    // }}
+      width="100"
+      height="100"
+      // style={{
+      //   transform: `rotate(${randomRotation}deg)`,
+      // }}
     />
   );
   return blockAndPropsElements[block as keyof typeof blockAndPropsElements];
@@ -199,7 +199,9 @@ function LoadingScreen() {
         >
           載入中
         </motion.div>
-        <p className="text-gray-400">正在準備遊戲資源<span className="absolute animate-pulse">⋯</span></p>
+        <p className="text-gray-400">
+          正在準備遊戲資源<span className="absolute animate-pulse">⋯</span>
+        </p>
       </div>
     </motion.div>
   );
@@ -301,10 +303,12 @@ export default function GamePage() {
       console.log("fragmentRemoved", fragmentRemoved);
       showDialog(
         "恭喜過關",
-        `恭喜你通過了這個關卡！${fragmentRemoved
-          ? `但你失去了一個 ${blocksConfig[fragmentRemoved as keyof typeof blocksConfig].name
-          } ...`
-          : ""
+        `恭喜你通過了這個關卡！${
+          fragmentRemoved
+            ? `但你失去了一個 ${
+                blocksConfig[fragmentRemoved as keyof typeof blocksConfig].name
+              } ...`
+            : ""
         }`,
       );
     },
@@ -410,6 +414,8 @@ export default function GamePage() {
   }
 
   function placeBlock(row: number, col: number, block: string): boolean {
+    const cache: Record<string, boolean> = {};
+
     const newGrid = gameGrid.map((r) => [...r]);
     if (newGrid[row][col] !== "empty") {
       showDialog("無法放置", "這裡已經有被放置板塊了！");
@@ -419,7 +425,14 @@ export default function GamePage() {
 
     let visited = gameGrid.map((row) => row.map(() => false));
     visited[startRow][startCol] = true;
-    const isPathAvailable = dfs(newGrid, startRow, startCol, visited, true);
+    const isPathAvailable = dfs(
+      cache,
+      newGrid,
+      startRow,
+      startCol,
+      visited,
+      true,
+    );
     if (!isPathAvailable) {
       showDialog("無法放置", "你不能把路堵死！！");
       return false;
@@ -428,7 +441,14 @@ export default function GamePage() {
     // check for stage clear
     visited = gameGrid.map((row) => row.map(() => false));
     visited[startRow][startCol] = true;
-    const isStageClear = dfs(newGrid, startRow, startCol, visited, false);
+    const isStageClear = dfs(
+      cache,
+      newGrid,
+      startRow,
+      startCol,
+      visited,
+      false,
+    );
     console.log("isStageClear", isStageClear);
     if (isStageClear) {
       console.log("level clear");
@@ -668,27 +688,6 @@ export default function GamePage() {
     },
   });
 
-  // Show loading screen while data is being fetched
-  if (isPlayerDataLoading || isFragmentsLoading || isStageLoading) {
-    return <LoadingScreen />;
-  }
-
-  // Show error screen if any error occurs
-  if (isPlayerDataError || isStageError) {
-    return <ErrorScreen message="無法載入遊戲資料，請稍後再試" />;
-  }
-
-  // Show error if player data is missing
-  if (!playerData?.token) {
-    return <ErrorScreen message="找不到玩家資料，請重新登入" />;
-  }
-
-  function showDialog(title: string, content: string) {
-    setDialogTitle(title);
-    setDialogContent(content);
-    setIsDialogOpen(true);
-  }
-
   const emptyMap = Array(5).fill(Array(5).fill("empty"));
   const stageMap = stageData?.map ?? emptyMap;
 
@@ -816,6 +815,27 @@ export default function GamePage() {
     );
   }, [fragmentsString, stageMapString]);
 
+  // Show loading screen while data is being fetched
+  if (isPlayerDataLoading || isFragmentsLoading || isStageLoading) {
+    return <LoadingScreen />;
+  }
+
+  // Show error screen if any error occurs
+  if (isPlayerDataError || isStageError) {
+    return <ErrorScreen message="無法載入遊戲資料，請稍後再試" />;
+  }
+
+  // Show error if player data is missing
+  if (!playerData?.token) {
+    return <ErrorScreen message="找不到玩家資料，請重新登入" />;
+  }
+
+  function showDialog(title: string, content: string) {
+    setDialogTitle(title);
+    setDialogContent(content);
+    setIsDialogOpen(true);
+  }
+
   const showZoomButton = gameGrid.length > 5 || gameGrid[0].length > 5;
 
   function handleDragEnd(event: DragEndEvent) {
@@ -892,11 +912,19 @@ export default function GamePage() {
           <DragOverlay>
             <motion.div
               initial={{ scale: 1 }}
-              animate={{ scale: isDraggingBlockOverMap && !IsZoomedIn ? 1.1 : 1 }}
+              animate={{
+                scale: isDraggingBlockOverMap && !IsZoomedIn ? 1.1 : 1,
+              }}
               className="pointer-events-none absolute z-10 border-2 border-white/30"
               style={{
-                width: isDraggingBlockOverMap && !IsZoomedIn ? GAME_MAP_SIZE / rowCount : BLOCK_SIZE,
-                height: isDraggingBlockOverMap && !IsZoomedIn ? GAME_MAP_SIZE / colCount : BLOCK_SIZE,
+                width:
+                  isDraggingBlockOverMap && !IsZoomedIn
+                    ? GAME_MAP_SIZE / rowCount
+                    : BLOCK_SIZE,
+                height:
+                  isDraggingBlockOverMap && !IsZoomedIn
+                    ? GAME_MAP_SIZE / colCount
+                    : BLOCK_SIZE,
                 display: isDragging ? "block" : "none",
               }}
             >
@@ -910,22 +938,26 @@ export default function GamePage() {
           <motion.div
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="flex w-[80%] justify-between items-center bg-white/5 rounded-lg p-4 backdrop-blur-sm"
+            className="flex w-[80%] items-center justify-between rounded-lg bg-white/5 p-4 backdrop-blur-sm"
           >
-            <div className="text-2xl space-y-2">
+            <div className="space-y-2 text-2xl">
               <motion.div
                 className="flex items-center gap-2"
                 whileHover={{ scale: 1.05 }}
               >
                 <p className="text-gray-400">關卡</p>
-                <p className="font-bold text-3xl text-blue-400">{playerData?.stage ?? 1}</p>
+                <p className="text-3xl font-bold text-blue-400">
+                  {playerData?.stage ?? 1}
+                </p>
               </motion.div>
               <motion.div
                 className="flex items-center gap-2"
                 whileHover={{ scale: 1.05 }}
               >
                 <p className="text-gray-400">點數</p>
-                <p className="font-bold text-3xl text-green-400">{playerData?.score ?? 0}</p>
+                <p className="text-3xl font-bold text-green-400">
+                  {playerData?.score ?? 0}
+                </p>
               </motion.div>
             </div>
 
@@ -942,7 +974,9 @@ export default function GamePage() {
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                onClick={() => { router.push("/tutorial") }}
+                onClick={() => {
+                  router.push("/tutorial");
+                }}
               >
                 <Info className="text-white/70 hover:text-white" size={32} />
               </motion.button>
@@ -964,12 +998,18 @@ export default function GamePage() {
                 {
                   "opacity-50": isLoading,
                   "scale-95": isDragging,
-                }
+                },
               )}
               style={{
-                width: IsZoomedIn ? `${GAME_MAP_SIZE + 2}px` : `${GAME_MAP_SIZE + 2}px`,
-                height: IsZoomedIn ? `${GAME_MAP_SIZE + 2}px` : `${GAME_MAP_SIZE + 2}px`,
-                minHeight: IsZoomedIn ? `${GAME_MAP_SIZE + 2}px` : `${GAME_MAP_SIZE + 2}px`,
+                width: IsZoomedIn
+                  ? `${GAME_MAP_SIZE + 2}px`
+                  : `${GAME_MAP_SIZE + 2}px`,
+                height: IsZoomedIn
+                  ? `${GAME_MAP_SIZE + 2}px`
+                  : `${GAME_MAP_SIZE + 2}px`,
+                minHeight: IsZoomedIn
+                  ? `${GAME_MAP_SIZE + 2}px`
+                  : `${GAME_MAP_SIZE + 2}px`,
               }}
             >
               <div className="w-full overflow-scroll">
@@ -1007,7 +1047,7 @@ export default function GamePage() {
               transition={{ delay: 0.2 }}
               className={cn(
                 "mt-8 flex w-screen items-start gap-4 overflow-x-auto bg-white/5 px-6 py-6 backdrop-blur-sm",
-                isDragging ? "opacity-50" : "opacity-100"
+                isDragging ? "opacity-50" : "opacity-100",
               )}
             >
               {inventoryItems.map(({ data, id }, index) => (
@@ -1019,8 +1059,16 @@ export default function GamePage() {
                 >
                   <BlockInInventory
                     isOverMap={isDraggingBlockOverMap}
-                    width={isDraggingBlockOverMap ? GAME_MAP_SIZE / rowCount : BLOCK_SIZE}
-                    height={isDraggingBlockOverMap ? GAME_MAP_SIZE / colCount : BLOCK_SIZE}
+                    width={
+                      isDraggingBlockOverMap
+                        ? GAME_MAP_SIZE / rowCount
+                        : BLOCK_SIZE
+                    }
+                    height={
+                      isDraggingBlockOverMap
+                        ? GAME_MAP_SIZE / colCount
+                        : BLOCK_SIZE
+                    }
                     id={id}
                     data={data}
                     isDropped={isDropped}
@@ -1047,7 +1095,9 @@ export default function GamePage() {
               exit={{ scale: 0.9, opacity: 0 }}
               className="w-full max-w-md rounded-xl bg-gray-800 p-6 shadow-xl"
             >
-              <h2 className="mb-4 text-2xl font-bold text-white">{dialogTitle}</h2>
+              <h2 className="mb-4 text-2xl font-bold text-white">
+                {dialogTitle}
+              </h2>
               <p className="text-lg text-gray-300">{dialogContent}</p>
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -1101,7 +1151,7 @@ function GameMapGridCell({
       whileHover={{ scale: isPlaceable ? 1.05 : 1 }}
       className={cn(
         "relative border border-white/10 transition-colors",
-        isPlaceable && "cursor-pointer hover:border-white/30"
+        isPlaceable && "cursor-pointer hover:border-white/30",
       )}
       style={{
         height: IsZoomedIn ? "64px" : `${GAME_MAP_SIZE / maxSideCount}px`,
@@ -1119,12 +1169,13 @@ function GameMapGridCell({
             ? "bg-yellow-500"
             : cellType === "obstacle"
               ? "bg-red-500"
-              : "bg-blue-500"
+              : "bg-blue-500",
         )}
       />
       <motion.div
         animate={{
-          opacity: isOver && !isDropped && !(!isPlaceable && isDragging) ? 0.5 : 0,
+          opacity:
+            isOver && !isDropped && !(!isPlaceable && isDragging) ? 0.5 : 0,
         }}
         className="absolute inset-0 z-10 bg-green-500"
       />
@@ -1156,10 +1207,10 @@ function BlockInInventory({
     });
   const style = transform
     ? {
-      // transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-      width: BLOCK_SIZE,
-      height: BLOCK_SIZE,
-    }
+        // transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        width: BLOCK_SIZE,
+        height: BLOCK_SIZE,
+      }
     : undefined;
 
   const scaleStyle = {
@@ -1180,7 +1231,7 @@ function BlockInInventory({
       whileHover={{ scale: isDisabled ? 1 : 1.05 }}
       className={cn(
         "relative flex items-end justify-start gap-2",
-        isDisabled && "opacity-50"
+        isDisabled && "opacity-50",
       )}
     >
       <div className="relative">

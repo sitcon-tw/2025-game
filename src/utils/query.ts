@@ -1,9 +1,8 @@
 import { prisma } from "@/utils/prisma";
-import { PlayerData, StageData } from "@/types";
+import { PlayerData } from "@/types";
 import { dfs } from "@/utils/dfs";
 import { badRequest, conflict, internalServerError } from "@/utils/response";
 import { Prisma } from "@prisma/client";
-import { NextResponse } from "next/server";
 import achievementsConfig from "@/config/achievements.json";
 
 function getRandomInt(max: number) {
@@ -15,6 +14,7 @@ function generateStage(
   obstaclesPercentage: number = 0.5,
   retries = 10,
 ) {
+  const cache: Record<string, boolean> = {};
   const grid = Array.from({ length: size }, () =>
     Array.from({ length: size }, () => "empty"),
   );
@@ -68,7 +68,7 @@ function generateStage(
     Array.from({ length: size }, () => false),
   );
 
-  const isSolvable = dfs(grid, startRow, startColumn, visited, true);
+  const isSolvable = dfs(cache, grid, startRow, startColumn, visited, true);
 
   if (!isSolvable) {
     return generateStage(
@@ -89,94 +89,89 @@ function getStageSize(level: number) {
 const query = {
   createCoupon: async () => {},
   giveCoupon: async (type: number, playerToken: string) => {
-    const coupon = await prisma.coupon.create({
+    return prisma.coupon.create({
       data: {
         token: playerToken,
         type,
         used: false,
       },
     });
-    return coupon;
   },
   getAllCoupons: async (playerToken: string) => {
-    const coupons = await prisma.coupon.findMany({
+    return prisma.coupon.findMany({
       where: { token: playerToken },
     });
-    return coupons;
   },
   addAchievementProgress: async (
     playerToken: string,
     achievementId: string,
   ) => {
-    const achievement = await prisma.achievementStatus.findUnique({
-      where: {
-        achievement_id_token: {
-          achievement_id: achievementId,
-          token: playerToken,
-        },
-      },
-    });
-    const achievementConfig =
-      achievementsConfig[achievementId as keyof typeof achievementsConfig];
-
-    if ((achievement?.current ?? 0) >= achievementConfig.target) return false;
-    if (!achievement) {
-      await prisma.achievementStatus.create({
-        data: {
-          token: playerToken,
-          achievement_id: achievementId,
-          current: 1,
-        },
-      });
-      return true;
-    } else {
-      await prisma.achievementStatus.update({
+    return prisma.$transaction(async (prisma) => {
+      const achievement = await prisma.achievementStatus.findUnique({
         where: {
           achievement_id_token: {
             achievement_id: achievementId,
             token: playerToken,
           },
         },
-        data: { current: achievement.current + 1 },
+      });
+      const achievementConfig =
+        achievementsConfig[achievementId as keyof typeof achievementsConfig];
+
+      if ((achievement?.current ?? 0) >= achievementConfig.target) return false;
+      await prisma.achievementStatus.upsert({
+        where: {
+          achievement_id_token: {
+            achievement_id: achievementId,
+            token: playerToken,
+          },
+        },
+        update: { current: { increment: 1 } },
+        create: {
+          token: playerToken,
+          achievement_id: achievementId,
+          current: 1,
+        },
       });
       return true;
-    }
-    return false;
+    });
   },
   getAllAchievementStatus: async (playerToken: string) => {
     const achievements = await prisma.achievementStatus.findMany({
       where: { token: playerToken },
     });
-    const response = achievements.map((achievement) => ({
+    return achievements.map((achievement) => ({
       id: achievement.achievement_id,
       current: achievement.current,
     }));
-    return response;
   },
   createPlayer: async (playerData: PlayerData) => {
-    try {
-      const player = await prisma.player.create({
-        data: {
-          token: playerData.token,
-          name: playerData.name,
-          avatar: playerData.avatar ?? "",
-          linktree: playerData.linktree ?? "",
-          stage: playerData.stage ?? 1,
-        },
-      });
-      return player.token;
-    } catch (error: unknown) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        switch (error.code) {
-          case "P2002":
-            return conflict("Player already exists.");
-          case "P2003":
-            return badRequest("Foreign Key not allow.");
-          default:
-            return internalServerError();
-        }
-      } else return internalServerError();
-    }
+    return prisma.$transaction(async (prisma) => {
+      try {
+        const player = await prisma.player.create({
+          data: {
+            token: playerData.token,
+            share_token: playerData.share_token,
+            name: playerData.name,
+            avatar: playerData.avatar ?? "",
+            linktree: playerData.linktree ?? "",
+            stage: playerData.stage ?? 1,
+          },
+        });
+        return player.token;
+      } catch (error: unknown) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          switch (error.code) {
+            case "P2002":
+              return conflict("Player already exists.");
+            case "P2003":
+              return badRequest("Foreign Key not allow.");
+            default:
+              return internalServerError();
+          }
+        } else return internalServerError();
+      }
+    });
   },
   getBlock: async (playerId: string) => {},
   removeRandomNotSharedFragment: async (playerId: string) => {
@@ -300,77 +295,59 @@ const query = {
   },
   setPlayer: async () => {},
   setScore: async (playerId: string, score: number, teamId?: string) => {
-    let playerScore = await prisma.playerScoreboard.findUnique({
-      where: { token: playerId },
-    });
-    const player = await getPlayer(playerId);
-    const points = player?.points ?? 0;
-
-    if (!playerScore) {
-      playerScore = await prisma.playerScoreboard.create({
-        data: { token: playerId, score: score },
-      });
-      await prisma.player.update({
-        where: { token: playerId },
-        data: { points: score },
-      });
-    } else {
-      console.log(playerScore.score, points, score);
-      const newScore = playerScore.score + score;
+    return prisma.$transaction(async (prisma) => {
+      const player = await getPlayer(playerId);
+      const points = player?.points ?? 0;
       const newPoints = points + score;
-      console.log(newScore, newPoints);
-      playerScore = await prisma.playerScoreboard.update({
+
+      const playerScore = await prisma.playerScoreboard.upsert({
         where: { token: playerId },
-        data: { score: newScore },
+        create: { token: playerId, score },
+        update: { score: { increment: score } },
       });
+
       await prisma.player.update({
         where: { token: playerId },
         data: { points: newPoints },
       });
-    }
 
-    // 沒有 teamId 就不用更新 teamScore
-    if (!teamId) return { updatedPlayerScore: playerScore };
+      // 沒有 teamId 就不用更新 teamScore
+      if (!teamId) return { updatedPlayerScore: playerScore };
 
-    let teamScore = await prisma.teamScoreboard.findUnique({
-      where: { team_id: teamId },
-    });
-
-    if (!teamScore) {
-      teamScore = await prisma.teamScoreboard.create({
-        data: { team_id: teamId, score: score },
-      });
-    } else {
-      const newTeamScore = teamScore.score + score;
-      teamScore = await prisma.teamScoreboard.update({
+      const teamScore = await prisma.teamScoreboard.upsert({
         where: { team_id: teamId },
-        data: { score: newTeamScore },
+        update: { score: { increment: score } },
+        create: { team_id: teamId, score },
       });
-    }
 
-    return { updatedPlayerScore: playerScore, updatedTeamScore: teamScore };
+      return { updatedPlayerScore: playerScore, updatedTeamScore: teamScore };
+    });
   },
   removePoints: async (playerId: string, points: number) => {
-    const player = await prisma.player.findUnique({
-      where: { token: playerId },
-    });
-    if (!player) return;
-    const newPoints = player.points - points;
-    if (newPoints >= 0) {
-      await prisma.player.update({
+    return prisma.$transaction(async (prisma) => {
+      const player = await prisma.player.findUnique({
         where: { token: playerId },
-        data: { points: newPoints },
       });
-    }
-    return newPoints;
+      if (!player) return;
+      const newPoints = player.points - points;
+      if (newPoints >= 0) {
+        await prisma.player.update({
+          where: { token: playerId },
+          data: { points: newPoints },
+        });
+      }
+      return newPoints;
+    });
   },
   playerStageClear: async (playerId: string, stageNumber: number) => {
-    await prisma.player.update({
-      where: { token: playerId },
-      data: { stage: { increment: 1 } },
+    return prisma.$transaction(async (prisma) => {
+      await prisma.player.update({
+        where: { token: playerId },
+        data: { stage: { increment: 1 } },
+      });
+      // add score
+      await query.setScore(playerId, stageNumber * 50);
     });
-    // add score
-    await query.setScore(playerId, stageNumber * 50);
   },
 };
 export const {
