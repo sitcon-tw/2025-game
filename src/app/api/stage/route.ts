@@ -148,7 +148,7 @@ export const POST = async (request: NextRequest) => {
     const fragmentRemoved = await removeRandomNotSharedFragment(token);
 
     // 更新玩家關卡 & 增加分數
-    playerStageClear(token, player.stage);
+    await playerStageClear(token, player.stage);
 
     return success({ fragmentRemoved });
 
@@ -168,7 +168,6 @@ export const POST = async (request: NextRequest) => {
     // 將更新後的stageData 存入database
     // return 更新過後的stageData 給前端
   } catch (error) {
-    console.error(error);
     return badRequest("Something went wrong.");
   }
 };
