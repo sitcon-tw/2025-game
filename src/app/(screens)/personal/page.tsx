@@ -12,6 +12,9 @@ export default function PersonalPage() {
   const { Canvas } = useQRCode();
   const { playerData, isError, isLoading } = usePlayerData();
 
+  const stage = playerData?.stage ?? 1;
+  const level = Math.max(1, Math.floor(stage / 10) + 1);
+
   return (
     <div className="mx-auto space-y-6">
       {/* Profile Card */}
@@ -27,7 +30,10 @@ export default function PersonalPage() {
             </div>
             <div className="flex-1">
               {playerData?.name ? (
-                <h2 className="text-xl font-bold">{playerData.name}</h2>
+                <h2 className="text-xl font-bold">
+                  {playerData.name}{" "}
+                  <span className="ml-1 text-sm text-blue-300">Lv.{level}</span>
+                </h2>
               ) : (
                 <Skeleton className="h-7 w-32 bg-white/30" />
               )}
