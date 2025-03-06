@@ -22,7 +22,7 @@ export default function RootLayout({
         <Suspense>
           <TokenProvider>
             <QueryClientProvider client={queryClient}>
-              <div className="relative h-full w-full overflow-y-scroll pb-16">
+              <div className="relative h-full w-full overflow-y-hidden pb-16">
                 {children}
               </div>
               <div className="fixed bottom-0 w-full">
