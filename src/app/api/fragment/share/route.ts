@@ -35,6 +35,30 @@ export const POST = async (request: NextRequest) => {
   const result = await fetch(`${API_URL}/status?token=${token}`);
   if (result.status === 400) return forbidden("並非本次與會者");
 
+  const friendResult = await fetch(`${API_URL}/status?token=${friendToken}`);
+  if (result.status === 400) return forbidden("對象並非本次與會者");
+
+  const typeSet = new Set<string>();
+
+  for (const fragment of fragments) {
+    if (!fragment.type || !fragment.amount) {
+      return badRequest("Fragment type and amount are required.");
+    }
+
+    if (typeof fragment.amount !== "number") {
+      return badRequest("Fragment amount should be a number.");
+    }
+
+    if (fragment.amount <= 0) {
+      return badRequest("Fragment amount should be greater than 0.");
+    }
+
+    if (typeSet.has(fragment.type)) {
+      return badRequest("Duplicated fragment type.");
+    }
+    typeSet.add(fragment.type);
+  }
+
   const response = await setSharedFragments(token, friendToken, fragments);
 
   return response;
