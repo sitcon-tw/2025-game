@@ -37,7 +37,11 @@ export default function RootLayout({
                 <footer className="border-t border-gray-700/30 bg-primary/95 px-2 py-1 shadow-lg backdrop-blur-md">
                   <nav className="mx-auto flex max-w-md items-center justify-between">
                     <NavbarItem href="/game" name="遊戲" Icon={Gamepad} />
-                    <NavbarItem href="/fragment" name="板塊" Icon={Blocks} />
+                    <NavbarItem
+                      href="/fragment/link"
+                      name="板塊"
+                      Icon={Blocks}
+                    />
                     <NavbarItem href="/store" name="商店" Icon={Store} />
                     <NavbarItem href="/personal" name="個人" Icon={UserRound} />
                   </nav>
