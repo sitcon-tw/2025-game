@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, ReactNode } from "react";
 import { CSS } from "@dnd-kit/utilities";
+import Router from "next/router";
 import blocksConfig from "@/config/blocks.json";
 import {
   DndContext,
@@ -14,6 +15,7 @@ import {
 import {
   LogOut,
   Info,
+  RotateCcw,
   ArrowDownUp,
   RotateCcwSquare,
   Bomb,
@@ -900,7 +902,7 @@ export default function GamePage() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="min-h-[calc(100vh_-_73px)] overflow-y-hidden bg-gradient-to-b from-gray-900 to-gray-800 text-white"
+      className="min-h-[calc(100vh_-_73px)] overflow-y-scroll bg-gradient-to-b from-gray-900 to-gray-800 text-white"
     >
       <DndContext
         onDragOver={handleDragOver}
@@ -962,6 +964,18 @@ export default function GamePage() {
             </div>
 
             <div className="flex items-center gap-6">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => {
+                  window.location.reload();
+                }}
+              >
+                <RotateCcw
+                  className="text-white/70 hover:text-white"
+                  size={32}
+                />
+              </motion.button>
               {showZoomButton && (
                 <motion.button
                   whileHover={{ scale: 1.1 }}
@@ -989,7 +1003,7 @@ export default function GamePage() {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", duration: 0.5 }}
-            className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden"
+            className="flex h-full w-full flex-col items-center justify-center overflow-hidden"
           >
             {/* Grid */}
             <div
@@ -1042,13 +1056,10 @@ export default function GamePage() {
 
             {/* Inventory */}
             <motion.div
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className={cn(
-                "mt-8 flex w-screen items-start gap-4 overflow-x-auto bg-white/5 px-6 py-6 backdrop-blur-sm",
-                isDragging ? "opacity-50" : "opacity-100",
-              )}
+              initial={{ opacity: 0, y: 300 }}
+              animate={{ opacity: isDragging ? 0 : 1, y: 0 }}
+              transition={{ type: "spring", duration: 0.5 }}
+              className={`flex w-screen items-start gap-4 overflow-x-auto bg-white/5 px-6 py-6 backdrop-blur-sm ${isDragging && "overflow-hidden"}`}
             >
               {inventoryItems.map(({ data, id }, index) => (
                 <motion.div

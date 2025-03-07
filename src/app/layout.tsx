@@ -17,7 +17,6 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
-  const enableScroll = pathname !== "/game";
 
   return (
     <html lang="zh-Hant-TW">
@@ -26,10 +25,7 @@ export default function RootLayout({
           <TokenProvider>
             <QueryClientProvider client={queryClient}>
               <div
-                className={cn(
-                  "relative h-full w-full pb-16",
-                  enableScroll ? "overflow-y-scroll" : "overflow-hidden",
-                )}
+                className={cn("relative h-full w-full overflow-y-scroll pb-16")}
               >
                 {children}
               </div>
