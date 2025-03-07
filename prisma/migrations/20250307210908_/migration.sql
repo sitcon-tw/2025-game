@@ -24,6 +24,7 @@ CREATE TABLE "Team" (
     "player2_id" TEXT,
     "player3_id" TEXT,
     "player4_id" TEXT,
+    "scores" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "Team_pkey" PRIMARY KEY ("team_id")
 );
@@ -49,14 +50,6 @@ CREATE TABLE "Notification" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Notification_pkey" PRIMARY KEY ("notification_id")
-);
-
--- CreateTable
-CREATE TABLE "TeamScoreboard" (
-    "team_id" UUID NOT NULL,
-    "score" INTEGER NOT NULL,
-
-    CONSTRAINT "TeamScoreboard_pkey" PRIMARY KEY ("team_id")
 );
 
 -- CreateTable
@@ -145,9 +138,6 @@ ALTER TABLE "Fragment" ADD CONSTRAINT "Fragment_shared_token_fkey" FOREIGN KEY (
 
 -- AddForeignKey
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_token_fkey" FOREIGN KEY ("token") REFERENCES "Player"("token") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "TeamScoreboard" ADD CONSTRAINT "TeamScoreboard_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "Team"("team_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "AchievementStatus" ADD CONSTRAINT "AchievementStatus_token_fkey" FOREIGN KEY ("token") REFERENCES "Player"("token") ON DELETE RESTRICT ON UPDATE CASCADE;
