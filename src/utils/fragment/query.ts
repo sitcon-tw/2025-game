@@ -39,6 +39,10 @@ export const setSharedFragments = async (
 
     if (!friend) return conflict("friend not found");
 
+    console.log("friend want to share", friendToken);
+    console.log("fragments want to share", fragments);
+    console.log("friend fragments", friend.fragments);
+
     const isEnoughFragments = fragments.every((fragment) => {
       const friendFragment = friend.fragments.find(
         (f) => f.type === fragment.type,

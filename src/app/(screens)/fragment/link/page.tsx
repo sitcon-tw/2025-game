@@ -199,7 +199,6 @@ function LinkPageClient() {
     }
   }, [myBlocks]);
 
-
   console.log("myBlocks", myBlocks);
 
   // function qrCodeScannerCallback(decodedText: string) {
@@ -423,7 +422,7 @@ const Popup = ({
     return {
       type: block.type,
       amount: sharedBlock ? sharedBlock.amount : 0,
-    }
+    };
   });
 
   const handleSubtractBlock = (type: string) => {
@@ -531,12 +530,16 @@ const Popup = ({
                     return amountMyB - amountMyA;
                   })
                   .map((block, index) => {
-                    const sharedAmount = sharingBlocks.find(
-                      (b) => b.type === block.type,
-                    )?.amount ?? 0;
+                    const sharedAmount =
+                      sharingBlocks.find((b) => b.type === block.type)
+                        ?.amount ?? 0;
                     const totalSharedLeft = 3 - sharedBlocksCount;
-                    const myBlockAmount = myBlocks.find((b) => b.type === block.type )?.amount ?? 0;
-                    const maxAmount = Math.min(myBlockAmount, block.amount + totalSharedLeft);
+                    const myBlockAmount =
+                      myBlocks.find((b) => b.type === block.type)?.amount ?? 0;
+                    const maxAmount = Math.min(
+                      myBlockAmount,
+                      block.amount + totalSharedLeft,
+                    );
                     return (
                       <motion.div
                         key={block.type}
@@ -577,8 +580,13 @@ const Popup = ({
                             whileTap={{ scale: 0.9 }}
                             onClick={() => handleAddBlock(block.type)}
                             disabled={!getIsAddable(block.type)}
-                            className={cn("rounded p-1 text-white/70 hover:bg-white/10 hover:text-white disabled:opacity-50",
-                              {"opacity-50 pointer-events-none": block.amount >= maxAmount})}
+                            className={cn(
+                              "rounded p-1 text-white/70 hover:bg-white/10 hover:text-white disabled:opacity-50",
+                              {
+                                "pointer-events-none opacity-50":
+                                  block.amount >= maxAmount,
+                              },
+                            )}
                           >
                             <Plus size={20} />
                           </motion.button>
