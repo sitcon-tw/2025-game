@@ -12,6 +12,7 @@ import { QrCode } from "lucide-react";
 import QrCodeScanner from "@/components/QrCodeScanner";
 import { useQuery } from "@tanstack/react-query";
 import useToken from "@/hooks/useToken";
+import useThrottle from "@/hooks/useThrottle"
 
 export default function Page() {
   // const [playerToken, setPlayerToken] = useState<string | null>(null);
@@ -62,6 +63,10 @@ export default function Page() {
       });
     }
   };
+
+
+  const handleResultThrottle = useThrottle(handleResult, 5000);
+
   // handleResult();
   // console.log("boothName", boothName);
   // console.log("boothToken", boothToken);
@@ -85,7 +90,7 @@ export default function Page() {
           <div className="aspect-square w-full overflow-hidden rounded-xl">
             <QrCodeScanner
               qrCodeSuccessCallback={(result) => {
-                handleResult(result);
+                handleResultThrottle(result);
                 // setPlayerToken(result);
               }}
             />
