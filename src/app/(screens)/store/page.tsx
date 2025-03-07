@@ -8,52 +8,115 @@ import usePlayerData from "@/hooks/usePlayerData";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import useToken from "@/hooks/useToken";
-import { Lottery, LotteryItem, LotteryPriceList } from "@/lib/interface";
+import {
+  Lottery,
+  LotteryItem,
+  LotteryPriceList,
+  ErrorItem,
+} from "@/lib/interface";
+import ErrorCard from "@/components/ui/error-card";
 
 export default function StorePage() {
   const [lotteryAmount, setLotteryAmount] = useState(0);
   const [lotteryChooserOpen, setLotteryChooserOpen] = useState(false);
 
-  const [loading, setLoading] = useState(true);
   const { playerData } = usePlayerData();
   const token = useToken();
 
-  const { data: lotteryItems } = useQuery<LotteryItem[]>({
+  // 🎯 1. 取得 Lottery Items
+  const {
+    data: lotteryItems,
+    isLoading: isLoadingItems,
+    isError: isErrorItems,
+    error: errorItems,
+  } = useQuery<LotteryItem[]>({
     queryKey: ["lottery_items", token],
     queryFn: async () => {
       const response = await fetch(`/api/lottery/items?token=${token}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          `HTTP error! status: ${response.status}, ${errorData.message}`,
+        );
+      }
       return response.json();
     },
   });
 
-  const { data: priceList } = useQuery<LotteryPriceList[]>({
+  // 🎯 2. 取得 Price List
+  const {
+    data: priceList,
+    isLoading: isLoadingPrice,
+    isError: isErrorPrice,
+    error: errorPrice,
+  } = useQuery<LotteryPriceList[]>({
     queryKey: ["price", token],
     queryFn: async () => {
       const response = await fetch(`/api/lottery/price?token=${token}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          `HTTP error! status: ${response.status}, ${errorData.message}`,
+        );
+      }
       return response.json();
     },
   });
 
-  const { data: lotteryList } = useQuery<Lottery[]>({
+  // 🎯 3. 取得 Lottery List
+  const {
+    data: lotteryList,
+    isLoading: isLoadingLottery,
+    isError: isErrorLottery,
+    error: errorLottery,
+  } = useQuery<Lottery[]>({
     queryKey: ["lottery", token],
     queryFn: async () => {
       const response = await fetch(`/api/lottery?token=${token}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          `HTTP error! status: ${response.status}, ${errorData.message}`,
+        );
+      }
       return response.json();
     },
   });
 
-  useEffect(() => {
-    if (token && lotteryItems && priceList && lotteryList) {
-      setLoading(false);
-    }
-  }, [lotteryItems, lotteryList, priceList, token]);
-
-  if (loading || !(token && lotteryItems && priceList && lotteryList)) {
+  // 🛠 **統一管理 Loading 狀態**
+  if (isLoadingItems || isLoadingPrice || isLoadingLottery) {
     return (
       <div className="spinner-container">
         <div className="spinner"></div>
       </div>
     );
+  }
+
+  // ❌ **統一管理 Error 狀態**
+  if (isErrorItems || isErrorPrice || isErrorLottery) {
+    const errorItemsFromAPI: ErrorItem[] = [];
+    if (isErrorItems) {
+      errorItemsFromAPI.push({
+        icon: "🎟️",
+        label: "Lottery Items Error",
+        message: errorItems?.message ?? "Unknown error",
+      });
+    }
+    if (isErrorPrice) {
+      errorItemsFromAPI.push({
+        icon: "💰",
+        label: "Price List Error",
+        message: errorPrice?.message ?? "Unknown error",
+      });
+    }
+    if (isErrorLottery) {
+      errorItemsFromAPI.push({
+        icon: "🎫",
+        label: "Lottery List Error",
+        message: errorLottery?.message ?? "Unknown error",
+      });
+    }
+    return <ErrorCard errorItems={errorItemsFromAPI} />;
   }
 
   return (
@@ -101,9 +164,9 @@ export default function StorePage() {
       </div>
       <LotteryChooser
         amount={lotteryAmount}
-        lotteryList={lotteryItems}
-        myLotteryList={lotteryList}
-        token={token}
+        lotteryList={lotteryItems ?? []}
+        myLotteryList={lotteryList ?? []}
+        token={token ?? ""}
         isOpen={lotteryChooserOpen}
         setIsOpenAction={setLotteryChooserOpen}
       />

@@ -184,6 +184,56 @@ interface InventoryItem {
   id: string;
 }
 
+function LoadingScreen() {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-900 to-gray-800"
+    >
+      <div className="text-center">
+        <motion.div
+          animate={{ scale: [1, 1.1, 1] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+          className="mb-4 text-4xl font-bold text-blue-400"
+        >
+          載入中
+        </motion.div>
+        <p className="text-gray-400">
+          正在準備遊戲資源<span className="absolute animate-pulse">⋯</span>
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
+function ErrorScreen({ message }: { message: string }) {
+  const router = useRouter();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-900 to-gray-800"
+    >
+      <div className="text-center">
+        <motion.div className="mb-4 text-2xl font-bold text-red-400">
+          發生錯誤
+        </motion.div>
+        <p className="mb-4 text-gray-400">{message}</p>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => router.push("/")}
+          className="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+        >
+          返回首頁
+        </motion.button>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function GamePage() {
   // react usestate -- dont change anything here!
   const [Level, setLevel] = useState(1);
@@ -603,6 +653,7 @@ export default function GamePage() {
 
   const { data: fragments, isLoading: isFragmentsLoading } = useQuery({
     queryKey: ["fragments", playerData?.token],
+    enabled: !!playerData?.token,
     queryFn: async () => {
       const response = await fetch("/api/fragment?token=" + playerData?.token);
 
@@ -619,10 +670,11 @@ export default function GamePage() {
   const {
     data: stageData,
     isLoading: isStageLoading,
-    isError,
-    error,
+    isError: isStageError,
+    error: stageError,
   } = useQuery({
     queryKey: ["stage", playerData?.stage],
+    enabled: !!playerData?.token && !!playerData?.stage,
     queryFn: async () => {
       const response = await fetch("/api/stage?token=" + playerData?.token);
 
@@ -635,12 +687,6 @@ export default function GamePage() {
       return data;
     },
   });
-
-  function showDialog(title: string, content: string) {
-    setDialogTitle(title);
-    setDialogContent(content);
-    setIsDialogOpen(true);
-  }
 
   const emptyMap = Array(5).fill(Array(5).fill("empty"));
   const stageMap = stageData?.map ?? emptyMap;
@@ -769,6 +815,27 @@ export default function GamePage() {
     );
   }, [fragmentsString, stageMapString]);
 
+  // Show loading screen while data is being fetched
+  if (isPlayerDataLoading || isFragmentsLoading || isStageLoading) {
+    return <LoadingScreen />;
+  }
+
+  // Show error screen if any error occurs
+  if (isPlayerDataError || isStageError) {
+    return <ErrorScreen message="無法載入遊戲資料，請稍後再試" />;
+  }
+
+  // Show error if player data is missing
+  if (!playerData?.token) {
+    return <ErrorScreen message="找不到玩家資料，請重新登入" />;
+  }
+
+  function showDialog(title: string, content: string) {
+    setDialogTitle(title);
+    setDialogContent(content);
+    setIsDialogOpen(true);
+  }
+
   const showZoomButton = gameGrid.length > 5 || gameGrid[0].length > 5;
 
   function handleDragEnd(event: DragEndEvent) {
@@ -830,7 +897,11 @@ export default function GamePage() {
   }
 
   return (
-    <>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-[calc(100vh_-_73px)] overflow-y-hidden bg-gradient-to-b from-gray-900 to-gray-800 text-white"
+    >
       <DndContext
         onDragOver={handleDragOver}
         sensors={sensors}
@@ -839,8 +910,12 @@ export default function GamePage() {
       >
         {draggingBlockID && !isDropped && (
           <DragOverlay>
-            <div
-              className="pointer-events-none absolute z-10 border-2 border-gray-300"
+            <motion.div
+              initial={{ scale: 1 }}
+              animate={{
+                scale: isDraggingBlockOverMap && !IsZoomedIn ? 1.1 : 1,
+              }}
+              className="pointer-events-none absolute z-10 border-2 border-white/30"
               style={{
                 width:
                   isDraggingBlockOverMap && !IsZoomedIn
@@ -854,55 +929,75 @@ export default function GamePage() {
               }}
             >
               {getBlockElement(draggingBlockID)}
-            </div>
+            </motion.div>
           </DragOverlay>
         )}
-        <div
-          className={cn(
-            "flex h-full w-full flex-col items-center overflow-hidden py-4",
-          )}
-        >
-          {/* header */}
-          <div className="flex w-[80%] justify-between">
-            <div className="text-2xl">
-              <div className="flex">
-                <p>關卡：</p>
-                <p>{playerData?.stage ?? 1}</p>
-              </div>
-              <div className="flex">
-                <p>點數：</p>
-                <p>{playerData?.score ?? 0}</p>
-              </div>
+
+        <div className="flex h-full w-full flex-col items-center overflow-hidden py-4">
+          {/* Header */}
+          <motion.div
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="flex w-[80%] items-center justify-between rounded-lg bg-white/5 p-4 backdrop-blur-sm"
+          >
+            <div className="space-y-2 text-2xl">
+              <motion.div
+                className="flex items-center gap-2"
+                whileHover={{ scale: 1.05 }}
+              >
+                <p className="text-gray-400">關卡</p>
+                <p className="text-3xl font-bold text-blue-400">
+                  {playerData?.stage ?? 1}
+                </p>
+              </motion.div>
+              <motion.div
+                className="flex items-center gap-2"
+                whileHover={{ scale: 1.05 }}
+              >
+                <p className="text-gray-400">積分</p>
+                <p className="text-3xl font-bold text-green-400">
+                  {playerData?.score ?? 0}
+                </p>
+              </motion.div>
             </div>
 
-            <div className="flex items-baseline space-x-4">
+            <div className="flex items-center gap-6">
               {showZoomButton && (
-                <Scan
-                  className="hover:scale-110 active:scale-95"
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                   onClick={toggleZoom}
-                  size={32}
-                />
+                >
+                  <Scan className="text-white/70 hover:text-white" size={32} />
+                </motion.button>
               )}
-              <div>
-                <Info
-                  className="hover:cursor-pointer"
-                  onClick={() => {
-                    router.push("/tutorial");
-                  }}
-                  size={32}
-                />
-              </div>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => {
+                  router.push("/tutorial");
+                }}
+              >
+                <Info className="text-white/70 hover:text-white" size={32} />
+              </motion.button>
             </div>
-          </div>
-          <div className="py-3" />
-          {/* game area */}
-          <div className="flex h-full w-full flex-col items-center justify-center overflow-hidden">
-            {/* grid part */}
+          </motion.div>
+
+          {/* Game Area */}
+          <div className="py-4" />
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", duration: 0.5 }}
+            className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden"
+          >
+            {/* Grid */}
             <div
               className={cn(
-                `flex flex-col justify-center overflow-auto border border-gray-300 transition-opacity`,
+                "flex flex-col justify-center overflow-hidden rounded-lg border border-white/20 bg-black/20 backdrop-blur-sm transition-all",
                 {
                   "opacity-50": isLoading,
+                  "scale-95": isDragging,
                 },
               )}
               style={{
@@ -917,7 +1012,7 @@ export default function GamePage() {
                   : `${GAME_MAP_SIZE + 2}px`,
               }}
             >
-              <div className="w-full overflow-scroll">
+              <div className="w-full overflow-hidden">
                 {gameGrid.map((row, rowIndex) => (
                   <div key={rowIndex} className={cn("flex", "justify-start")}>
                     {row.map((cell, colIndex) => {
@@ -944,69 +1039,79 @@ export default function GamePage() {
                 ))}
               </div>
             </div>
-            {/* inventory */}
-            <div
+
+            {/* Inventory */}
+            <motion.div
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
               className={cn(
-                "flex w-screen items-start gap-4 overflow-x-scroll bg-transparent px-6 py-9 text-foreground transition",
+                "mt-8 flex w-screen items-start gap-4 overflow-x-auto bg-white/5 px-6 py-6 backdrop-blur-sm",
                 isDragging ? "opacity-50" : "opacity-100",
               )}
             >
-              {/* <div className="flex justify-start gap-4 pb-3"> */}
-              {inventoryItems.map(({ data, id }) => (
-                <BlockInInventory
-                  isOverMap={isDraggingBlockOverMap}
-                  width={
-                    isDraggingBlockOverMap
-                      ? GAME_MAP_SIZE / rowCount
-                      : BLOCK_SIZE
-                  }
-                  height={
-                    isDraggingBlockOverMap
-                      ? GAME_MAP_SIZE / colCount
-                      : BLOCK_SIZE
-                  }
+              {inventoryItems.map(({ data, id }, index) => (
+                <motion.div
                   key={id}
-                  id={id}
-                  data={data}
-                  isDropped={isDropped}
-                />
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <BlockInInventory
+                    isOverMap={isDraggingBlockOverMap}
+                    width={
+                      isDraggingBlockOverMap
+                        ? GAME_MAP_SIZE / rowCount
+                        : BLOCK_SIZE
+                    }
+                    height={
+                      isDraggingBlockOverMap
+                        ? GAME_MAP_SIZE / colCount
+                        : BLOCK_SIZE
+                    }
+                    id={id}
+                    data={data}
+                    isDropped={isDropped}
+                  />
+                </motion.div>
               ))}
-              {/* </div> */}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </DndContext>
+
+      {/* Dialog */}
       <AnimatePresence>
         {isDialogOpen && (
           <motion.div
-            className="fixed inset-0 z-10 flex items-center justify-center bg-black bg-opacity-70"
             initial={{ opacity: 0 }}
-            animate={{ opacity: isDialogOpen ? 1 : 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
           >
             <motion.div
-              className="flex w-2/3 flex-col items-center gap-2 rounded-lg bg-primary p-4"
-              initial={{ scale: 0.5, opacity: 0 }}
+              initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.5, opacity: 0 }}
-              transition={{ duration: 0.3, type: "spring" }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-md rounded-xl bg-gray-800 p-6 shadow-xl"
             >
-              <div className="text-2xl font-bold">{dialogTitle}</div>
-              <div className="text-lg">
-                <p>{dialogContent}</p>
-              </div>
-              <button
-                className="mt-4 rounded-lg bg-secondary px-4 py-2 text-foreground"
+              <h2 className="mb-4 text-2xl font-bold text-white">
+                {dialogTitle}
+              </h2>
+              <p className="text-lg text-gray-300">{dialogContent}</p>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setIsDialogOpen(false)}
+                className="mt-6 w-full rounded-lg bg-blue-500 py-3 text-white transition hover:bg-blue-600"
               >
                 完成
-              </button>
+              </motion.button>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </motion.div>
   );
 }
 
@@ -1041,47 +1146,41 @@ function GameMapGridCell({
   const isPlaceable = cellType === "empty";
 
   return (
-    <div
+    <motion.div
       ref={setNodeRef}
-      className={`border-gray-300"} relative border ease-in-out`}
+      whileHover={{ scale: isPlaceable ? 1.05 : 1 }}
+      className={cn(
+        "relative border border-white/10 transition-colors",
+        isPlaceable && "cursor-pointer hover:border-white/30",
+      )}
       style={{
         height: IsZoomedIn ? "64px" : `${GAME_MAP_SIZE / maxSideCount}px`,
         width: IsZoomedIn ? "64px" : `${GAME_MAP_SIZE / maxSideCount}px`,
       }}
-      onClick={() => {
-        if (PlaceableGrid[rowIndex][colIndex]) {
-        }
-      }}
     >
-      {/* isOver && !isDropped */}
-      {
-        <div
-          className={cn(
-            `absolute inset-0 z-10 opacity-0 transition-opacity`,
-            {
-              "opacity-50": !isPlaceable && isDragging,
-            },
-            cellType === "start" || cellType === "end"
-              ? "bg-yellow-500"
-              : cellType === "obstacle"
-                ? "bg-red-500"
-                : "bg-blue-500",
-          )}
-        ></div>
-      }
-      {
-        <div
-          className={cn(
-            `absolute inset-0 z-10 bg-green-500 opacity-0 transition-opacity`,
-            {
-              "opacity-50":
-                isOver && !isDropped && !(!isPlaceable && isDragging),
-            },
-          )}
-        ></div>
-      }
+      <motion.div
+        animate={{
+          opacity: !isPlaceable && isDragging ? 0.5 : 0,
+          scale: isOver && !isDropped ? 1.1 : 1,
+        }}
+        className={cn(
+          "absolute inset-0 z-10",
+          cellType === "start" || cellType === "end"
+            ? "bg-yellow-500"
+            : cellType === "obstacle"
+              ? "bg-red-500"
+              : "bg-blue-500",
+        )}
+      />
+      <motion.div
+        animate={{
+          opacity:
+            isOver && !isDropped && !(!isPlaceable && isDragging) ? 0.5 : 0,
+        }}
+        className="absolute inset-0 z-10 bg-green-500"
+      />
       {cellContent}
-    </div>
+    </motion.div>
   );
 }
 
@@ -1128,8 +1227,8 @@ function BlockInInventory({
   const needDuration = !isMoving && !isDropped;
 
   return (
-    <div
-      key={id}
+    <motion.div
+      whileHover={{ scale: isDisabled ? 1 : 1.05 }}
       className={cn(
         "relative flex items-end justify-start gap-2",
         isDisabled && "opacity-50",
@@ -1174,6 +1273,6 @@ function BlockInInventory({
       >
         x{data.amount}
       </div>
-    </div>
+    </motion.div>
   );
 }
