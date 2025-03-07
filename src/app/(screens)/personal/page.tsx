@@ -4,16 +4,43 @@ import { QrCode, Trophy, Users } from "lucide-react";
 import { useQRCode } from "next-qrcode";
 import { Button } from "@/components/ui/button";
 import usePlayerData from "@/hooks/usePlayerData";
+import useToken from "@/hooks/useToken";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import { Rank } from "@/lib/interface";
 
 export default function PersonalPage() {
   const { Canvas } = useQRCode();
   const { playerData, isError, isLoading } = usePlayerData();
+  const token = useToken();
 
   const stage = playerData?.stage ?? 1;
   const level = Math.max(1, Math.sqrt(stage) | 0);
+
+  const { data: player_rank } = useQuery<Rank>({
+    queryKey: ["playerRank", token],
+    queryFn: async () => {
+      const response = await fetch(`/api/rank/player?token=${token}`);
+      return response.json();
+    },
+  });
+  const { data: team_rank } = useQuery<Rank>({
+    queryKey: ["teamRank", token],
+    queryFn: async () => {
+      const response = await fetch(`/api/rank/team?token=${token}`);
+      return response.json();
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="spinner-container">
+        <div className="spinner"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto space-y-6">
@@ -24,14 +51,14 @@ export default function PersonalPage() {
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 backdrop-blur-md">
               <span className="text-xl font-bold">
                 {playerData?.name
-                  ? playerData.name.charAt(0).toUpperCase()
+                  ? playerData?.name.charAt(0).toUpperCase()
                   : "?"}
               </span>
             </div>
             <div className="flex-1">
               {playerData?.name ? (
                 <h2 className="text-xl font-bold">
-                  {playerData.name}{" "}
+                  {playerData?.name}{" "}
                   <span className="ml-1 text-sm text-blue-300">Lv.{level}</span>
                 </h2>
               ) : (
@@ -52,7 +79,17 @@ export default function PersonalPage() {
                 </span>
               </div>
               <p className="text-lg font-bold text-white">
-                1000<span className="text-xs text-gray-300"> / 2000</span>
+                {player_rank === undefined ? (
+                  `---`
+                ) : (
+                  <>
+                    {player_rank?.current}
+                    <span className="text-xs text-gray-300">
+                      {" "}
+                      / {player_rank?.all}
+                    </span>
+                  </>
+                )}
               </p>
             </div>
             <div className="border-gray-500 p-4 text-center">
@@ -63,7 +100,17 @@ export default function PersonalPage() {
                 </span>
               </div>
               <p className="text-lg font-bold text-white">
-                10<span className="text-xs text-gray-300"> / 99</span>
+                {team_rank === undefined || team_rank?.current < 1 ? (
+                  `---`
+                ) : (
+                  <>
+                    {team_rank?.current}
+                    <span className="text-xs text-gray-300">
+                      {" "}
+                      / {team_rank?.all}
+                    </span>
+                  </>
+                )}
               </p>
             </div>
           </div>

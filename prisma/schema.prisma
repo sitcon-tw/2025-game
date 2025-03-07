@@ -42,14 +42,14 @@ model Player {
 
 // 隊伍資料
 model Team {
-  team_id    String          @default(uuid()) @db.Uuid // team_id
+  team_id    String   @default(uuid()) @db.Uuid // team_id
   name       String // team name
-  player1_id String?         @unique // token
-  player2_id String?         @unique // token
-  player3_id String?         @unique // token
-  player4_id String?         @unique // token
+  player1_id String?  @unique // token
+  player2_id String?  @unique // token
+  player3_id String?  @unique // token
+  player4_id String?  @unique // token
   players    Player[]
-  scores     TeamScoreboard?
+  scores     Int      @default(0) // scores
 
   @@id([team_id])
 }
@@ -87,14 +87,6 @@ model Notification {
 
   @@id([notification_id])
   @@index([token])
-}
-
-model TeamScoreboard {
-  team_id String @db.Uuid // team_id
-  score   Int // score
-  team    Team   @relation(fields: [team_id], references: [team_id])
-
-  @@id([team_id])
 }
 
 // 成就狀態

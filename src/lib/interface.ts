@@ -26,3 +26,8 @@ export interface ErrorItem {
   label: string;
   message: string;
 }
+
+export interface Rank {
+  current: number;
+  all: number;
+}
