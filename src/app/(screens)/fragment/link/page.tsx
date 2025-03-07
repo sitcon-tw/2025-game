@@ -16,7 +16,7 @@ import { useQuery, useMutation, QueryClient } from "@tanstack/react-query";
 import { QRCodeSVG } from "qrcode.react";
 import useToken from "@/hooks/useToken";
 import { motion, AnimatePresence } from "framer-motion";
-
+import { toast, ToastContainer } from "react-toastify";
 import { SharedFragmentData } from "@/types/index";
 import { set } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -162,11 +162,16 @@ function LinkPageClient() {
       queryClient.invalidateQueries({ queryKey: ["fragments", token] });
 
       setHasScanned(false);
+      toast.success("接收板塊成功！");
       console.log("success");
     },
     onError: () => {
       setHasScanned(false);
+      toast.error("接收板塊失敗！");
       console.log("error");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["share-fragments", token] });
     },
   });
 
@@ -210,6 +215,7 @@ function LinkPageClient() {
     if (hasScanned) return;
 
     setHasScanned(true);
+    toast.info("掃描到 QR Code，正在處理...");
 
     mutation.mutate(decodedText);
   }, []);
@@ -219,6 +225,7 @@ function LinkPageClient() {
 
   return (
     <div className="min-h-screen">
+      <ToastContainer />
       <div className="relative mx-auto max-w-2xl pb-6">
         <section className="relative aspect-square w-full overflow-hidden bg-black">
           <QrCodeScanner qrCodeSuccessCallback={qrCodeScannerCallback} />
@@ -248,7 +255,17 @@ function LinkPageClient() {
                   編輯
                 </button>
                 <button
-                  onClick={() => setPopupType("qrcode")}
+                  onClick={() => {
+                    if (!isSharingBlocksValid) {
+                      toast.error("板塊數量不合法");
+                      return;
+                    }
+                    if (sharingBlocks.length === 0) {
+                      toast.error("請先按下左邊的「編輯」按鈕設定分享板塊");
+                      return;
+                    }
+                    setPopupType("qrcode");
+                  }}
                   className="flex items-center gap-2 rounded-lg bg-gray-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-600"
                 >
                   分享 QR Code
