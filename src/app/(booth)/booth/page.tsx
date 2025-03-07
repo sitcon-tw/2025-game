@@ -85,19 +85,23 @@ export default function Page() {
           攤位掃描器
         </h1>
         <h1 className="text-center text-2xl font-bold">{boothDisplayName}</h1>
-        <div className="my-4 flex w-full items-center justify-center gap-6 rounded-2xl bg-gray-50 p-2 text-center shadow">
-          <div className="aspect-square w-full overflow-hidden rounded-xl">
-            <QrCodeScanner
-              qrCodeSuccessCallback={(result) => {
-                handleResultThrottle(result);
-                // setPlayerToken(result);
-              }}
-            />
-          </div>
-        </div>
-        <div className="text-center text-xl text-gray-200">
-          請掃描會眾 OPass 中的 QR code
-        </div>
+        {boothName && (
+          <>
+            <div className="my-4 flex w-full items-center justify-center gap-6 rounded-2xl bg-gray-50 p-2 text-center shadow">
+              <div className="aspect-square w-full overflow-hidden rounded-xl">
+                <QrCodeScanner
+                  qrCodeSuccessCallback={(result) => {
+                    handleResultThrottle(result);
+                    // setPlayerToken(result);
+                  }}
+                />
+              </div>
+            </div>
+            <div className="text-center text-xl text-gray-200">
+              請掃描會眾 OPass 中的 QR code
+            </div>
+          </>
+        )}
       </motion.div>
       <ToastContainer />
     </div>
