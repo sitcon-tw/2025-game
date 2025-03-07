@@ -27,7 +27,7 @@ function LotteryListing({
 
   return (
     <div className="flex w-full flex-row items-center">
-      <Archive size={80} className="mr-2 text-white" />
+      <Archive size={48} className="mr-2 text-white" />
       <div className="flex flex-col items-center">
         <Button
           variant="ghost"
@@ -161,7 +161,7 @@ export default function LotteryChooser({
               <p className="self-end text-left"> / {amount} 張抽獎券可用</p>
             </div>
             <hr className="my-6 h-0.5 w-full border-t-0 bg-gray-400" />
-            <div className="flex w-full flex-col gap-4">
+            <div className="flex h-[60%] w-full flex-col gap-4 overflow-x-scroll">
               {lotteryList.map((lotteryItem, index) => (
                 <LotteryListing
                   key={index}
