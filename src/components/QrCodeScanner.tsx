@@ -14,7 +14,6 @@ const QrCodeScanner = ({
   const [pause, setPause] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);
 
-
   const handleScan = async (data: string) => {
     setPause(true);
     try {
