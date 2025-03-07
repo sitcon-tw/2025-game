@@ -203,7 +203,10 @@ const query = {
         select: { scores: true },
       });
     if (type === "team")
-      score = prisma.team.findUnique({ where: { team_id: id }, select: { scores: true } });
+      score = prisma.team.findUnique({
+        where: { team_id: id },
+        select: { scores: true },
+      });
     return score;
   },
   sendNotification: async (
@@ -371,5 +374,5 @@ export const {
   getAllCoupons,
   getAllAchievementStatus,
   addAchievementProgress,
-  getRank
+  getRank,
 } = query;
