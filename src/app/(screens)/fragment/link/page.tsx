@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import { SharedFragmentData } from "@/types/index";
 import { set } from "date-fns";
+import { cn } from "@/lib/utils";
 
 type BlockType =
   | "a"
@@ -72,38 +73,6 @@ const initialDisplayBlocks: Array<Block> = [
   },
 ];
 
-// TODO:: get blocks from API
-const myBlocks: Array<Block> = [
-  {
-    type: "a",
-    amount: 1,
-  },
-  {
-    type: "b",
-    amount: 2,
-  },
-  {
-    type: "c",
-    amount: 3,
-  },
-  {
-    type: "d",
-    amount: 4,
-  },
-  {
-    type: "e",
-    amount: 1,
-  },
-  {
-    type: "f",
-    amount: 1,
-  },
-  {
-    type: "g",
-    amount: 1,
-  },
-];
-
 export default function LinkPage() {
   const [popupType, setPopupType] = useState<"qrcode" | "edit" | null>(null);
   const [sharingBlocks, setSharingBlocks] = useState<Block[]>([]);
@@ -114,6 +83,8 @@ export default function LinkPage() {
   const token = useToken();
 
   const queryClient = new QueryClient();
+
+  const { playerData } = usePlayerData();
 
   const { isLoading, isError } = useQuery({
     queryKey: ["fragments", token],
@@ -168,6 +139,24 @@ export default function LinkPage() {
       console.log("error");
     },
   });
+
+  const { data: myBlocks, isLoading: isFragmentsLoading } = useQuery({
+    queryKey: ["fragments", playerData?.token],
+    queryFn: async () => {
+      const response = await fetch("/api/fragment?token=" + playerData?.token);
+
+      if (!response.ok) {
+        const errorMessage = `Error: ${response.status} ${response.statusText}`;
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+      console.log("fetch myBlocks", data);
+      return data;
+    },
+  });
+
+  console.log("myBlocks", myBlocks);
 
   const onScanSuccess = useCallback((decodedText: string) => {
     if (hasScanned) return;
@@ -287,6 +276,7 @@ export default function LinkPage() {
         </div>
       </div>
       <Popup
+        myBlocks={myBlocks ?? []}
         popupType={popupType}
         setPopupType={setPopupType}
         sharingBlocks={sharingBlocks}
@@ -299,12 +289,14 @@ export default function LinkPage() {
 const Popup = ({
   popupType,
   setPopupType,
+  myBlocks,
   sharingBlocks,
   setSharingBlocks,
 }: {
   popupType: "edit" | "qrcode" | null;
   setPopupType: React.Dispatch<React.SetStateAction<"edit" | "qrcode" | null>>;
   sharingBlocks: Block[];
+  myBlocks: Block[];
   setSharingBlocks: React.Dispatch<React.SetStateAction<Block[]>>;
 }) => {
   const { playerData } = usePlayerData();
@@ -370,6 +362,11 @@ const Popup = ({
       ),
     );
   };
+
+  const sharedBlocksCount = sharingBlocks.reduce(
+    (acc, curr) => acc + curr.amount,
+    0,
+  );
 
   const handleSubtractBlock = (type: string) => {
     if (!getIsSubtractable(type)) return;
@@ -464,44 +461,76 @@ const Popup = ({
                 transition={{ delay: 0.2 }}
                 className="flex flex-col gap-4 overflow-y-scroll"
               >
-                {displayBlocks.map((block, index) => (
-                  <motion.div
-                    key={block.type}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-3"
-                  >
-                    <Fragment
-                      type={block.type}
-                      amount={block.amount}
-                      showAmount={false}
-                    />
-                    <div className="flex items-center gap-2">
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => handleSubtractBlock(block.type)}
-                        disabled={!getIsSubtractable(block.type)}
-                        className="rounded p-1 text-white/70 hover:bg-white/10 hover:text-white disabled:opacity-50"
+                {displayBlocks
+                  .toSorted((a, b) => {
+                    const myA = myBlocks.find((block) => block.type === a.type);
+                    const myB = myBlocks.find((block) => block.type === b.type);
+                    const amountMyA = myA?.amount ?? 0;
+                    const amountMyB = myB?.amount ?? 0;
+                    if (amountMyA === amountMyB) {
+                      return a.type.localeCompare(b.type);
+                    }
+                    return amountMyB - amountMyA;
+                  })
+                  .map((block, index) => {
+                    const maxAmount = Math.max(
+                      Math.min(
+                        myBlocks.find((b) => b.type === block.type)?.amount ??
+                          0,
+                        3,
+                      ) -
+                        (sharedBlocksCount ?? 0) +
+                        block.amount,
+                      0,
+                    );
+                    return (
+                      <motion.div
+                        key={block.type}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{
+                          opacity:
+                            maxAmount === 0 && block.amount === 0 ? 0.5 : 1,
+                          x: 0,
+                        }}
+                        transition={{ delay: index * 0.05 }}
+                        className={cn(
+                          "flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-3",
+                          // {
+                          //   "opacity-50": maxAmount === 0,
+                          // },
+                        )}
                       >
-                        <Minus size={20} />
-                      </motion.button>
-                      <span className="w-8 text-center font-medium text-white">
-                        {block.amount}
-                      </span>
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => handleAddBlock(block.type)}
-                        disabled={!getIsAddable(block.type)}
-                        className="rounded p-1 text-white/70 hover:bg-white/10 hover:text-white disabled:opacity-50"
-                      >
-                        <Plus size={20} />
-                      </motion.button>
-                    </div>
-                  </motion.div>
-                ))}
+                        <Fragment
+                          type={block.type}
+                          amount={block.amount}
+                          showAmount={false}
+                        />
+                        <div className="flex items-center gap-2">
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => handleSubtractBlock(block.type)}
+                            disabled={!getIsSubtractable(block.type)}
+                            className="rounded p-1 text-white/70 hover:bg-white/10 hover:text-white disabled:opacity-50"
+                          >
+                            <Minus size={20} />
+                          </motion.button>
+                          <span className="w-8 text-center font-medium text-white">
+                            {block.amount} / {maxAmount}
+                          </span>
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => handleAddBlock(block.type)}
+                            disabled={!getIsAddable(block.type)}
+                            className="rounded p-1 text-white/70 hover:bg-white/10 hover:text-white disabled:opacity-50"
+                          >
+                            <Plus size={20} />
+                          </motion.button>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
               </motion.div>
             </motion.div>
           )}
