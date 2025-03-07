@@ -1,17 +1,37 @@
 [
   {
     "id": "A",
-    "name": "Item A",
-    "maxDrawn": 3
+    "name": "SITCON 杯子組",
+    "maxDrawn": 1
   },
   {
     "id": "B",
-    "name": "Item B",
-    "maxDrawn": 2
+    "name": "SITCON 小石胸章",
+    "maxDrawn": 10
   },
   {
     "id": "C",
-    "name": "Item C",
+    "name": "SITCON Logo 吊飾",
+    "maxDrawn": 20
+  },
+  {
+    "id": "D",
+    "name": "SITCON 鍵帽",
+    "maxDrawn": 12
+  },
+  {
+    "id": "E",
+    "name": "SITCON 吊飾",
+    "maxDrawn": 18
+  },
+  {
+    "id": "F",
+    "name": "SITCON 2025 紀念 T",
+    "maxDrawn": 10
+  },
+  {
+    "id": "G",
+    "name": "SITCON 2025 限量悠遊卡",
     "maxDrawn": 1
   }
 ]
