@@ -1,77 +1,91 @@
+"use client";
+
 import { Html5Qrcode } from "html5-qrcode";
-
-import { useEffect, useState } from "react";
-
-const qrcodeRegionId = "html5qr-code-full-region";
+import { useState, useEffect } from "react";
+import { Scanner, useDevices, boundingBox } from "@yudiel/react-qr-scanner";
 
 type qrCodeSuccessCallback = (decodedText: string) => void;
-
-// 配置掃描器的參數
-const config = {
-  fps: 10,
-  qrbox: { width: 200, height: 200 }, //實際可掃描的區域大小
-  aspectRatio: 1,
-};
 
 const QrCodeScanner = ({
   qrCodeSuccessCallback,
 }: {
   qrCodeSuccessCallback: qrCodeSuccessCallback;
 }) => {
-  const [cameraId, setCameraId] = useState<string | null>(null);
+  const [pause, setPause] = useState(false);
+  const [permissionDenied, setPermissionDenied] = useState(false);
 
-  useEffect(() => {
-    Html5Qrcode.getCameras()
-      .then((devices) => {
-        if (devices && devices.length) {
-          setCameraId(devices[0].id);
-        }
-      })
-      .catch((error) => {
-        // console.error("Failed to get cameras. ", error);
-        console.log("permission denied");
-
-        // TODO::如果有人不給權限 彈出toast 或是彈出提示框再次索取權限
-      });
-  }, []);
-
-  useEffect(() => {
-    if (cameraId) {
-      const qrScanner = new Html5Qrcode(qrcodeRegionId); // 綁定掃描器的 DOM 元素
-      // qrScanner
-      //   .start(cameraId, config, qrCodeSuccessCallback, () => {})
-      //   .catch((err) => console.error("Failed to start QR Scanner:", err));
-
-      function successCallback(decodedText: string) {
-        if (!qrCodeSuccessCallback) return;
-        console.log("decodedText", decodedText);
-        qrCodeSuccessCallback(decodedText);
-      }
-
-      qrScanner.start(
-        { facingMode: "environment" },
-        config,
-        successCallback,
-        () => {},
-      );
-
-      return () => {
-        console.log("stop");
-        qrScanner.stop();
-      };
+  const handleScan = async (data: string) => {
+    setPause(true);
+    try {
+      if (!qrCodeSuccessCallback) return;
+      qrCodeSuccessCallback(data);
+    } catch (error: unknown) {
+      console.log(error);
+    } finally {
+      setPause(false);
     }
-  }, [cameraId]);
+  };
 
   return (
     <>
-      {cameraId ? (
-        <div id={qrcodeRegionId} />
+      {permissionDenied ? (
+        <div className="flex h-full w-full items-center justify-center bg-gray-200 text-foreground">
+          <div className="text-center text-red-500">
+            <h1 className="text-2xl font-bold">攝影機啟動失敗</h1>
+            <p className="text-lg">請確認是否有允許存取攝影機權限</p>
+          </div>
+        </div>
       ) : (
-        <div className="bg-black"></div>
+        <Scanner
+          formats={[
+            "qr_code",
+            "micro_qr_code",
+            "rm_qr_code",
+            "maxi_code",
+            "pdf417",
+            "aztec",
+            "data_matrix",
+            "matrix_codes",
+            "dx_film_edge",
+            "databar",
+            "databar_expanded",
+            "codabar",
+            "code_39",
+            "code_93",
+            "code_128",
+            "ean_8",
+            "ean_13",
+            "itf",
+            "linear_codes",
+            "upc_a",
+            "upc_e",
+          ]}
+          onScan={(detectedCodes) => {
+            handleScan(detectedCodes[0].rawValue);
+          }}
+          onError={(error) => {
+            setPermissionDenied(true);
+          }}
+          components={{
+            tracker: boundingBox,
+            audio: false,
+          }}
+          styles={{
+            container: {
+              height: "100%",
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            },
+          }}
+          allowMultiple={true}
+          scanDelay={5000}
+          paused={pause}
+        />
       )}
     </>
   );
-  // TODO:: 還沒拿取到cameraId 會出現空白，寫一個skeleton
 };
 
 export default QrCodeScanner;
