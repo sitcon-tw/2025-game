@@ -71,7 +71,7 @@ export default function PersonalPage() {
       </Card>
 
       {/* QR Code Card */}
-      <Card className="!mt-0 gap-3 border-0 border-t border-t-gray-500 shadow-md pt-4">
+      <Card className="!mt-0 gap-3 border-0 border-t border-t-gray-500 pt-4 shadow-md">
         {/* <CardHeader className="pb-2">
           <div className="flex items-center gap-2">
             <QrCode className="h-5 w-5 text-white" />

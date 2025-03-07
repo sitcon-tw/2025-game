@@ -12,7 +12,7 @@ import { QrCode } from "lucide-react";
 import QrCodeScanner from "@/components/QrCodeScanner";
 import { useQuery } from "@tanstack/react-query";
 import useToken from "@/hooks/useToken";
-import useThrottle from "@/hooks/useThrottle"
+import useThrottle from "@/hooks/useThrottle";
 
 export default function Page() {
   // const [playerToken, setPlayerToken] = useState<string | null>(null);
@@ -63,7 +63,6 @@ export default function Page() {
       });
     }
   };
-
 
   const handleResultThrottle = useThrottle(handleResult, 5000);
 
