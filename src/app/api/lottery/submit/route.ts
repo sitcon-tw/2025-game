@@ -68,7 +68,7 @@ export const POST = async (request: NextRequest) => {
 
       lotterySubmission.push({
         token: token,
-        lottery_id: submitNum,
+        lottery_id: String(targetLotterySubmitNum),
         type: item.id,
         full_lottery_id: `${item.id}${submitNum}`,
       });
