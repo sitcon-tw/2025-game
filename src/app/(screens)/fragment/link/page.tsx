@@ -88,7 +88,7 @@ export default function LinkPage() {
   const { playerData } = usePlayerData();
 
   const { isLoading, isError } = useQuery({
-    queryKey: ["fragments", token],
+    queryKey: ["share-fragments", token],
     queryFn: async () => {
       const response = await fetch("/api/fragment/share?token=" + token);
 
