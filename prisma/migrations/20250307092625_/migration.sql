@@ -9,6 +9,7 @@ CREATE TABLE "Player" (
     "currentStage" TEXT,
     "team_id" UUID,
     "compass" BOOLEAN NOT NULL DEFAULT false,
+    "email" TEXT,
     "scores" INTEGER NOT NULL DEFAULT 0,
     "points" INTEGER NOT NULL DEFAULT 0,
 
@@ -114,6 +115,9 @@ CREATE TABLE "Lottery" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Player_share_token_key" ON "Player"("share_token");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Player_email_key" ON "Player"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Team_player1_id_key" ON "Team"("player1_id");

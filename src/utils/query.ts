@@ -156,6 +156,7 @@ const query = {
             avatar: playerData.avatar ?? "",
             linktree: playerData.linktree ?? "",
             stage: playerData.stage ?? 1,
+            ...(playerData.email && { email: playerData.email }),
           },
         });
         return player.token;
