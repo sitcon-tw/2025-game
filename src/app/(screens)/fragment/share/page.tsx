@@ -38,7 +38,7 @@ export default function SharePage() {
 
   return (
     <>
-      <div className="relative px-4 pb-6 pt-16">
+      <div className="relative px-4 pb-6 pt-4">
         <div className="flex flex-col gap-2">
           {teamFragments &&
             teamFragments.map((player) => (

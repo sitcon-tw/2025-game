@@ -135,7 +135,6 @@ export const getTeamFragments = async (token: string) => {
       select: {
         team: true,
         name: true,
-        compass: true,
         fragments: {
           where: { shared: false },
           select: { type: true, amount: true, shared: true },
@@ -144,13 +143,14 @@ export const getTeamFragments = async (token: string) => {
     });
     if (!player) return conflict("player not found");
 
-    if (!player?.team || !player.compass) {
+    // 移除 player.compass 的判斷，因為已經不需要啟動了
+    if (!player?.team) {
       return success([{ name: player.name, fragments: player.fragments }]);
     }
 
     // 找出所有玩家的fragment
     const teamFragments = await prisma.player.findMany({
-      where: { team_id: player.team.team_id, compass: true },
+      where: { team_id: player.team.team_id },
       // include: { fragments: true },
       select: {
         name: true,
@@ -267,8 +267,9 @@ export const getAllFragments = async (token: string) => {
 };
 
 const getTeamPlayerTokens = async (teamId: string) => {
+  console.log("get team player tokens has been called");
   const players = await prisma.player.findMany({
-    where: { team_id: teamId, compass: true },
+    where: { team_id: teamId },
     select: { token: true },
   });
   return players.map((player) => player.token);
