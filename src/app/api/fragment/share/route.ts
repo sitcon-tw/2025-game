@@ -38,6 +38,10 @@ export const POST = async (request: NextRequest) => {
   const friendResult = await fetch(`${API_URL}/status?token=${friendToken}`);
   if (result.status === 400) return forbidden("對象並非本次與會者");
 
+  if (token === friendToken) {
+    return badRequest("Cannot share with yourself.");
+  }
+
   const typeSet = new Set<string>();
 
   for (const fragment of fragments) {
