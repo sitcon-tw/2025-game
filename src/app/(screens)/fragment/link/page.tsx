@@ -20,6 +20,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { SharedFragmentData } from "@/types/index";
 import { set } from "date-fns";
 import { cn } from "@/lib/utils";
+import useThrottle from "@/hooks/useThrottle";
 
 type BlockType =
   | "a"
@@ -158,6 +159,11 @@ export default function LinkPage() {
 
   console.log("myBlocks", myBlocks);
 
+  // function qrCodeScannerCallback(decodedText: string) {
+  //   if (hasScanned) return;
+  //   mutation.mutate(decodedText);
+  // }
+
   const onScanSuccess = useCallback((decodedText: string) => {
     if (hasScanned) return;
 
@@ -166,13 +172,14 @@ export default function LinkPage() {
     mutation.mutate(decodedText);
   }, []);
 
+  const qrCodeScannerCallback = useThrottle(onScanSuccess, 5000);
   // TODO:: 使用useEffect去fetch sharedBlocks資料 getSharedBlocks from API
 
   return (
     <div className="min-h-screen">
       <div className="relative mx-auto max-w-2xl pb-6">
         <section className="relative aspect-square w-full overflow-hidden bg-black">
-          <QrCodeScanner qrCodeSuccessCallback={onScanSuccess} />
+          <QrCodeScanner qrCodeSuccessCallback={qrCodeScannerCallback} />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="h-64 w-64 rounded-lg border-4 border-white/50" />
           </div>
