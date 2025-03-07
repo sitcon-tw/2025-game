@@ -32,6 +32,7 @@ export default function StorePage() {
   } = useQuery<LotteryItem[]>({
     queryKey: ["lottery_items", token],
     queryFn: async () => {
+      if (!token) return null;
       const response = await fetch(`/api/lottery/items?token=${token}`);
       if (!response.ok) {
         const errorData = await response.json();
@@ -52,6 +53,7 @@ export default function StorePage() {
   } = useQuery<LotteryPriceList[]>({
     queryKey: ["price", token],
     queryFn: async () => {
+      if (!token) return null;
       const response = await fetch(`/api/lottery/price?token=${token}`);
       if (!response.ok) {
         const errorData = await response.json();
@@ -72,6 +74,7 @@ export default function StorePage() {
   } = useQuery<Lottery[]>({
     queryKey: ["lottery", token],
     queryFn: async () => {
+      if (!token) return null;
       const response = await fetch(`/api/lottery?token=${token}`);
       if (!response.ok) {
         const errorData = await response.json();
@@ -84,7 +87,7 @@ export default function StorePage() {
   });
 
   // 🛠 **統一管理 Loading 狀態**
-  if (isLoadingItems || isLoadingPrice || isLoadingLottery) {
+  if (!token || isLoadingItems || isLoadingPrice || isLoadingLottery) {
     return (
       <div className="spinner-container">
         <div className="spinner"></div>
