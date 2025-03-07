@@ -27,9 +27,13 @@ export const POST = async (request: NextRequest) => {
       ...(email && { email }),
     });
     // TODO: modify the amount of fragments later
-    addFragment(data.token, "a", 5);
-    addFragment(data.token, "b", 5);
-    addFragment(data.token, "c", 5);
+    addFragment(data.token, "a", 2);
+    addFragment(data.token, "b", 2);
+    addFragment(data.token, "c", 2);
+    addFragment(data.token, "d", 2);
+    addFragment(data.token, "e", 2);
+    addFragment(data.token, "f", 2);
+    addFragment(data.token, "g", 2);
     return success({
       token: data.token,
       share_token: resultJson._id.oid,
