@@ -340,20 +340,20 @@ const query = {
     });
   },
   playerStageClear: async (playerId: string, stageNumber: number) => {
-    return prisma.$transaction(
+    prisma.$transaction(
       async (prisma) => {
         await prisma.player.update({
           where: { token: playerId },
           data: { stage: { increment: 1 } },
         });
-        // add score
-        await query.setScore(playerId, stageNumber * 50);
       },
       {
         maxWait: 1000,
         timeout: 10000,
       },
     );
+    // add score
+    await query.setScore(playerId, stageNumber * 50);
   },
 };
 export const {
