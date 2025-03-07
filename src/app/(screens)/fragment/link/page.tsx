@@ -21,6 +21,7 @@ import { SharedFragmentData } from "@/types/index";
 import { set } from "date-fns";
 import { cn } from "@/lib/utils";
 import useThrottle from "@/hooks/useThrottle";
+import { useIsClient, useLocalStorage } from "@uidotdev/usehooks";
 
 type BlockType =
   | "a"
@@ -75,8 +76,36 @@ const initialDisplayBlocks: Array<Block> = [
 ];
 
 export default function LinkPage() {
+  const isClient = useIsClient();
+
+  if (!isClient) return null;
+
+  return <LinkPageClient />;
+}
+
+function LinkPageClient() {
   const [popupType, setPopupType] = useState<"qrcode" | "edit" | null>(null);
-  const [sharingBlocks, setSharingBlocks] = useState<Block[]>([]);
+  // const [sharingBlocks, setSharingBlocks] = useState<Block[]>([]);
+  const [sharingBlocksString, setSharingBlocksString] = useLocalStorage(
+    "sharingBlocks",
+    "[]",
+  );
+
+  const sharingBlocks: Block[] = JSON.parse(sharingBlocksString);
+
+  const setSharingBlocks = (
+    blocks: Block[] | ((blocks: Block[]) => Block[]),
+  ) => {
+    if (typeof blocks === "function") {
+      const result = blocks(sharingBlocks);
+      console.log("result", result);
+      setSharingBlocksString(JSON.stringify(result));
+      return;
+    }
+    console.log("blocks", blocks);
+    setSharingBlocksString(JSON.stringify(blocks));
+  };
+
   const [hasScanned, setHasScanned] = useState(false);
   const [sharedFragments, setSharedFragments] = useState<SharedFragmentData>(
     [],
@@ -156,6 +185,20 @@ export default function LinkPage() {
       return data;
     },
   });
+
+  const isSharingBlocksValid = sharingBlocks.every((block) => {
+    const myBlock = myBlocks?.find((b: Block) => b.type === block.type);
+    if (!myBlock) return false;
+    return block.amount <= myBlock.amount;
+  });
+
+  useEffect(() => {
+    if (!isSharingBlocksValid) {
+      console.log("reset sharing blocks");
+      setSharingBlocks([]);
+    }
+  }, [myBlocks]);
+
 
   console.log("myBlocks", myBlocks);
 
@@ -245,7 +288,7 @@ export default function LinkPage() {
                 {sharedFragments.map((fragment) => (
                   <div
                     key={fragment.name}
-                    className="flex items-center gap-4 rounded-lg border p-4"
+                    className="flex items-center gap-4 rounded-lg bg-gray-200/10 p-4"
                   >
                     {fragment.avatar ? (
                       <img
@@ -261,7 +304,7 @@ export default function LinkPage() {
                       </div>
                     )}
                     <div>
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-gray-200">
                         {fragment.name}
                       </p>
                       <div className="mt-2 flex flex-wrap gap-2">
@@ -304,12 +347,12 @@ const Popup = ({
   setPopupType: React.Dispatch<React.SetStateAction<"edit" | "qrcode" | null>>;
   sharingBlocks: Block[];
   myBlocks: Block[];
-  setSharingBlocks: React.Dispatch<React.SetStateAction<Block[]>>;
+  setSharingBlocks: (blocks: Block[] | ((blocks: Block[]) => Block[])) => void;
 }) => {
   const { playerData } = usePlayerData();
   const [qrcodePayload, setQrcodePayload] = useState<string>("");
-  const [displayBlocks, setDisplayBlocks] =
-    useState<Block[]>(initialDisplayBlocks);
+  // const [displayBlocks, setDisplayBlocks] =
+  //   useState<Block[]>(initialDisplayBlocks);
 
   useEffect(() => {
     if (!playerData) return;
@@ -363,17 +406,25 @@ const Popup = ({
       }
     });
 
-    setDisplayBlocks((prevBlocks) =>
-      prevBlocks.map((block) =>
-        block.type === type ? { ...block, amount: block.amount + 1 } : block,
-      ),
-    );
+    // setDisplayBlocks((prevBlocks) =>
+    //   prevBlocks.map((block) =>
+    //     block.type === type ? { ...block, amount: block.amount + 1 } : block,
+    //   ),
+    // );
   };
 
   const sharedBlocksCount = sharingBlocks.reduce(
     (acc, curr) => acc + curr.amount,
     0,
   );
+
+  const displayBlocks = initialDisplayBlocks.map((block) => {
+    const sharedBlock = sharingBlocks.find((b) => b.type === block.type);
+    return {
+      type: block.type,
+      amount: sharedBlock ? sharedBlock.amount : 0,
+    }
+  });
 
   const handleSubtractBlock = (type: string) => {
     if (!getIsSubtractable(type)) return;
@@ -393,11 +444,11 @@ const Popup = ({
       }
     });
 
-    setDisplayBlocks((prevBlocks) =>
-      prevBlocks.map((block) =>
-        block.type === type ? { ...block, amount: block.amount - 1 } : block,
-      ),
-    );
+    // setDisplayBlocks((prevBlocks) =>
+    //   prevBlocks.map((block) =>
+    //     block.type === type ? { ...block, amount: block.amount - 1 } : block,
+    //   ),
+    // );
   };
   return (
     <AnimatePresence>
@@ -480,16 +531,12 @@ const Popup = ({
                     return amountMyB - amountMyA;
                   })
                   .map((block, index) => {
-                    const maxAmount = Math.max(
-                      Math.min(
-                        myBlocks.find((b) => b.type === block.type)?.amount ??
-                          0,
-                        3,
-                      ) -
-                        (sharedBlocksCount ?? 0) +
-                        block.amount,
-                      0,
-                    );
+                    const sharedAmount = sharingBlocks.find(
+                      (b) => b.type === block.type,
+                    )?.amount ?? 0;
+                    const totalSharedLeft = 3 - sharedBlocksCount;
+                    const myBlockAmount = myBlocks.find((b) => b.type === block.type )?.amount ?? 0;
+                    const maxAmount = Math.min(myBlockAmount, block.amount + totalSharedLeft);
                     return (
                       <motion.div
                         key={block.type}
@@ -530,7 +577,8 @@ const Popup = ({
                             whileTap={{ scale: 0.9 }}
                             onClick={() => handleAddBlock(block.type)}
                             disabled={!getIsAddable(block.type)}
-                            className="rounded p-1 text-white/70 hover:bg-white/10 hover:text-white disabled:opacity-50"
+                            className={cn("rounded p-1 text-white/70 hover:bg-white/10 hover:text-white disabled:opacity-50",
+                              {"opacity-50 pointer-events-none": block.amount >= maxAmount})}
                           >
                             <Plus size={20} />
                           </motion.button>
