@@ -29,6 +29,7 @@ export type PlayerData = {
   scores: number; //
   stage: number; //
   points: number; //
+  email?: string; //
 };
 
 // for self fragment & all fragment api

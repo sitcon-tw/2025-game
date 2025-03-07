@@ -16,7 +16,7 @@ datasource db {
 // 玩家資料
 model Player {
   token        String // kktix_token
-  share_token String @unique// share_token
+  share_token  String  @unique // share_token
   name         String // opass user_id
   avatar       String? // jpg, png with token
   linktree     String? // linktree url
@@ -24,13 +24,14 @@ model Player {
   currentStage String? // stage_id
   team_id      String? @db.Uuid // team_id
   compass      Boolean @default(false) // compass status
+  email        String? @unique
 
   team            Team?               @relation(fields: [team_id], references: [team_id])
   fragments       Fragment[]          @relation("PlayerFragment")
   sharedFragments Fragment[]          @relation("SharedPlayerFragment")
   achievements    AchievementStatus[]
   // scores          PlayerScoreboard?
-  scores          Int                @default(0) // scores  
+  scores          Int                 @default(0) // scores  
   points          Int                 @default(0) // points
   boothStatus     BoothStatus[]
   notifications   Notification[]

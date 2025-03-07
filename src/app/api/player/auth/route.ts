@@ -8,6 +8,7 @@ import crypto from "crypto";
 export const POST = async (request: NextRequest) => {
   const data = await request.json();
   const token = data.token;
+  const email = data.email;
   const result = await fetch(`${API_URL}/status?token=${token}`);
   if (result.status === 400) return forbidden("並非本次與會者");
   // NOTE: 目前 OPass API 怪怪的，所以要先處理一下，等 API 修好後可以拿掉
@@ -23,6 +24,7 @@ export const POST = async (request: NextRequest) => {
       scores: 0,
       stage: 1,
       points: 0,
+      ...(email && { email }),
     });
     // TODO: modify the amount of fragments later
     addFragment(data.token, "a", 5);
@@ -35,6 +37,7 @@ export const POST = async (request: NextRequest) => {
       scores: 0,
       stage: 1,
       points: 0,
+      ...(email && { email }),
     });
   }
   return success({
