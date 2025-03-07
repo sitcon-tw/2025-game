@@ -29,7 +29,9 @@ export default function TutorialPage() {
 
       <div className="mx-auto max-w-3xl px-4 py-8">
         <section className="mb-12">
-          <h2 className="mb-6 text-2xl font-bold text-white">開場白</h2>
+          <h2 className="mb-6 text-2xl font-bold text-white">
+            這是一場冒險的開端？！
+          </h2>
           <p className="mb-4 leading-relaxed text-gray-300">
             歡迎來到大地遊戲—逃逸路線。
           </p>

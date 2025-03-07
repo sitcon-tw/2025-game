@@ -31,6 +31,7 @@ import { FragmentData, PlayerData, StageData } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useIsClient, useLocalStorage } from "@uidotdev/usehooks";
 
 const BLOCK_SIZE = 56;
 const GAME_MAP_SIZE = 320;
@@ -237,12 +238,22 @@ function ErrorScreen({ message }: { message: string }) {
 }
 
 export default function GamePage() {
+  const isClient = useIsClient();
+  if (!isClient) return null;
+  return <GamePageClient />;
+}
+
+function GamePageClient() {
   // react usestate -- dont change anything here!
   const [Level, setLevel] = useState(1);
   const [Score, setScore] = useState(0);
   const [gameGrid, setGameGrid] = useState(createEmptyGrid(5, 5));
   const [PlaceableGrid, setPlaceableGrid] = useState(
     createEmptyPlaceableGrid(5, 5),
+  );
+  const [isTutorialSeen, setIsTutorialSeen] = useLocalStorage(
+    "isTutorialSeen",
+    false,
   );
   const [SelectedItem, setSelectedItem] = useState("");
   const [IsZoomedIn, setIsZoomedIn] = useState(false);
@@ -253,6 +264,8 @@ export default function GamePage() {
   const [isDraggingBlockOverMap, setIsDraggingBlockOverMap] = useState(false);
   const [dialogTitle, setDialogTitle] = useState("");
   const [dialogContent, setDialogContent] = useState("");
+  const [dialogButtonContent, setDialogButtonContent] = useState("");
+  const [dialogButtonLink, setDialogButtonLink] = useState("");
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -653,6 +666,20 @@ export default function GamePage() {
     error: playerDataError,
   } = usePlayerData();
 
+  useEffect(() => {
+    if (playerData?.stage) {
+      if (playerData.stage === 1 && !isTutorialSeen) {
+        setIsTutorialSeen(true);
+        showDialog(
+          "歡迎來到大地遊戲",
+          "是否查看遊戲說明，並開始你的冒險？",
+          "查看新手教學",
+          "/tutorial",
+        );
+      }
+    }
+  }, [playerData?.stage]);
+
   const { data: fragments, isLoading: isFragmentsLoading } = useQuery({
     queryKey: ["fragments", playerData?.token],
     enabled: !!playerData?.token,
@@ -832,10 +859,17 @@ export default function GamePage() {
     return <ErrorScreen message="找不到玩家資料，請重新登入" />;
   }
 
-  function showDialog(title: string, content: string) {
+  function showDialog(
+    title: string,
+    content: string,
+    buttonContent = "完成",
+    buttonLink = "",
+  ) {
     setDialogTitle(title);
     setDialogContent(content);
     setIsDialogOpen(true);
+    setDialogButtonContent(buttonContent);
+    setDialogButtonLink(buttonLink);
   }
 
   const showZoomButton = gameGrid.length > 5 || gameGrid[0].length > 5;
@@ -1104,7 +1138,7 @@ export default function GamePage() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="w-full max-w-md rounded-xl bg-gray-800 p-6 shadow-xl"
+              className="w-[90%] max-w-md rounded-xl bg-gray-800 p-6 shadow-xl"
             >
               <h2 className="mb-4 text-2xl font-bold text-white">
                 {dialogTitle}
@@ -1113,10 +1147,15 @@ export default function GamePage() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setIsDialogOpen(false)}
+                onClick={() => {
+                  setIsDialogOpen(false);
+                  if (dialogButtonLink) {
+                    router.push(dialogButtonLink);
+                  }
+                }}
                 className="mt-6 w-full rounded-lg bg-blue-500 py-3 text-white transition hover:bg-blue-600"
               >
-                完成
+                {dialogButtonContent}
               </motion.button>
             </motion.div>
           </motion.div>
