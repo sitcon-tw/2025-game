@@ -20,7 +20,7 @@ export default function SharePage() {
   console.log(playerData);
 
   const { data: teamFragments } = useQuery({
-    queryKey: ["fragments", token],
+    queryKey: ["teamFragments", token],
     queryFn: async () => {
       const response = await fetch("/api/fragment/compass?token=" + token);
 
