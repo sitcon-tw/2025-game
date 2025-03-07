@@ -71,19 +71,19 @@ export default function PersonalPage() {
       </Card>
 
       {/* QR Code Card */}
-      <Card className="!mt-0 gap-3 border-0 border-t border-t-gray-500 shadow-md">
-        <CardHeader className="pb-2">
+      <Card className="!mt-0 gap-3 border-0 border-t border-t-gray-500 shadow-md pt-4">
+        {/* <CardHeader className="pb-2">
           <div className="flex items-center gap-2">
             <QrCode className="h-5 w-5 text-white" />
             <h3 className="font-semibold text-white">玩家連結</h3>
           </div>
-        </CardHeader>
+        </CardHeader> */}
         <CardContent className="mt-3 flex flex-col items-center gap-3">
           <Badge
             variant="outline"
             className="mb-4 border-0 bg-white/10 p-1 px-3 font-normal text-white"
           >
-            掃描 QR Code 與其他玩家交換板塊
+            給攤位掃描 QR Code 即可獲得板塊
           </Badge>
           <div className="mb-6 rounded-xl bg-[#2e344c] p-2 shadow-inner">
             {playerData?.token ? (
