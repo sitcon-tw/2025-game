@@ -103,13 +103,6 @@ export default function AchievementsPage() {
       description: "lorem",
       prize: "1",
     })) ?? []),
-    ...defaultAchievements.map((achievement, index) => ({
-      ...achievement,
-      progress:
-        achievementStatus?.find(
-          (status: { id: string }) => status.id === achievement.id,
-        )?.current ?? 0,
-    })),
   ];
 
   const handleStampClick = (stamp: Stamp) => {
