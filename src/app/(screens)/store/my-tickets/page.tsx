@@ -77,7 +77,7 @@ export default function MyTicketsPage() {
                 >
                   <Button
                     variant="outline"
-                    className="relative w-full cursor-default border-blue-300 px-4 py-2 text-blue-200 hover:border-blue-300 hover:bg-blue-200 hover:text-blue-200"
+                    className="relative w-full cursor-default border-blue-300 px-4 py-2 text-blue-200 hover:border-blue-300 hover:bg-[#161a2c] hover:text-blue-200"
                   >
                     <span className="text-base">{lottery.name}</span>
                     <span className="absolute bottom-0 right-0 pr-1 text-foreground">
