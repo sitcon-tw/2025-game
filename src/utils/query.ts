@@ -197,7 +197,7 @@ const query = {
   getScore: async (id: string, type: string) => {
     let score;
     if (type === "player")
-      score = prisma.playerScoreboard.findUnique({
+      score = prisma.player.findUnique({
         where: { token: id },
       });
     if (type === "team")
@@ -225,8 +225,8 @@ const query = {
   getRank: async (id: string, type: string) => {
     let rank;
     if (type === "player") {
-      const ranks = await prisma.playerScoreboard.findMany({
-        orderBy: [{ score: "asc" }],
+      const ranks = await prisma.player.findMany({
+        orderBy: [{ scores: "asc" }],
       });
       rank = ranks.findIndex((r) => r.token === id) + 1;
     }
@@ -296,20 +296,24 @@ const query = {
   setPlayer: async () => {},
   setScore: async (playerId: string, score: number, teamId?: string) => {
     return prisma.$transaction(async (prisma) => {
-      const player = await getPlayer(playerId);
-      const points = player?.points ?? 0;
-      const newPoints = points + score;
+      // const player = await getPlayer(playerId);
+      // const points = player?.points ?? 0;
+      // const newPoints = points + score;
 
-      const playerScore = await prisma.playerScoreboard.upsert({
+      const playerScore = await prisma.player.update({
         where: { token: playerId },
-        create: { token: playerId, score },
-        update: { score: { increment: score } },
+        data: {
+          points: {
+            increment: score,
+          },
+          scores: { increment: score },
+        },
       });
 
-      await prisma.player.update({
-        where: { token: playerId },
-        data: { points: newPoints },
-      });
+      // await prisma.player.update({
+      //   where: { token: playerId },
+      //   data: { points: newPoints },
+      // });
 
       // 沒有 teamId 就不用更新 teamScore
       if (!teamId) return { updatedPlayerScore: playerScore };

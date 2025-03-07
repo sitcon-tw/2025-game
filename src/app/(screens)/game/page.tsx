@@ -956,7 +956,7 @@ export default function GamePage() {
               >
                 <p className="text-gray-400">積分</p>
                 <p className="text-3xl font-bold text-green-400">
-                  {playerData?.score ?? 0}
+                  {playerData?.scores ?? 0}
                 </p>
               </motion.div>
             </div>

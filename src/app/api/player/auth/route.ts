@@ -20,7 +20,7 @@ export const POST = async (request: NextRequest) => {
       token: data.token,
       share_token: share_token,
       name: resultJson.user_id,
-      score: 0,
+      scores: 0,
       stage: 1,
       points: 0,
     });
@@ -32,14 +32,12 @@ export const POST = async (request: NextRequest) => {
       token: data.token,
       share_token: resultJson._id.oid,
       name: resultJson.user_id,
-      score: 0,
+      scores: 0,
       stage: 1,
       points: 0,
     });
   }
-  const score = await getScore(token, "player");
   return success({
     ...player,
-    score: score?.score ?? 0,
   });
 };

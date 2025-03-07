@@ -26,7 +26,7 @@ export type PlayerData = {
   share_token: string; // data._id.oid
   avatar?: string; //
   linktree?: string; //
-  score: number; //
+  scores: number; //
   stage: number; //
   points: number; //
 };

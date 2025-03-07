@@ -1,6 +1,7 @@
 -- CreateTable
 CREATE TABLE "Player" (
     "token" TEXT NOT NULL,
+    "share_token" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "avatar" TEXT,
     "linktree" TEXT,
@@ -8,6 +9,7 @@ CREATE TABLE "Player" (
     "currentStage" TEXT,
     "team_id" UUID,
     "compass" BOOLEAN NOT NULL DEFAULT false,
+    "scores" INTEGER NOT NULL DEFAULT 0,
     "points" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "Player_pkey" PRIMARY KEY ("token")
@@ -35,14 +37,6 @@ CREATE TABLE "Fragment" (
     "shared" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "Fragment_pkey" PRIMARY KEY ("fragment_id")
-);
-
--- CreateTable
-CREATE TABLE "PlayerScoreboard" (
-    "token" TEXT NOT NULL,
-    "score" INTEGER NOT NULL,
-
-    CONSTRAINT "PlayerScoreboard_pkey" PRIMARY KEY ("token")
 );
 
 -- CreateTable
@@ -119,6 +113,9 @@ CREATE TABLE "Lottery" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Player_share_token_key" ON "Player"("share_token");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Team_player1_id_key" ON "Team"("player1_id");
 
 -- CreateIndex
@@ -130,6 +127,9 @@ CREATE UNIQUE INDEX "Team_player3_id_key" ON "Team"("player3_id");
 -- CreateIndex
 CREATE UNIQUE INDEX "Team_player4_id_key" ON "Team"("player4_id");
 
+-- CreateIndex
+CREATE INDEX "Notification_token_idx" ON "Notification"("token");
+
 -- AddForeignKey
 ALTER TABLE "Player" ADD CONSTRAINT "Player_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "Team"("team_id") ON DELETE SET NULL ON UPDATE CASCADE;
 
@@ -138,9 +138,6 @@ ALTER TABLE "Fragment" ADD CONSTRAINT "Fragment_token_fkey" FOREIGN KEY ("token"
 
 -- AddForeignKey
 ALTER TABLE "Fragment" ADD CONSTRAINT "Fragment_shared_token_fkey" FOREIGN KEY ("shared_token") REFERENCES "Player"("token") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "PlayerScoreboard" ADD CONSTRAINT "PlayerScoreboard_token_fkey" FOREIGN KEY ("token") REFERENCES "Player"("token") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_token_fkey" FOREIGN KEY ("token") REFERENCES "Player"("token") ON DELETE RESTRICT ON UPDATE CASCADE;

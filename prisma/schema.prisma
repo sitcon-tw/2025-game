@@ -29,7 +29,8 @@ model Player {
   fragments       Fragment[]          @relation("PlayerFragment")
   sharedFragments Fragment[]          @relation("SharedPlayerFragment")
   achievements    AchievementStatus[]
-  scores          PlayerScoreboard?
+  // scores          PlayerScoreboard?
+  scores          Int                @default(0) // scores  
   points          Int                 @default(0) // points
   boothStatus     BoothStatus[]
   notifications   Notification[]
@@ -67,13 +68,13 @@ model Fragment {
 }
 
 // 排行榜
-model PlayerScoreboard {
-  token  String
-  score  Int
-  player Player @relation(fields: [token], references: [token])
+// model PlayerScoreboard {
+//   token  String
+//   score  Int
+//   player Player @relation(fields: [token], references: [token])
 
-  @@id([token])
-}
+//   @@id([token])
+// }
 
 model Notification {
   notification_id String   @default(cuid()) @db.Text // notification_id
@@ -84,6 +85,7 @@ model Notification {
   created_at      DateTime @default(now())
 
   @@id([notification_id])
+  @@index([token])
 }
 
 model TeamScoreboard {
