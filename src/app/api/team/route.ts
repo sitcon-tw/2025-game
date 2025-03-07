@@ -1,7 +1,8 @@
-import { forbidden, success } from "@/utils/response";
+import { badRequest, forbidden, success } from "@/utils/response";
 import { NextRequest } from "next/server";
 import { TeamMemberData } from "@/types";
 import { API_URL } from "@/lib/const";
+import { prisma } from "@/utils/prisma";
 
 export const GET = async (request: NextRequest) => {
   const data = await request.json();
@@ -17,6 +18,24 @@ export const GET = async (request: NextRequest) => {
   // return TeamMemberData
 };
 
-// 錯誤狀況 1: 並非本次與會者
-// 錯誤狀況 2: 並非指南針計畫成員
-// 錯誤狀況 3: 抓取資料問題
+const DEV_MODE = false;
+
+export const POST = async (request: NextRequest) => {
+  if (!DEV_MODE) badRequest("API 未開放");
+  const data = await request.json();
+  const { emails, name } = data;
+
+  const players = await prisma.player.findMany({
+    where: { email: { in: emails } },
+  });
+
+  // 創建 Team 並關聯 Player
+  const newTeam = await prisma.team.create({
+    data: {
+      name: name ?? "Unnamed Team",
+      players: { connect: players.map((player) => ({ token: player.token })) },
+    },
+  });
+
+  return success(newTeam);
+};
