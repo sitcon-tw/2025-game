@@ -14,20 +14,28 @@ export const GET = async (request: NextRequest) => {
   if (token != process.env.ALLOW_DRAW_TOKEN)
     return forbidden("Permission denied.");
 
+  const resultList = [];
+
   for (const lottery_item of lottery_items) {
     const lottery_drawn = [];
-    const drawnSet = new Set<number>();
-    const lotteryCount = await prisma.lottery.count({
+    const drawnNumSet = new Set<number>();
+    const drawnIdSet = new Set<string>();
+    const lotteryList = await prisma.lottery.findMany({
       where: { type: lottery_item.id },
+      select: { lottery_id: true, token: true },
+      orderBy: { lottery_id: "asc" },
     });
+    const lotteryCount = lotteryList.length;
     for (let i = 0; i < lottery_item.maxDrawn; i++) {
-      let picked;
+      let picked, playerId;
       do {
         picked = Math.floor(Math.random() * lotteryCount) + 1;
-      } while (drawnSet.has(picked));
-      console.log("picked: " + picked);
+        playerId = lotteryList[picked - 1].token;
+      } while (drawnNumSet.has(picked) || drawnIdSet.has(playerId));
+      console.log("picked: " + picked + ", " + playerId);
       lottery_drawn.push(String(picked));
-      drawnSet.add(picked);
+      drawnNumSet.add(picked);
+      drawnIdSet.add(playerId);
     }
     console.log("================");
 
@@ -35,11 +43,12 @@ export const GET = async (request: NextRequest) => {
       where: { type: lottery_item.id, lottery_id: { in: lottery_drawn } },
       data: { is_selected: true },
     });
+
+    resultList.push(await prisma.player.findMany({
+      where: { token: { in: Array.from(drawnIdSet) } },
+      select: { name: true, email: true },
+    }))
   }
 
-  const all_picked = await prisma.lottery.findMany({
-    where: { is_selected: true },
-  });
-
-  return success(all_picked);
+  return success(resultList);
 };
