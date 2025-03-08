@@ -1050,7 +1050,7 @@ function GamePageClient() {
             {/* Grid */}
             <div
               className={cn(
-                "flex flex-col justify-center overflow-hidden rounded-lg border border-white/20 bg-black/20 backdrop-blur-sm transition-all",
+                "flex flex-col justify-start overflow-scroll rounded-lg border border-white/20 bg-black/20 backdrop-blur-sm transition-all",
                 {
                   "opacity-50": isLoading,
                   "scale-95": isDragging,
@@ -1068,7 +1068,7 @@ function GamePageClient() {
                   : `${GAME_MAP_SIZE + 2}px`,
               }}
             >
-              <div className="w-full overflow-hidden">
+              <div className="w-full overflow-scroll">
                 {gameGrid.map((row, rowIndex) => (
                   <div key={rowIndex} className={cn("flex", "justify-start")}>
                     {row.map((cell, colIndex) => {
