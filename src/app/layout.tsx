@@ -1,5 +1,6 @@
 "use client";
 
+import { GoogleAnalytics } from "nextjs-google-analytics";
 import "./globals.css";
 import Link from "next/link";
 import { Blocks, Gamepad, LucideIcon, Store, UserRound } from "lucide-react";
@@ -21,6 +22,7 @@ export default function RootLayout({
   return (
     <html lang="zh-Hant-TW">
       <body className="flex h-screen flex-col overflow-hidden">
+        <GoogleAnalytics trackPageViews />
         <Suspense>
           <TokenProvider>
             <QueryClientProvider client={queryClient}>
