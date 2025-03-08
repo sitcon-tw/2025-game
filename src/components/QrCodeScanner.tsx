@@ -37,10 +37,7 @@ const QrCodeScanner = ({
         </div>
       ) : (
         <Scanner
-          formats={[
-            "qr_code",
-            "micro_qr_code",
-          ]}
+          formats={["qr_code", "micro_qr_code"]}
           onScan={(detectedCodes) => {
             handleScan(detectedCodes[0].rawValue);
           }}
