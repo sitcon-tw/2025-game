@@ -176,9 +176,11 @@ function LinkPageClient() {
   });
 
   const { data: myBlocks, isLoading: isFragmentsLoading } = useQuery({
-    queryKey: ["fragments", playerData?.token],
+    queryKey: ["self-fragments", playerData?.token],
     queryFn: async () => {
-      const response = await fetch("/api/fragment?token=" + playerData?.token);
+      const response = await fetch(
+        "/api/fragment/self?token=" + playerData?.token,
+      );
 
       if (!response.ok) {
         const errorMessage = `Error: ${response.status} ${response.statusText}`;
