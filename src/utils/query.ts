@@ -232,14 +232,14 @@ const query = {
     if (type === "player") {
       const ranks = await prisma.player.findMany({
         select: { token: true, scores: true },
-        orderBy: { scores: "asc" },
+        orderBy: { scores: "desc" },
       });
       rank = ranks.findIndex((r) => r.token === id) + 1;
     }
     if (type === "team") {
       const ranks = await prisma.team.findMany({
         select: { team_id: true, scores: true },
-        orderBy: { scores: "asc" },
+        orderBy: { scores: "desc" },
       });
       rank = ranks.findIndex((r) => r.team_id === id) + 1;
     }
