@@ -64,7 +64,9 @@ export default function PersonalPage() {
               ) : (
                 <Skeleton className="h-7 w-32 bg-white/30" />
               )}
-              <p className="mt-1 text-sm text-white/70">探險者</p>
+              <p className="mt-1 text-sm text-white/70">
+                探險者{playerData?.team_id !== null && " | 已參加指南針計劃"}
+              </p>
             </div>
           </div>
         </div>
