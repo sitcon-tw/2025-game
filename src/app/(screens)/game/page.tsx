@@ -722,6 +722,9 @@ function GamePageClient() {
 
   const fragmentsString = JSON.stringify(fragments ?? []);
   const stageMapString = JSON.stringify(stageMap);
+
+  const [resetCounter, setResetCounter] = useState(0);
+
   // fetch data here
   useEffect(() => {
     // use fake data first. use api after available.
@@ -842,7 +845,11 @@ function GamePageClient() {
     setPlaceableGrid(
       createEmptyPlaceableGrid(gameGridData.length, gameGridData[0].length),
     );
-  }, [fragmentsString, stageMapString]);
+  }, [fragmentsString, stageMapString, resetCounter]);
+
+  function resetMap() {
+    setResetCounter((prev) => prev + 1);
+  }
 
   // Show loading screen while data is being fetched
   if (isPlayerDataLoading || isFragmentsLoading || isStageLoading) {
@@ -1002,7 +1009,8 @@ function GamePageClient() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => {
-                  window.location.reload();
+                  // window.location.reload();
+                  resetMap();
                 }}
               >
                 <RotateCcw
