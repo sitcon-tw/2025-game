@@ -44,12 +44,13 @@ export const GET = async (request: NextRequest) => {
       data: { is_selected: true },
     });
 
-    resultList.push(
-      await prisma.player.findMany({
+    resultList.push({
+      type: lottery_item.id,
+      list: await prisma.player.findMany({
         where: { token: { in: Array.from(drawnIdSet) } },
-        select: { name: true, email: true },
+        select: { name: true, email: true, token: true },
       }),
-    );
+    });
   }
 
   return success(resultList);
