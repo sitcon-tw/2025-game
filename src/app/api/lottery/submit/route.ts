@@ -20,6 +20,10 @@ export const POST = async (request: NextRequest) => {
   if (!lotteryQuery || !Array.isArray(lotteryQuery))
     return badRequest("Lottery query is required.");
 
+  if (Date.now() > new Date("2025-03-08T15:21:00.000Z").getTime()) {
+    return badRequest("Lottery submission deadline has passed.");
+  }
+
   const lotteryItems = lottery_items.map((item) => item.id);
   let totalNum = 0;
 

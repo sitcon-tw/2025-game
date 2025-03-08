@@ -70,6 +70,10 @@ export default function MyTicketsPage() {
                 ? restList
                 : restList.slice(0, 20);
 
+              if (targetList.lottery_list.length === 0 && Date.now() > new Date("2025-03-08T16:00:00.000+08:00").getTime()) {
+                return null;
+              }
+
               return (
                 <div
                   key={index}
@@ -108,7 +112,7 @@ export default function MyTicketsPage() {
                         {displayedList.map((lotteryId) => (
                           <span
                             key={lotteryId.lottery_id}
-                            className={`whitespace-normal pl-2 text-foreground ${lotteryId.is_selected && "font-bold text-red-400 underline"}`}
+                            className={`whitespace-normal pl-2 text-foreground ${lotteryId.is_selected && `font-bold text-red-400 underline`} ${(Date.now() > new Date("2025-03-08T16:00:00.000+08:00").getTime()) && "text-gray-700"}`}
                           >
                             {lotteryId.lottery_id}
                           </span>
@@ -125,9 +129,12 @@ export default function MyTicketsPage() {
                       </div>
                     </>
                   ) : (
-                    <span className="mx-auto mt-4 text-gray-500">
-                      您尚未購買抽獎券
-                    </span>
+                    Date.now() <
+                      new Date("2025-03-08T16:00:00.000+08:00").getTime() && (
+                      <span className="mx-auto mt-4 text-gray-500">
+                        您尚未購買抽獎券
+                      </span>
+                    )
                   )}
                 </div>
               );
