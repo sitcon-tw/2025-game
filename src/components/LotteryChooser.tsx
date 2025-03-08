@@ -55,7 +55,7 @@ function LotteryListing({
         <div>
           <span className="text-base">抽 {lottery.maxDrawn} 名 | </span>
           <span className="text-base">
-            {lotteryRecord[lotteryIndex] + submitted} / {lottery.total}
+            {lotteryRecord[lotteryIndex] + submitted} / {lottery.total} ({((lotteryRecord[lotteryIndex] + submitted) / lottery.total).toFixed(2)}%)
           </span>
         </div>
       </span>
