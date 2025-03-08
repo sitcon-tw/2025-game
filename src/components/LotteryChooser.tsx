@@ -5,6 +5,7 @@ import { Archive, ChevronUp, ChevronDown, X, OctagonAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { Lottery, LotteryItem } from "@/lib/interface";
+import { useQueryClient } from "@tanstack/react-query";
 
 function LotteryListing({
   lottery,
@@ -95,6 +96,8 @@ export default function LotteryChooser({
     setAmounts((prev) => prev + 1);
   };
 
+  const queryClient = useQueryClient();
+
   const submitLottery = async () => {
     const submission = lotteryList.map((lotteryItem, index) => {
       return { id: lotteryItem.id, num: lottery[index] };
@@ -107,8 +110,11 @@ export default function LotteryChooser({
     if (result.ok) {
       setIsOpenAction(false);
       setLottery(lotteryList.map(() => 0));
-      window.location.reload();
+      // window.location.reload();
     }
+    queryClient.invalidateQueries({
+      queryKey: ["player-data"],
+    });
   };
   const closeDialog = () => {
     setLottery(lotteryList.map(() => 0));
