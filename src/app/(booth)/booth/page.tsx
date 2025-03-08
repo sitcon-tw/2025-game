@@ -50,10 +50,10 @@ export default function Page() {
       // }
     }
     if (typeof playerToken !== "string") return;
-    const result = await sendPuzzle2Player(playerToken, boothToken);
+    const result = (await sendPuzzle2Player(playerToken, boothToken)).message;
     const playerInfo = await getPlayerPuzzle(playerToken);
     // setPlayerToken(null);
-    if (typeof result === "object") {
+    if (result === puzzleSuccess) {
       toast(`已為 ${playerInfo.user_id} 增加板塊`, { type: "success" });
     } else if (result === puzzleTaken) {
       toast(`${playerInfo.user_id} 已存在這張板塊`, { type: "warning" });
@@ -91,6 +91,7 @@ export default function Page() {
               <div className="aspect-square w-full overflow-hidden rounded-xl">
                 <QrCodeScanner
                   qrCodeSuccessCallback={(result) => {
+                    console.log("result", result);
                     handleResultThrottle(result);
                     // setPlayerToken(result);
                   }}
@@ -120,7 +121,7 @@ async function sendPuzzle2Player(playerToken: string, boothToken: string) {
     },
   })
     .then((res) => {
-      if (res.status === 400) return res.text();
+      // if (res.status === 400) return res.text();
       return res.json();
     })
     .catch((err) => {
