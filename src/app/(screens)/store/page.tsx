@@ -133,49 +133,51 @@ export default function StorePage() {
       <div className="overflow-y-scroll">
         <section id="lottery" className="w-full px-5 pt-2">
           <p className="py-2 text-lg">抽獎券</p>
-          {(Date.now() > new Date("2025-03-08T16:00:00.000+08:00").getTime()) ? (
+          {Date.now() > new Date("2025-03-08T16:00:00.000+08:00").getTime() ? (
             <>
+              <div className="flex flex-row items-center gap-3">
+                <div className="self-start">
+                  <Ticket className="text-foreground" size={50} />
+                </div>
+                <div>
+                  <p className="text-xl text-red-400">抽獎券購買已截止</p>
+                  <span className="text-red-400">
+                    請至「我的票券」檢視開獎狀態
+                  </span>
+                </div>
+              </div>
+            </>
+          ) : (
             <div className="flex flex-row items-center gap-3">
               <div className="self-start">
                 <Ticket className="text-foreground" size={50} />
               </div>
-              <div>
-              <p className="text-red-400 text-xl">抽獎券購買已截止</p>
-              <span className="text-red-400">請至「我的票券」檢視開獎狀態</span>
+              <div className="flex flex-grow flex-col gap-2 pt-2">
+                {priceList?.map((ticket, index) => (
+                  <div
+                    key={ticket.num}
+                    className="flex items-center justify-between"
+                  >
+                    <Button
+                      disabled={
+                        !playerData ||
+                        (playerData && ticket.price > playerData.points)
+                      }
+                      variant="default"
+                      className="flex-grow bg-blue-500 px-4 py-2 transition active:scale-95"
+                      onClick={() => {
+                        setLotteryAmount(ticket.num);
+                        setLotteryChooserOpen(true);
+                      }}
+                    >
+                      <span>
+                        {ticket.num} 張 - {ticket.price}點
+                      </span>
+                    </Button>
+                  </div>
+                ))}
               </div>
             </div>
-            </>
-          ) : (
-          <div className="flex flex-row items-center gap-3">
-            <div className="self-start">
-              <Ticket className="text-foreground" size={50} />
-            </div>
-            <div className="flex flex-grow flex-col gap-2 pt-2">
-              {priceList?.map((ticket, index) => (
-                <div
-                  key={ticket.num}
-                  className="flex items-center justify-between"
-                >
-                  <Button
-                    disabled={
-                      !playerData ||
-                      (playerData && ticket.price > playerData.points)
-                    }
-                    variant="default"
-                    className="flex-grow bg-blue-500 px-4 py-2 transition active:scale-95"
-                    onClick={() => {
-                      setLotteryAmount(ticket.num);
-                      setLotteryChooserOpen(true);
-                    }}
-                  >
-                    <span>
-                      {ticket.num} 張 - {ticket.price}點
-                    </span>
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
           )}
         </section>
       </div>

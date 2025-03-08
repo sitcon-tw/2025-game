@@ -70,7 +70,10 @@ export default function MyTicketsPage() {
                 ? restList
                 : restList.slice(0, 20);
 
-              if (targetList.lottery_list.length === 0 && Date.now() > new Date("2025-03-08T16:00:00.000+08:00").getTime()) {
+              if (
+                targetList.lottery_list.length === 0 &&
+                Date.now() > new Date("2025-03-08T16:00:00.000+08:00").getTime()
+              ) {
                 return null;
               }
 
@@ -112,7 +115,7 @@ export default function MyTicketsPage() {
                         {displayedList.map((lotteryId) => (
                           <span
                             key={lotteryId.lottery_id}
-                            className={`whitespace-normal pl-2 text-foreground ${lotteryId.is_selected && `font-bold text-red-400 underline`} ${(Date.now() > new Date("2025-03-08T16:00:00.000+08:00").getTime()) && "text-gray-700"}`}
+                            className={`whitespace-normal pl-2 text-foreground ${lotteryId.is_selected && `font-bold text-red-400 underline`} ${Date.now() > new Date("2025-03-08T16:00:00.000+08:00").getTime() && "text-gray-700"}`}
                           >
                             {lotteryId.lottery_id}
                           </span>
