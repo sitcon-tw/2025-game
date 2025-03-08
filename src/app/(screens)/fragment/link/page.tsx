@@ -138,6 +138,11 @@ function LinkPageClient() {
     mutationFn: async (qrCodeData: string) => {
       const data = JSON.parse(qrCodeData);
       console.log("fetch");
+
+      if (data.sharedToken === playerData?.share_token) {
+        throw new Error("You cannot share with yourself");
+      }
+
       console.log(
         JSON.stringify({
           token: token,
