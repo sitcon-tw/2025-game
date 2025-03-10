@@ -20,7 +20,7 @@ export const POST = async (request: NextRequest) => {
   if (!lotteryQuery || !Array.isArray(lotteryQuery))
     return badRequest("Lottery query is required.");
 
-  if (Date.now() > new Date("2025-03-08T15:21:00.000Z").getTime()) {
+  if (Date.now() > new Date("2025-03-08T16:00:00.000+08:00").getTime()) {
     return badRequest("Lottery submission deadline has passed.");
   }
 

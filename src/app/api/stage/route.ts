@@ -77,6 +77,9 @@ export const POST = async (request: NextRequest) => {
       return badRequest("Stage size mismatch.");
     }
 
+    let startExist = false;
+    let endExist = false;
+
     const isMapValid = map.every((row, rowIndex) =>
       row.every((cell, colIndex) => {
         const originStageCell = originStage.map[rowIndex][colIndex];
@@ -84,6 +87,19 @@ export const POST = async (request: NextRequest) => {
         // 僅有 empty 格子可以被修改
         if (originStageCell !== "empty" && originStageCell !== stageCell) {
           return false;
+        }
+        if (stageCell === "start") {
+          if (startExist) {
+            return false;
+          } else {
+            startExist = true;
+          }
+        } else if (stageCell === "end") {
+          if (endExist) {
+            return false;
+          } else {
+            endExist = true;
+          }
         }
         return true;
       }),
